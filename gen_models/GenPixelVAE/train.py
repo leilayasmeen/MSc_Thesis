@@ -5,6 +5,12 @@ Uses multiple GPUs, indicated by the flag --nr-gpu
 Example usage:
 CUDA_VISIBLE_DEVICES=0,1,2,3 python train_double_cnn.py --nr_gpu 4
 """
+use_ui = False
+if use_ui:
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import pyplot as plt
+    fig, ax = plt.subplots()
 
 import os
 import sys
@@ -17,52 +23,49 @@ import tensorflow as tf
 import scipy.misc
 
 import pixel_cnn_pp.nn as nn
-import pixel_cnn_pp.plotting as plotting
 from pixel_cnn_pp.model import model_spec, model_spec_encoder
 import data.cifar10_data as cifar10_data
-import data.imagenet_data as imagenet_data
-from pixel_cnn_pp.encoder import compute_mutual_information, ComputeLL
+
 # -----------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
 # data I/O
 parser.add_argument('-i', '--data_dir', type=str, default='data', help='Location for the dataset')
-parser.add_argument('-o', '--save_dir', type=str, default='elbo', help='Location for parameter checkpoints and samples')
+parser.add_argument('-o', '--save_dir', type=str, default='models', help='Location for parameter checkpoints and samples')
 parser.add_argument('-d', '--data_set', type=str, default='cifar', help='Can be either cifar|imagenet')
 parser.add_argument('-t', '--save_interval', type=int, default=1, help='Every how many epochs to write checkpoint/samples?')
 parser.add_argument('-r', '--load_params', dest='load_params', action='store_true', help='Restore training from previous model checkpoint?')
-parser.add_argument('-name', '--name', type=str, default='elbo', help='Name of the network')
 # model
 parser.add_argument('-q', '--nr_resnet', type=int, default=5, help='Number of residual blocks per stage of the model')
-parser.add_argument('-n', '--nr_filters', type=int, default=160, help='Number of filters to use across the model. Higher = larger model.')
-parser.add_argument('-m', '--nr_logistic_mix', type=int, default=10, help='Number of logistic components in the mixture. Higher = more flexible model')
+parser.add_argument('-n', '--nr_filters', type=int, default=120, help='Number of filters to use across the model. Higher = larger model.')
+parser.add_argument('-m', '--nr_logistic_mix', type=int, default=8, help='Number of logistic components in the mixture. Higher = more flexible model')
 parser.add_argument('-z', '--resnet_nonlinearity', type=str, default='concat_elu', help='Which nonlinearity to use in the ResNet layers. One of "concat_elu", "elu", "relu" ')
 parser.add_argument('-c', '--class_conditional', dest='class_conditional', action='store_true', help='Condition generative model on labels?')
 parser.add_argument('-ae', '--use_autoencoder', dest='use_autoencoder', action='store_true', help='Use autoencoders?')
 parser.add_argument('-reg', '--reg_type', type=str, default='elbo', help='Type of regularization to use for autoencoder')
-parser.add_argument('-cs', '--chain_step', type=int, default=10, help='Steps to run Markov chain for sampling')
+parser.add_argument('-cs', '--chain_step', type=int, default=5, help='Steps to run Markov chain for sampling')
+parser.add_argument('-ld', '--latent_dim', type=int, default=2, help='Dimension of latent code')
 # optimization
 parser.add_argument('-l', '--learning_rate', type=float, default=0.001, help='Base learning rate')
 parser.add_argument('-e', '--lr_decay', type=float, default=0.999995, help='Learning rate decay, applied every step of the optimization')
-parser.add_argument('-b', '--batch_size', type=int, default=12, help='Batch size during training per GPU')
+parser.add_argument('-b', '--batch_size', type=int, default=24, help='Batch size during training per GPU')
 parser.add_argument('-a', '--init_batch_size', type=int, default=80, help='How much data to use for data-dependent initialization.')
 parser.add_argument('-p', '--dropout_p', type=float, default=0.5, help='Dropout strength (i.e. 1 - keep_prob). 0 = No dropout, higher = more dropout.')
 parser.add_argument('-x', '--max_epochs', type=int, default=5000, help='How many epochs to run in total?')
-parser.add_argument('-g', '--nr_gpu', type=int, default=2, help='How many GPUs to distribute the training across?')
-parser.add_argument('-gid', '--gpu_id', type=str, default='', help='Which GPUs to use')
+parser.add_argument('-gid', '--gpus', type=str, default='0', help='Which GPUs to use')
 # evaluation
 parser.add_argument('--polyak_decay', type=float, default=0.9995, help='Exponential decay rate of the sum of previous model iterates during Polyak averaging')
 # reproducibility
 parser.add_argument('-s', '--seed', type=int, default=1, help='Random seed to use')
 args = parser.parse_args()
-print('input args:\n', json.dumps(vars(args), indent=4, separators=(',',':'))) # pretty print args
+print('input args:\n', json.dumps(vars(args), indent=4, separators=(',', ':'))) # pretty print args
 
-# python train.py --use_autoencoder --save_dir=elbo --name=elbo --reg_type=elbo
-# python train.py --use_autoencoder --save_dir=no_reg --name=no_reg --reg_type=no_reg
-if args.gpu_id != "":
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+# python train.py --use_autoencoder --save_dir=elbo --reg_type=elbo --load_params --gpu_id=0,1 --nr_gpu=2
+# python train.py --use_autoencoder --save_dir=no_reg --reg_type=no_reg --load_params --gpu_id=2,3 --nr_gpu=2
+# python train.py --use_autoencoder --save_dir=kernel --reg_type=kernel --gpus=2,3
 
-latent_dim = 20
-args.latent_dim = latent_dim
+args.nr_gpu = len(args.gpus.split(','))
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpus
+
 # -----------------------------------------------------------------------------
 # fix random seed for reproducibility
 rng = np.random.RandomState(args.seed)
@@ -71,7 +74,7 @@ tf.set_random_seed(args.seed)
 # initialize data loaders for train/test splits
 if args.data_set == 'imagenet' and args.class_conditional:
     raise("We currently don't have labels for the small imagenet data set")
-DataLoader = {'cifar':cifar10_data.DataLoader, 'imagenet':imagenet_data.DataLoader}[args.data_set]
+DataLoader = {'cifar':cifar10_data.DataLoader}[args.data_set]
 train_data = DataLoader(args.data_dir, 'train', args.batch_size * args.nr_gpu, rng=rng, shuffle=True, return_labels=args.class_conditional)
 test_data = DataLoader(args.data_dir, 'test', args.batch_size * args.nr_gpu, shuffle=False, return_labels=args.class_conditional)
 obs_shape = train_data.get_observation_size() # e.g. a tuple (32,32,3)
@@ -94,19 +97,17 @@ if args.class_conditional:
     hs = [tf.one_hot(ys[i], num_labels) for i in range(args.nr_gpu)]
 elif args.use_autoencoder:
     # h_init = tf.placeholder(tf.float32, shape=(args.init_batch_size, latent_dim))
-    h_sample = [tf.placeholder(tf.float32, shape=(args.batch_size, latent_dim)) for i in range(args.nr_gpu)]
+    h_sample = [tf.placeholder(tf.float32, shape=(args.batch_size, args.latent_dim)) for i in range(args.nr_gpu)]
 else:
     h_init = None
     h_sample = [None] * args.nr_gpu
     hs = h_sample
 
 # create the model
-model_opt = { 'nr_resnet': args.nr_resnet, 'nr_filters': args.nr_filters, 'nr_logistic_mix': args.nr_logistic_mix, 'resnet_nonlinearity': args.resnet_nonlinearity }
+model_opt = {'nr_resnet': args.nr_resnet, 'nr_filters': args.nr_filters, 'nr_logistic_mix': args.nr_logistic_mix, 'resnet_nonlinearity': args.resnet_nonlinearity}
 model = tf.make_template('model', model_spec)
 if args.use_autoencoder:
-    encoder_opt = model_opt.copy()
-    encoder_opt['reg_type'] = args.reg_type
-    encoder_opt['latent_dim'] = latent_dim
+    encoder_opt = {'reg_type': args.reg_type, 'latent_dim': args.latent_dim}
     encoder_model = tf.make_template('encoder', model_spec_encoder)
 
 # run once for data dependent initialization of parameters
@@ -127,6 +128,7 @@ loss_gen = []
 loss_gen_reg = []
 loss_gen_elbo = []
 loss_gen_test = []
+encoder_preds = []
 for i in range(args.nr_gpu):
     with tf.device('/gpu:%d' % i):
         # train
@@ -135,6 +137,7 @@ for i in range(args.nr_gpu):
             gen_par = model(xs[i], encoder.pred, ema=None, dropout_p=args.dropout_p, **model_opt)
             loss_gen_reg.append(encoder.reg_loss)
             loss_gen_elbo.append(encoder.elbo_loss)
+            encoder_preds.append(encoder.pred)
         else:
             gen_par = model(xs[i], hs[i], ema=None, dropout_p=args.dropout_p, **model_opt)
         loss_gen.append(nn.discretized_mix_logistic_loss(xs[i], gen_par))
@@ -155,6 +158,7 @@ for i in range(args.nr_gpu):
 # add losses and gradients together and get training updates
 tf_lr = tf.placeholder(tf.float32, shape=[])
 with tf.device('/gpu:0'):
+    encoder_pred = tf.concat(values=encoder_preds, axis=0)
     for i in range(1,args.nr_gpu):
         loss_gen[0] += loss_gen[i]
         loss_gen_test[0] += loss_gen_test[i]
@@ -187,7 +191,7 @@ for i in range(args.nr_gpu):
         else:
             gen_par = model(xs[i], h_sample[i], ema=ema, dropout_p=0, **model_opt)
         new_x_gen.append(nn.sample_from_discretized_mix_logistic(gen_par, args.nr_logistic_mix))
-compute_ll = ComputeLL(latent_dim)
+
 
 def sample_from_model(sess):
     x_gen = [np.zeros((args.batch_size,) + obs_shape, dtype=np.float32) for i in range(args.nr_gpu)]
@@ -198,9 +202,10 @@ def sample_from_model(sess):
                 x_gen[i][:,yi,xi,:] = new_x_gen_np[i][:,yi,xi,:]
     return np.concatenate(x_gen, axis=0)
 
-def sample_from_decoder_prior(sess):
+
+def sample_from_prior(sess):
     x_gen = [np.zeros((args.batch_size,) + obs_shape, dtype=np.float32) for i in range(args.nr_gpu)]
-    latent_code = [np.random.normal(size=(args.batch_size, latent_dim)) for i in range(args.nr_gpu)]
+    latent_code = [np.random.normal(size=(args.batch_size, args.latent_dim)) for i in range(args.nr_gpu)]
     for yi in range(obs_shape[0]):
         for xi in range(obs_shape[1]):
             feed_dict = {xs[i]: x_gen[i] for i in range(args.nr_gpu)}
@@ -209,6 +214,7 @@ def sample_from_decoder_prior(sess):
             for i in range(args.nr_gpu):
                 x_gen[i][:,yi,xi,:] = new_x_gen_np[i][:,yi,xi,:]
     return np.concatenate(x_gen, axis=0)
+
 
 def sample_from_markov_chain(sess, initial=None):
     history = []
@@ -239,19 +245,31 @@ def sample_from_markov_chain(sess, initial=None):
         sys.stdout.flush()
     return history
 
+
 def plot_markov_chain(history):
     canvas = np.zeros((args.nr_gpu*args.batch_size*obs_shape[0], len(history)*obs_shape[1], obs_shape[2]))
     for i in range(args.nr_gpu*args.batch_size):
         for j in range(len(history)):
             canvas[i*obs_shape[0]:(i+1)*obs_shape[0], j*obs_shape[1]:(j+1)*obs_shape[1], :] = history[j][i]
+    print(np.min(canvas), np.max(canvas))
+    return canvas
+
+
+def plot_img(images, num_img):
+    canvas = np.zeros((num_img*obs_shape[0], num_img*obs_shape[1], obs_shape[2]))
+    for i in range(num_img):
+        for j in range(num_img):
+            canvas[i*obs_shape[0]:(i+1)*obs_shape[0], j*obs_shape[1]:(j+1)*obs_shape[1], :] = images[i*num_img+j]
+    print(np.min(canvas), np.max(canvas))
     return canvas
 
 # init & save
-initializer = tf.initialize_all_variables()
+initializer = tf.global_variables_initializer()
 saver = tf.train.Saver()
 all_summary = tf.summary.merge_all()
 writer = tf.summary.FileWriter(logdir=args.save_dir)
-file_logger = open(os.path.join(args.save_dir, 'train_log'), 'w')
+
+
 # turn numpy inputs into feed_dict for use with tensorflow
 def make_feed_dict(data, init=False):
     if type(data) is tuple:
@@ -284,7 +302,8 @@ test_bpd = []
 lr = args.learning_rate
 global_step = 0
 
-gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.9, allow_growth=True)
+#fig, ax = plt.subplots()
+gpu_options = tf.GPUOptions(allow_growth=True)
 with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, allow_soft_placement=True)) as sess:
     for epoch in range(args.max_epochs):
         # init
@@ -296,59 +315,60 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, allow_soft_placem
             if args.load_params:
                 ckpt_file = args.save_dir + '/params_' + args.data_set + '.ckpt'
                 print('restoring parameters from', ckpt_file)
-                saver.restore(sess, ckpt_file)
-
-        # Compute mutual information
-        file_logger.write("%d " % epoch)
-        if args.use_autoencoder:
-            mutual_info = compute_mutual_information(data=train_data, args=args, sess=sess, encoder_list=encoder_list, ll_compute=compute_ll)
-            train_data.reset()
-            file_logger.write("%f " % mutual_info)
-            file_logger.flush()
+                try:
+                    saver.restore(sess, ckpt_file)
+                except:
+                    print("Error: Restore file failed")
 
         # generate samples from the model
-        if args.use_autoencoder and epoch % 20 == 0:
+        if args.use_autoencoder and (epoch + 1) % 100 == 0:
             print("Generating MC")
             start_time = time.time()
             initial = np.random.uniform(0.0, 1.0, (args.batch_size * args.nr_gpu,) + obs_shape)
-            for mc_step in range(100):
-                sample_history = sample_from_markov_chain(sess, initial)
-                initial = sample_history[-1]
-                sample_plot = plot_markov_chain(sample_history)
-                scipy.misc.imsave(os.path.join(args.save_dir, '%s_mc%d.png' % (args.data_set, mc_step)), sample_plot)
+            sample_history = sample_from_markov_chain(sess, initial)
+            initial = sample_history[-1]
+            sample_plot = plot_markov_chain(sample_history)
+            scipy.misc.imsave(os.path.join(args.save_dir, '%s_mc%d.png' % (args.data_set, epoch)), sample_plot)
             print("Finished, time elapsed %fs" % (time.time() - start_time))
-            exit(0)
 
         # generate samples from the model
         if epoch % 2 == 0:
             print("Generating samples")
             start_time = time.time()
             if args.use_autoencoder:
-                sample_x = sample_from_decoder_prior(sess)
+                sample_x = sample_from_prior(sess)
             else:
                 sample_x = sample_from_model(sess)
-            img_tile = plotting.img_tile(sample_x[:int(np.floor(np.sqrt(args.batch_size * args.nr_gpu)) ** 2)],
-                                         aspect_ratio=1.0, border_color=1.0, stretch=True)
-            img = plotting.plot_img(img_tile, title=args.data_set + ' samples')
-            plotting.plt.savefig(os.path.join(args.save_dir, '%s_sample%d.png' % (args.data_set, epoch)))
-            plotting.plt.close('all')
+            img_tile = plot_img(sample_x, int(np.floor(np.sqrt(args.batch_size * args.nr_gpu))))
+            scipy.misc.imsave(os.path.join(args.save_dir, "%s_ancestral%d.png" % (args.data_set, epoch)), img_tile)
             print("Finished, time elapsed %fs" % (time.time() - start_time))
 
         begin = time.time()
         # train for one epoch
         train_losses = []
         batch_c = 10
+        latents = []
         for d in train_data:
             feed_dict = make_feed_dict(d)
             # forward/backward/update model on each gpu
             lr *= args.lr_decay
             feed_dict.update({ tf_lr: lr })
-            l, _, summaries = sess.run([bits_per_dim, optimizer, all_summary], feed_dict)
+            l, _, summaries, latent = sess.run([bits_per_dim, optimizer, all_summary, encoder_pred], feed_dict)
+            if len(latents) < 10:
+                latents.append(latent)
             train_losses.append(l)
             if global_step % 5 == 0:
                 writer.add_summary(summaries, global_step)
             global_step += 1
         train_loss_gen = np.mean(train_losses)
+        latent = np.concatenate(latents, axis=0)
+
+        if use_ui:
+            ax.cla()
+            ax.scatter(latent[:, 0], latent[:, 1])
+            plt.draw()
+            plt.savefig(os.path.join(args.save_dir, 'latent.png'))
+            plt.pause(0.5)
 
         # compute likelihood over test data
         test_losses = []
@@ -358,7 +378,6 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, allow_soft_placem
             test_losses.append(l)
         test_loss_gen = np.mean(test_losses)
         test_bpd.append(test_loss_gen)
-        file_logger.write("%f\n" % test_loss_gen)
 
         # log progress to console
         print("Iteration %d, time = %ds, train bits_per_dim = %.4f, test bits_per_dim = %.4f" % (epoch, time.time()-begin, train_loss_gen, test_loss_gen))
@@ -368,3 +387,10 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, allow_soft_placem
             # save params
             saver.save(sess, args.save_dir + '/params_' + args.data_set + '.ckpt')
             np.savez(args.save_dir + '/test_bpd_' + args.data_set + '.npz', test_bpd=np.array(test_bpd))
+
+#
+#
+# data = tf.Variable(tf.zeros([1000, 10]))
+# sess.run(tf.assign(data, value))
+# saver = tf.train.Saver()
+# saver.save(sess, args.save_dir + '/params.ckpt')

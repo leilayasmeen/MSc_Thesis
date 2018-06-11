@@ -14,7 +14,7 @@ def int_shape(x):
 def concat_elu(x):
     """ like concatenated ReLU (http://arxiv.org/abs/1603.05201), but then with ELU """
     axis = len(x.get_shape())-1
-    return tf.nn.elu(tf.concat(axis, [x, -x]))
+    return tf.nn.elu(tf.concat(axis=axis, values=[x, -x]))
 
 def log_sum_exp(x):
     """ numerically stable log_sum_exp implementation that prevents overflow """
@@ -42,7 +42,7 @@ def discretized_mix_logistic_loss(x,l,sum_all=True):
     x = tf.reshape(x, xs + [1]) + tf.zeros(xs + [nr_mix]) # here and below: getting the means and adjusting them based on preceding sub-pixels
     m2 = tf.reshape(means[:,:,:,1,:] + coeffs[:, :, :, 0, :] * x[:, :, :, 0, :], [xs[0],xs[1],xs[2],1,nr_mix])
     m3 = tf.reshape(means[:, :, :, 2, :] + coeffs[:, :, :, 1, :] * x[:, :, :, 0, :] + coeffs[:, :, :, 2, :] * x[:, :, :, 1, :], [xs[0],xs[1],xs[2],1,nr_mix])
-    means = tf.concat(3,[tf.reshape(means[:,:,:,0,:], [xs[0],xs[1],xs[2],1,nr_mix]), m2, m3])
+    means = tf.concat(axis=3, values=[tf.reshape(means[:,:,:,0,:], [xs[0],xs[1],xs[2],1,nr_mix]), m2, m3])
     centered_x = x - means
     inv_stdv = tf.exp(-log_scales)
     plus_in = inv_stdv * (centered_x + 1./255.)
@@ -64,7 +64,7 @@ def discretized_mix_logistic_loss(x,l,sum_all=True):
     # tensorflow backpropagates through tf.select() by multiplying with zero instead of selecting: this requires use to use some ugly tricks to avoid potential NaNs
     # the 1e-12 in tf.maximum(cdf_delta, 1e-12) is never actually used as output, it's purely there to get around the tf.select() gradient issue
     # if the probability on a sub-pixel is below 1e-5, we use an approximation based on the assumption that the log-density is constant in the bin of the observed sub-pixel value
-    log_probs = tf.select(x < -0.999, log_cdf_plus, tf.select(x > 0.999, log_one_minus_cdf_min, tf.select(cdf_delta > 1e-5, tf.log(tf.maximum(cdf_delta, 1e-12)), log_pdf_mid - np.log(127.5))))
+    log_probs = tf.where(x < -0.999, log_cdf_plus, tf.where(x > 0.999, log_one_minus_cdf_min, tf.where(cdf_delta > 1e-5, tf.log(tf.maximum(cdf_delta, 1e-12)), log_pdf_mid - np.log(127.5))))
 
     log_probs = tf.reduce_sum(log_probs,3) + log_prob_from_logits(logit_probs)
     if sum_all:
@@ -92,7 +92,7 @@ def sample_from_discretized_mix_logistic(l,nr_mix):
     x0 = tf.minimum(tf.maximum(x[:,:,:,0], -1.), 1.)
     x1 = tf.minimum(tf.maximum(x[:,:,:,1] + coeffs[:,:,:,0]*x0, -1.), 1.)
     x2 = tf.minimum(tf.maximum(x[:,:,:,2] + coeffs[:,:,:,1]*x0 + coeffs[:,:,:,2]*x1, -1.), 1.)
-    return tf.concat(3,[tf.reshape(x0,xs[:-1]+[1]), tf.reshape(x1,xs[:-1]+[1]), tf.reshape(x2,xs[:-1]+[1])])
+    return tf.concat(axis=3, values=[tf.reshape(x0,xs[:-1]+[1]), tf.reshape(x1,xs[:-1]+[1]), tf.reshape(x2,xs[:-1]+[1])])
 
 def get_var_maybe_avg(var_name, ema, **kwargs):
     ''' utility for retrieving polyak averaged params '''
@@ -283,7 +283,7 @@ def gated_resnet(x, a=None, h=None, nonlinearity=concat_elu, conv=conv2d, init=F
             hw = hw.initialized_value()
         c2 += tf.reshape(tf.matmul(h, hw), [xs[0], 1, 1, 2 * num_filters])
 
-    a, b = tf.split(3, 2, c2)
+    a, b = tf.split(axis=3, num_or_size_splits=2, value=c2)
     c3 = a * tf.nn.sigmoid(b)
     return x + c3
 
@@ -291,11 +291,11 @@ def gated_resnet(x, a=None, h=None, nonlinearity=concat_elu, conv=conv2d, init=F
 
 def down_shift(x):
     xs = int_shape(x)
-    return tf.concat(1,[tf.zeros([xs[0],1,xs[2],xs[3]]), x[:,:xs[1]-1,:,:]])
+    return tf.concat(axis=1, values=[tf.zeros([xs[0],1,xs[2],xs[3]]), x[:,:xs[1]-1,:,:]])
 
 def right_shift(x):
     xs = int_shape(x)
-    return tf.concat(2,[tf.zeros([xs[0],xs[1],1,xs[3]]), x[:,:,:xs[2]-1,:]])
+    return tf.concat(axis=2, values=[tf.zeros([xs[0],xs[1],1,xs[3]]), x[:,:,:xs[2]-1,:]])
 
 @add_arg_scope
 def down_shifted_conv2d(x, num_filters, filter_size=[2,3], stride=[1,1], **kwargs):

@@ -7,15 +7,12 @@ from tensorflow.contrib.framework.python.ops import arg_scope
 import pixel_cnn_pp.nn as nn
 from pixel_cnn_pp.encoder import ConvolutionalEncoder
 
-def model_spec_encoder(encoder_X, init=False, ema=None, dropout_p=0.5, nr_resnet=5, nr_filters=160, nr_logistic_mix=10, resnet_nonlinearity='concat_elu', reg_type='None', latent_dim=20):
+
+def model_spec_encoder(encoder_X, init=False, ema=None, dropout_p=0.5, reg_type='None', latent_dim=20):
     with arg_scope([nn.conv2d, nn.deconv2d, nn.gated_resnet, nn.dense], init=init, ema=ema, dropout_p=dropout_p):
         encoder = ConvolutionalEncoder(encoder_X, reg_type, latent_dim)
     return encoder
 
-# def model_spec_with_autoencoder(x, encoder_X, init=False, ema=None, dropout_p=0.5, nr_resnet=5, nr_filters=160, nr_logistic_mix=10, resnet_nonlinearity='concat_elu', reg_type='None', latent_dim=20):
-#     with arg_scope([nn.conv2d, nn.deconv2d, nn.gated_resnet, nn.dense], init=init, ema=ema, dropout_p=dropout_p):
-#         encoder = ConvolutionalEncoder(encoder_X, reg_type, latent_dim)
-#     return model_spec(x, encoder.pred, init, ema, dropout_p, nr_resnet, nr_filters, nr_logistic_mix, resnet_nonlinearity), encoder
 
 def model_spec(x, h=None, init=False, ema=None, dropout_p=0.5, nr_resnet=5, nr_filters=160, nr_logistic_mix=10, resnet_nonlinearity='concat_elu'):
     """
@@ -43,7 +40,7 @@ def model_spec(x, h=None, init=False, ema=None, dropout_p=0.5, nr_resnet=5, nr_f
 
             # ////////// up pass through pixelCNN ////////
             xs = nn.int_shape(x)
-            x_pad = tf.concat(3,[x,tf.ones(xs[:-1]+[1])]) # add channel of ones to distinguish image from padding later on
+            x_pad = tf.concat(axis=3, values=[x,tf.ones(xs[:-1]+[1])]) # add channel of ones to distinguish image from padding later on
             u_list = [nn.down_shift(nn.down_shifted_conv2d(x_pad, num_filters=nr_filters, filter_size=[2, 3]))] # stream for pixels above
             ul_list = [nn.down_shift(nn.down_shifted_conv2d(x_pad, num_filters=nr_filters, filter_size=[1,3])) + \
                        nn.right_shift(nn.down_right_shifted_conv2d(x_pad, num_filters=nr_filters, filter_size=[2,1]))] # stream for up and to the left
@@ -71,21 +68,21 @@ def model_spec(x, h=None, init=False, ema=None, dropout_p=0.5, nr_resnet=5, nr_f
             ul = ul_list.pop()
             for rep in range(nr_resnet):
                 u = nn.gated_resnet(u, u_list.pop(), conv=nn.down_shifted_conv2d)
-                ul = nn.gated_resnet(ul, tf.concat(3,[u, ul_list.pop()]), conv=nn.down_right_shifted_conv2d)
+                ul = nn.gated_resnet(ul, tf.concat(axis=3, values=[u, ul_list.pop()]), conv=nn.down_right_shifted_conv2d)
 
             u = nn.down_shifted_deconv2d(u, num_filters=nr_filters, stride=[2, 2])
             ul = nn.down_right_shifted_deconv2d(ul, num_filters=nr_filters, stride=[2, 2])
 
             for rep in range(nr_resnet+1):
                 u = nn.gated_resnet(u, u_list.pop(), conv=nn.down_shifted_conv2d)
-                ul = nn.gated_resnet(ul, tf.concat(3, [u, ul_list.pop()]), conv=nn.down_right_shifted_conv2d)
+                ul = nn.gated_resnet(ul, tf.concat(axis=3, values=[u, ul_list.pop()]), conv=nn.down_right_shifted_conv2d)
 
             u = nn.down_shifted_deconv2d(u, num_filters=nr_filters, stride=[2, 2])
             ul = nn.down_right_shifted_deconv2d(ul, num_filters=nr_filters, stride=[2, 2])
 
             for rep in range(nr_resnet+1):
                 u = nn.gated_resnet(u, u_list.pop(), conv=nn.down_shifted_conv2d)
-                ul = nn.gated_resnet(ul, tf.concat(3, [u, ul_list.pop()]), conv=nn.down_right_shifted_conv2d)
+                ul = nn.gated_resnet(ul, tf.concat(axis=3, values=[u, ul_list.pop()]), conv=nn.down_right_shifted_conv2d)
 
             x_out = nn.nin(tf.nn.elu(ul),10*nr_logistic_mix)
 
