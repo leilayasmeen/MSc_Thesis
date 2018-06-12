@@ -1,108 +1,123 @@
-import tflib as lib
+import lib
+import lib.debug
 
 import numpy as np
-import tensorflow as tf
+import theano
+import theano.tensor as T
 
 _default_weightnorm = False
 def enable_default_weightnorm():
     global _default_weightnorm
     _default_weightnorm = True
 
-def Conv2D(name, input_dim, output_dim, filter_size, inputs, he_init=True, mask_type=None, stride=1, weightnorm=None, biases=True, gain=1.):
+def Conv2D(name, input_dim, output_dim, filter_size, inputs, he_init=True, mask_type=None, mode = 'half', stride=1, weightnorm=None, biases=True):
     """
     inputs: tensor of shape (batch size, num channels, height, width)
-    mask_type: one of None, 'a', 'b'
+    mask_type: one of None, 'a', 'b', 'hstack_a', 'hstack', 'vstack'
 
     returns: tensor of shape (batch size, num channels, height, width)
     """
-    with tf.name_scope(name) as scope:
+    if mask_type is not None:
+        mask_type, mask_n_channels = mask_type
+        assert(mode == "half")
 
-        if mask_type is not None:
-            mask_type, mask_n_channels = mask_type
+    if isinstance(filter_size, int): 
+        filter_size = (filter_size, filter_size)
 
-            mask = np.ones(
-                (filter_size, filter_size, input_dim, output_dim), 
-                dtype='float32'
-            )
-            center = filter_size // 2
+    #else it is assumed to be a tuple
 
-            # Mask out future locations
-            # filter shape is (height, width, input channels, output channels)
-            mask[center+1:, :, :, :] = 0.
-            mask[center, center+1:, :, :] = 0.
+    def uniform(stdev, size):
+        return np.random.uniform(
+            low=-stdev * np.sqrt(3),
+            high=stdev * np.sqrt(3),
+            size=size
+        ).astype(theano.config.floatX)
 
-            # Mask out future channels
-            for i in xrange(mask_n_channels):
-                for j in xrange(mask_n_channels):
-                    if (mask_type=='a' and i >= j) or (mask_type=='b' and i > j):
-                        mask[
-                            center,
-                            center,
-                            i::mask_n_channels,
-                            j::mask_n_channels
-                        ] = 0.
+    fan_in = input_dim * filter_size[0]*filter_size[1]
+    fan_out = output_dim * filter_size[0]*filter_size[1]
+    # TODO: shouldn't fan_out be divided by stride
 
 
-        def uniform(stdev, size):
-            return np.random.uniform(
-                low=-stdev * np.sqrt(3),
-                high=stdev * np.sqrt(3),
-                size=size
-            ).astype('float32')
+    if mask_type is not None: # only approximately correct
+        fan_in /= 2.
+        fan_out /= 2.
 
-        fan_in = input_dim * filter_size**2
-        fan_out = output_dim * filter_size**2 / (stride**2)
+    if he_init:
+        filters_stdev = np.sqrt(4./(fan_in+fan_out))
+    else: # Normalized init (Glorot & Bengio)
+        filters_stdev = np.sqrt(2./(fan_in+fan_out))
 
-        if mask_type is not None: # only approximately correct
-            fan_in /= 2.
-            fan_out /= 2.
+    filter_values = uniform(
+        filters_stdev,
+        (output_dim, input_dim, filter_size[0], filter_size[1])
+    )
 
-        if he_init:
-            filters_stdev = np.sqrt(4./(fan_in+fan_out))
-        else: # Normalized init (Glorot & Bengio)
-            filters_stdev = np.sqrt(2./(fan_in+fan_out))
+    filters = lib.param(name+'.Filters', filter_values)
 
-        filter_values = uniform(
-            filters_stdev,
-            (filter_size, filter_size, input_dim, output_dim)
+    if weightnorm==None:
+        weightnorm = _default_weightnorm
+    if weightnorm:
+        norm_values = np.linalg.norm(filter_values.reshape((filter_values.shape[0], -1)), axis=1)
+        norms = lib.param(
+            name + '.g',
+            norm_values
         )
-        # print "WARNING IGNORING GAIN"
-        filter_values *= gain
+        filters = filters * (norms / filters.reshape((filters.shape[0],-1)).norm(2, axis=1)).dimshuffle(0,'x','x','x')
 
-        filters = lib.param(name+'.Filters', filter_values)
+    if mask_type is not None:
+        mask = np.ones(
+            (output_dim, input_dim, filter_size[0], filter_size[1]), 
+            dtype=theano.config.floatX
+        )
+        center_row = filter_size[0] // 2
 
-        if weightnorm==None:
-            weightnorm = _default_weightnorm
-        if weightnorm:
-            norm_values = np.sqrt(np.sum(np.square(filter_values), axis=(0,1,2)))
-            target_norms = lib.param(
-                name + '.g',
-                norm_values
-            )
-            with tf.name_scope('weightnorm') as scope:
-                norms = tf.sqrt(tf.reduce_sum(tf.square(filters), reduction_indices=[0,1,2]))
-                filters = filters * (target_norms / norms)
+        center_col = filter_size[1]//2
 
-        if mask_type is not None:
-            with tf.name_scope('filter_mask'):
-                filters = filters * mask
+        # Mask out future locations
+        # filter shape is (out_channels, in_channels, height, width)
+        if center_row == 0:
+            mask[:, :, :, center_col+1:] = 0.
+        elif center_col == 0:
+            mask[:, :, center_row+1:, :] = 0.
+        else:
+            mask[:, :, center_row+1:, :] = 0.
+            mask[:, :, center_row, center_col+1:] = 0.
 
-        result = tf.nn.conv2d(
-            input=inputs, 
-            filter=filters, 
-            strides=[1, 1, stride, stride],
-            padding='SAME',
-            data_format='NCHW'
+        # Mask out future channels
+        for i in xrange(mask_n_channels):
+            for j in xrange(mask_n_channels):
+                if ((mask_type=='a' or mask_type == 'hstack_a') and i >= j) or (mask_type=='b' and i > j):
+                    mask[
+                        j::mask_n_channels,
+                        i::mask_n_channels,
+                        center_row,
+                        center_col
+                    ] = 0.
+
+        if mask_type == 'vstack':
+            assert(center_col > 0 and center_row > 0)
+            mask[:, :, center_row, :] = 1.
+
+        # print mask[0,0,:,:]
+
+
+        filters = filters * mask
+
+    if biases:
+        _biases = lib.param(
+            name+'.Biases',
+            np.zeros(output_dim, dtype=theano.config.floatX)
         )
 
-        if biases:
-            _biases = lib.param(
-                name+'.Biases',
-                np.zeros(output_dim, dtype='float32')
-            )
+    result = T.nnet.conv2d(
+        inputs, 
+        filters, 
+        border_mode=mode,
+        filter_flip=False,
+        subsample=(stride,stride)
+    )
 
-            result = tf.nn.bias_add(result, _biases, data_format='NCHW')
-
-        # lib.debug.print_stats(name, result)
-
-        return result
+    if biases:
+        result = result + _biases[None, :, None, None]
+    # result = lib.debug.print_stats(name, result)
+    return result

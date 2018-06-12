@@ -5,7 +5,7 @@ Ishaan Gulrajani
 
 
 """
-Modified by Kundan Kumar
+Modified by Leila Islam
 
 Usage: THEANO_FLAGS='mode=FAST_RUN,device=gpu0,floatX=float32,lib.cnmem=.95' python models/mnist_pixelvae_train.py -L 12 -fs 5 -algo cond_z_bias -dpx 16 -ldim 16
 """
@@ -60,7 +60,7 @@ lib.ops.conv2d.enable_default_weightnorm()
 lib.ops.linear.enable_default_weightnorm()
 
 if args.out_dir is None:
-    OUT_DIR_PREFIX = '/Tmp/kumarkun/mnist_pixel_final'
+    OUT_DIR_PREFIX = '/Tmp/mnist_pixel_final'
 else:
     OUT_DIR_PREFIX = args.out_dir
 

@@ -1,6 +1,10 @@
-import numpy as np
-import tensorflow as tf
+import numpy
+import theano
+import theano.tensor as T
 
+import cPickle as pickle
+import math
+import time
 import locale
 
 locale.setlocale(locale.LC_ALL, '')
@@ -8,9 +12,9 @@ locale.setlocale(locale.LC_ALL, '')
 _params = {}
 def param(name, *args, **kwargs):
     """
-    A wrapper for `tf.Variable` which enables parameter sharing in models.
+    A wrapper for `theano.shared` which enables parameter sharing in models.
     
-    Creates and returns theano shared variables similarly to `tf.Variable`, 
+    Creates and returns theano shared variables similarly to `theano.shared`, 
     except if you try to create a param with the same name as a 
     previously-created one, `param(...)` will just return the old one instead of 
     making a new one.
@@ -21,67 +25,100 @@ def param(name, *args, **kwargs):
 
     if name not in _params:
         kwargs['name'] = name
-        param = tf.Variable(*args, **kwargs)
+        param = theano.shared(*args, **kwargs)
         param.param = True
         _params[name] = param
     return _params[name]
 
-def params_with_name(name):
-    return [p for n,p in _params.items() if name in n]
+def delete_params_with_name(name):
+    to_delete = [p_name for p_name in _params if name in p_name]
+    for p_name in to_delete:
+        del _params[p_name]
 
 def delete_all_params():
-    _params.clear()
+    to_delete = [p_name for p_name in _params]
+    for p_name in to_delete:
+        del _params[p_name]
 
-# def search(node, critereon):
-#     """
-#     Traverse the Theano graph starting at `node` and return a list of all nodes
-#     which match the `critereon` function. When optimizing a cost function, you 
-#     can use this to get a list of all of the trainable params in the graph, like
-#     so:
+def save_params(path):
+    param_vals = {}
+    for name, param in _params.iteritems():
+        param_vals[name] = param.get_value()
+        # print name
 
-#     `lib.search(cost, lambda x: hasattr(x, "param"))`
-#     """
+    with open(path, 'wb') as f:
+        pickle.dump(param_vals, f)
 
-#     def _search(node, critereon, visited):
-#         if node in visited:
-#             return []
-#         visited.add(node)
+def load_params(path):
+    with open(path, 'rb') as f:
+        param_vals = pickle.load(f)
 
-#         results = []
-#         if isinstance(node, T.Apply):
-#             for inp in node.inputs:
-#                 results += _search(inp, critereon, visited)
-#         else: # Variable node
-#             if critereon(node):
-#                 results.append(node)
-#             if node.owner is not None:
-#                 results += _search(node.owner, critereon, visited)
-#         return results
+    for name, val in param_vals.iteritems():
+        _params[name].set_value(val)
+        # print name
 
-#     return _search(node, critereon, set())
+def search(node, critereon):
+    """
+    Traverse the Theano graph starting at `node` and return a list of all nodes
+    which match the `critereon` function. When optimizing a cost function, you 
+    can use this to get a list of all of the trainable params in the graph, like
+    so:
 
-# def print_params_info(params):
-#     """Print information about the parameters in the given param set."""
+    `lib.search(cost, lambda x: hasattr(x, "param"))`
+    """
 
-#     params = sorted(params, key=lambda p: p.name)
-#     values = [p.get_value(borrow=True) for p in params]
-#     shapes = [p.shape for p in values]
-#     print "Params for cost:"
-#     for param, value, shape in zip(params, values, shapes):
-#         print "\t{0} ({1})".format(
-#             param.name,
-#             ",".join([str(x) for x in shape])
-#         )
+    def _search(node, critereon, visited):
+        if node in visited:
+            return []
+        visited.add(node)
 
-#     total_param_count = 0
-#     for shape in shapes:
-#         param_count = 1
-#         for dim in shape:
-#             param_count *= dim
-#         total_param_count += param_count
-#     print "Total parameter count: {0}".format(
-#         locale.format("%d", total_param_count, grouping=True)
-#     )
+        results = []
+        if isinstance(node, T.Apply):
+            for inp in node.inputs:
+                results += _search(inp, critereon, visited)
+        else: # Variable node
+            if critereon(node):
+                results.append(node)
+            if node.owner is not None:
+                results += _search(node.owner, critereon, visited)
+        return results
+
+    return _search(node, critereon, set())
+
+def floatX(x):
+    """
+    Convert `x` to the numpy type specified in `theano.config.floatX`.
+    """
+    if theano.config.floatX == 'float16':
+        return numpy.float16(x)
+    elif theano.config.floatX == 'float32':
+        return numpy.float32(x)
+    else: # Theano's default float type is float64
+        print "Warning: lib.floatX using float64"
+        return numpy.float64(x)
+
+def print_params_info(params):
+    """Print information about the parameters in the given param set."""
+
+    params = sorted(params, key=lambda p: p.name)
+    values = [p.get_value(borrow=True) for p in params]
+    shapes = [p.shape for p in values]
+    print "Params for cost:"
+    for param, value, shape in zip(params, values, shapes):
+        print "\t{0} ({1})".format(
+            param.name,
+            ",".join([str(x) for x in shape])
+        )
+
+    total_param_count = 0
+    for shape in shapes:
+        param_count = 1
+        for dim in shape:
+            param_count *= dim
+        total_param_count += param_count
+    print "Total parameter count: {0}".format(
+        locale.format("%d", total_param_count, grouping=True)
+    )
 
 def print_model_settings(locals_):
     print "Model settings:"

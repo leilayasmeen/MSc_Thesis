@@ -1,9 +1,9 @@
-import tensorflow as tf
+import theano.tensor as T
 
-def kl_unit_gaussian(mu, log_sigma, sigma):
+def kl_unit_gaussian(mu, log_sigma):
     """
     KL divergence from a unit Gaussian prior
+    mean across axis 0 (minibatch), sum across all other axes
     based on yaost, via Alec
     """
-    with tf.name_scope('kl_unit_gaussian') as scope:
-        return -0.5 * (1 + 2 * log_sigma - mu**2 - sigma**2)
+    return -0.5 * (1 + 2 * log_sigma - mu**2 - T.exp(2 * log_sigma))
