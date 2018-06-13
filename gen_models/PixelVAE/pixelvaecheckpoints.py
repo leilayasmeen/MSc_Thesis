@@ -1008,7 +1008,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.train_loop_2.train_loop(
+    lib.train_loop_3.train_loop(
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
