@@ -856,7 +856,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        sample_fn_latents1 = np.random.normal(size=(8, LATENT_DIM_2)).astype('float32')
+        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
 
         def generate_and_save_samples(tag):
             def color_grid_vis(X, nh, nw, save_path):
@@ -870,12 +870,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            latents1_copied = np.zeros((64, LATENT_DIM_2), dtype='float32')
-            for i in xrange(8):
-                latents1_copied[i::8] = sample_fn_latents1
+            latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
+            for i in xrange(1): # changed 8 to 1
+                latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
 
             samples = np.zeros(
-                (64, N_CHANNELS, HEIGHT, WIDTH), 
+                (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
                 dtype='int32'
             )
 
@@ -889,9 +889,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             print "Saving samples"
             color_grid_vis(
                 samples, 
-                8, 
-                8, 
-                'samples_{}.png'.format(tag)
+                1, 
+                1, 
+                'samples_{}.png'.format(tag) # changed to 1 and 1
             )
 
 
