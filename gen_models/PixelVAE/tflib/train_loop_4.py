@@ -199,7 +199,7 @@ def train_loop(
             ## LEILAEDIT ADDED THE BELOW 3 LINES
             print "Hi!"
             tag = "iter{}".format(_vars['iteration'])
-            callback(tag
+            callback(tag)
             save_train_output_and_params(_vars['iteration'])
 
             print "Done!"
