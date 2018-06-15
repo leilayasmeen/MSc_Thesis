@@ -275,6 +275,7 @@ def train_loop(
             if (callback is not None) and _vars['iteration'] % callback_every == (callback_every-1):
                 tag = "iter{}".format(_vars['iteration'])
                 callback(tag)
+                callback(tag) # callback twice
 
         if _vars['iteration'] % save_every == (save_every-1):
             save_train_output_and_params(_vars['iteration'])
