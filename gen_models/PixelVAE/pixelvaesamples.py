@@ -860,7 +860,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         
         for imnum in xrange(num): # LEILAEDIT
             sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
-            def generate_and_save_samples(tag):
+            def generate_and_save_samples(imnum):# LEILAEDIT, replaced tag with imnum 
                 def color_grid_vis(X, nh, nw, save_path):
                     # from github.com/Newmu
                     X = X.transpose(0,2,3,1)
