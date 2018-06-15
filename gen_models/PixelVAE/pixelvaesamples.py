@@ -64,9 +64,9 @@ if SETTINGS == 'mnist_256':
     PIX_2_N_BLOCKS = 1
 
     TIMES = {
-        'test_every': 2*500,
-        'stop_after': 500*500,
-        'callback_every': 10*500
+        'test_every': 100,
+        'stop_after': 1000,
+        'callback_every': 1000
     }
 
     LR = 1e-3
@@ -1022,5 +1022,5 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         callback=generate_and_save_samples,
         callback_every=TIMES['callback_every'],
         test_every=TIMES['test_every'],
-        save_checkpoints=False
+        save_checkpoints=True
     )
