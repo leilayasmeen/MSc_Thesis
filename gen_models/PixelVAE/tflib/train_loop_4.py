@@ -196,7 +196,8 @@ def train_loop(
     while True:
 
         if _vars['iteration'] == stop_after:
-            ## LEILAEDIT ADDED THE BELOW 2 LINES
+            ## LEILAEDIT ADDED THE BELOW 3 LINES
+            print "Hi!"
             tag = "iter{}".format(_vars['iteration'])
             callback(tag
             save_train_output_and_params(_vars['iteration'])
