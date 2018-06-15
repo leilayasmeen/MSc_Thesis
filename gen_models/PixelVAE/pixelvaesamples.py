@@ -65,8 +65,8 @@ if SETTINGS == 'mnist_256':
 
     TIMES = {
         'test_every': 500,
-        'stop_after': 1000,
-        'callback_every': 1000
+        'stop_after': 500,
+        'callback_every': 500
     }
 
     LR = 1e-3
@@ -893,7 +893,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, 
                     1, 
-                    'samples_{}.png'.format(tag) # changed to 1 and 1
+                    'samples_{}.png'.format(i) # changed to 1 and 1, changed tag to i
                 )
 
     elif MODE == 'two_level':
