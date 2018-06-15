@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 N_GPUS = 2
 
 import tflib as lib
-import tflib.train_loop_4
+import tflib.train_loop_5
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -533,7 +533,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+        #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+        #LEILAEDIT2: function to sample random image
+        sample_fn_imageindex = np.random.randint(0, len(_images))
 
         def generate_and_save_samples(tag):
             def color_grid_vis(X, nh, nw, save_path):
@@ -547,12 +549,19 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            num = 5 # LEILAEDIT: insert for loop to generate multiple images at once
+            num = 5 # LEILAEDIT: inserted for loop to generate multiple images at once
             for imagenum in range(num):
 
-                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                for i in xrange(1): # changed 8 to 1
-                    latents1_copied[i::1] = sample_fn_latents1 
+                #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
+                #for i in xrange(1): # changed 8 to 1
+                #    latents1_copied[i::1] = sample_fn_latents1 
+                # LEILAEDIT2: grab random image using the index function above
+                for i in xrange(1):
+                    image_index = sample_fn_imageindex
+                    image_sample = _images(image_index)
+                
+                # LEILAEDIT2: encode the image
+                image_code = enc_fn(image_sample)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -563,7 +572,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
+                            #next_sample = dec1_fn(latents1_copied, samples, ch, y, x) LEILAEDIT
+                            next_sample = dec1_fn(image_code, samples, ch, y, x)
                             samples[:,ch,y,x] = next_sample
 
                 print "Saving samples"
@@ -571,7 +581,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, 
                     1, 
-                    'samples_{}.png'.format(imagenum) # LEILAEDIT - was previously .format{tag}
+                    'encoded_reconsamples_{}.png'.format(imagenum) # LEILAEDIT - was previously .format{tag}, also changed name
                 )
     # Train!
 
@@ -590,7 +600,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.train_loop_4.train_loop( #LEIlAEDIT: change to train_loop_4
+    lib.train_loop_5.train_loop( #LEIlAEDIT: changed to train_loop_5
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
