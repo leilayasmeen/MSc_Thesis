@@ -856,9 +856,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        num = 10 # changed to num
+        num = 10 # LEILAEDIT
         
-        for i in range(num):
+        for i in range(num): # LEILAEDIT
             sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
             def generate_and_save_samples(tag):
                 def color_grid_vis(X, nh, nw, save_path):
@@ -872,12 +872,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         img[j*h:j*h+h, i*w:i*w+w, :] = x
                     imsave(save_path, img)
 
-                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
-                for i in xrange(1): # changed 8 to 1
-                    latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
+                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
+                
+                for i in xrange(1): 
+                    latents1_copied[i::1] = sample_fn_latents1 
 
                 samples = np.zeros(
-                    (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
+                    (1, N_CHANNELS, HEIGHT, WIDTH), 
                     dtype='int32'
                 )
 
@@ -893,7 +894,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, 
                     1, 
-                    'samples_{}.png'.format(i) # changed to 1 and 1, changed tag to i
+                    'samples_{}.png'.format(i) # LEILAEDIT, changed format(tag) to format(i) 
                 )
 
     elif MODE == 'two_level':
