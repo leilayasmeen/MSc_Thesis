@@ -64,9 +64,9 @@ if SETTINGS == 'mnist_256':
     PIX_2_N_BLOCKS = 1
 
     TIMES = {
-        'test_every': 100,
-        'stop_after': 1000,
-        'callback_every': 1000
+        'test_every': 500,
+        'stop_after': 5000,
+        'callback_every': 500
     }
 
     LR = 1e-3
