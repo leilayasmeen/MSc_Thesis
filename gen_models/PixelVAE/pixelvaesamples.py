@@ -856,11 +856,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        num = 10 # LEILAEDIT
+        num = 10 # LEILAEDIT - generate 10 images and save each separately
         
-        for imnum in xrange(num): # LEILAEDIT
-            sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
-            def generate_and_save_samples(imnum):# LEILAEDIT, replaced tag with imnum 
+        for imnum in xrange(num): # LEILAEDIT - added this line and put lines 862 through 898 within this for loop
+            sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
+            def generate_and_save_samples(tag):
                 def color_grid_vis(X, nh, nw, save_path):
                     # from github.com/Newmu
                     X = X.transpose(0,2,3,1)
@@ -894,7 +894,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, 
                     1, 
-                    'samples_{}.png'.format(imnum) # LEILAEDIT, changed format(tag) to format(imnum) 
+                    'samples_{}.png'.format(imnum) # LEILAEDIT, changed format(tag) to format(imnum)
                 )
 
     elif MODE == 'two_level':
