@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 N_GPUS = 2
 
 import tflib as lib
-import tflib.gen_samples_loop
+import tflib.train_loop_3
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -65,8 +65,8 @@ if SETTINGS == 'mnist_256':
 
     TIMES = {
         'test_every': 500,
-        'stop_after': 5000,
-        'callback_every': 500
+        'stop_after': 1000,
+        'callback_every': 1000
     }
 
     LR = 1e-3
@@ -856,44 +856,45 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+        num = 10 # changed to num
+        
+        for i in range(num):
+            sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+            def generate_and_save_samples(tag):
+                def color_grid_vis(X, nh, nw, save_path):
+                    # from github.com/Newmu
+                    X = X.transpose(0,2,3,1)
+                    h, w = X[0].shape[:2]
+                    img = np.zeros((h*nh, w*nw, 3))
+                    for n, x in enumerate(X):
+                        j = n/nw
+                        i = n%nw
+                        img[j*h:j*h+h, i*w:i*w+w, :] = x
+                    imsave(save_path, img)
 
-        def generate_and_save_samples(tag):
-            def color_grid_vis(X, nh, nw, save_path):
-                # from github.com/Newmu
-                X = X.transpose(0,2,3,1)
-                h, w = X[0].shape[:2]
-                img = np.zeros((h*nh, w*nw, 3))
-                for n, x in enumerate(X):
-                    j = n/nw
-                    i = n%nw
-                    img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(save_path, img)
+                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
+                for i in xrange(1): # changed 8 to 1
+                    latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
 
-            latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
-            for i in xrange(1): # changed 8 to 1
-                latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
+                samples = np.zeros(
+                    (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
+                    dtype='int32'
+                )
 
-            samples = np.zeros(
-                (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
-                dtype='int32'
-            )
+                print "Generating samples"
+                for y in xrange(HEIGHT):
+                    for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                            next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
+                            samples[:,ch,y,x] = next_sample
 
-            print "Generating samples"
-            for y in xrange(HEIGHT):
-                for x in xrange(WIDTH):
-                    for ch in xrange(N_CHANNELS):
-                        next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
-                        samples[:,ch,y,x] = next_sample
-
-            print "Saving samples"
-            color_grid_vis(
-                samples, 
-                1, 
-                1, 
-                'samples_{}.png'.format(tag) # changed to 1 and 1
-            )
-
+                print "Saving samples"
+                color_grid_vis(
+                    samples, 
+                    1, 
+                    1, 
+                    'samples_{}.png'.format(tag) # changed to 1 and 1
+                )
 
     elif MODE == 'two_level':
 
@@ -1008,7 +1009,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.gen_samples_loop.train_loop(
+    lib.train_loop.train_loop(
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
