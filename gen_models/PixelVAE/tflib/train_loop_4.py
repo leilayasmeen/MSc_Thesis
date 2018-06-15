@@ -196,6 +196,9 @@ def train_loop(
     while True:
 
         if _vars['iteration'] == stop_after:
+            ## LEILAEDIT ADDED THE BELOW 2 LINES
+            tag = "iter{}".format(_vars['iteration'])
+            callback(tag
             save_train_output_and_params(_vars['iteration'])
 
             print "Done!"
@@ -273,8 +276,8 @@ def train_loop(
                 log(mean_test_outputs, True, _vars, [])
             ## LEILAEDIT
             #if (callback is not None) and _vars['iteration'] % callback_every == (callback_every-1):
-        tag = "iter{}".format(_vars['iteration'])
-        callback(tag)
+                #tag = "iter{}".format(_vars['iteration'])
+                #callback(tag)
 
         if _vars['iteration'] % save_every == (save_every-1):
             save_train_output_and_params(_vars['iteration'])
