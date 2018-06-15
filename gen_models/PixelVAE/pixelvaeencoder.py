@@ -535,7 +535,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
         #LEILAEDIT2: function to sample random image
-        sample_fn_imageindex = np.random.randint(0, len(_images))
+        sample_fn_imageindex = np.random.randint(0, len(all_images))
 
         def generate_and_save_samples(tag):
             def color_grid_vis(X, nh, nw, save_path):
@@ -558,7 +558,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # LEILAEDIT2: grab random image using the index function above
                 for i in xrange(1):
                     image_index = sample_fn_imageindex
-                    image_sample = _images(image_index)
+                    image_sample = all_images[image_index]
                 
                 # LEILAEDIT2: encode the image
                 image_code = enc_fn(image_sample)
