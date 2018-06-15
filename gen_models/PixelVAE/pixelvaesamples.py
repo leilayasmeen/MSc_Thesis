@@ -858,7 +858,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         num = 10 # LEILAEDIT
         
-        for i in range(num): # LEILAEDIT
+        for imnum in range(num): # LEILAEDIT
             sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
             def generate_and_save_samples(tag):
                 def color_grid_vis(X, nh, nw, save_path):
@@ -894,7 +894,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, 
                     1, 
-                    'samples_{}.png'.format(i) # LEILAEDIT, changed format(tag) to format(i) 
+                    'samples_{}.png'.format(imnum) # LEILAEDIT, changed format(tag) to format(imnum) 
                 )
 
     elif MODE == 'two_level':
