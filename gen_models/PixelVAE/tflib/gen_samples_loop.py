@@ -17,6 +17,8 @@ PARAMS_FILE = 'params.ckpt'
 TRAIN_LOOP_FILE = 'train_loop.pkl'
 TRAIN_OUTPUT_FILE = 'train_output.ndjson'
 
+BATCHSIZE = 10 # batch size
+
 def train_loop(
     session,
     inputs,
@@ -274,8 +276,10 @@ def train_loop(
 
             if (callback is not None) and _vars['iteration'] % callback_every == (callback_every-1):
                 tag = "iter{}".format(_vars['iteration'])
-                callback(tag)
-                callback(tag) # callback twice
+                #callback(tag)
+                #callback(tag) # callback twice
+                for y in range(BATCHSIZE):
+                    callback(tag)
 
         if _vars['iteration'] % save_every == (save_every-1):
             save_train_output_and_params(_vars['iteration'])
