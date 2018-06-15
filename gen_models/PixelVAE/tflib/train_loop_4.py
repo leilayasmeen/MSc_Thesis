@@ -129,7 +129,7 @@ def train_loop(
         saver.restore(session, os.getcwd()+"/"+PARAMS_FILE)
 
         print "Fast-fowarding dataset generator"
-        dataset_iters = _vars['iteration'] # LEILAEDIT: change this from 0 to last iteration
+        dataset_iters = _vars['iteration']-1 # LEILAEDIT: change this from 0 to last iteration-1
         while dataset_iters < _vars['iteration']:
             try:
                 train_generator.next()
