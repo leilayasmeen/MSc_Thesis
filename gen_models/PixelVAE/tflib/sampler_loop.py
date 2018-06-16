@@ -17,7 +17,7 @@ PARAMS_FILE = 'params.ckpt'
 TRAIN_LOOP_FILE = 'train_loop.pkl'
 TRAIN_OUTPUT_FILE = 'train_output.ndjson'
 
-def train_loop(
+def sampler_loop( # LEILA TODO: remove unecessary arguments
     session,
     inputs,
     cost,
@@ -44,24 +44,24 @@ def train_loop(
         colocate_gradients_with_ops=True
     )
 
-    print "Params:"
-    total_param_count = 0
-    for g, v in grads_and_vars:
-        shape = v.get_shape()
-        shape_str = ",".join([str(x) for x in v.get_shape()])
+    #print "Params:"
+    #total_param_count = 0
+    #for g, v in grads_and_vars:
+    #    shape = v.get_shape()
+    #    shape_str = ",".join([str(x) for x in v.get_shape()])
 
-        param_count = 1
-        for dim in shape:
-            param_count *= int(dim)
-        total_param_count += param_count
+    #    param_count = 1
+    #    for dim in shape:
+    #        param_count *= int(dim)
+    #    total_param_count += param_count
 
-        if g == None:
-            print "\t{} ({}) [no grad!]".format(v.name, shape_str)
-        else:
-            print "\t{} ({})".format(v.name, shape_str)
-    print "Total param count: {}".format(
-        locale.format("%d", total_param_count, grouping=True)
-    )
+    #    if g == None:
+    #        print "\t{} ({}) [no grad!]".format(v.name, shape_str)
+    #    else:
+    #        print "\t{} ({})".format(v.name, shape_str)
+    #print "Total param count: {}".format(
+    #    locale.format("%d", total_param_count, grouping=True)
+    #)
 
     # for i in xrange(len(grads_and_vars)):
     #     g, v = grads_and_vars[i]
@@ -134,19 +134,19 @@ def train_loop(
     else:
         print "No training files found"
 
-    train_output_entries = [[]]
+    #train_output_entries = [[]]
     
-    def log(outputs, test, _vars, extra_things_to_print):
-        entry = collections.OrderedDict()
-        for key in ['epoch', 'iteration', 'seconds']:
-            entry[key] = _vars[key]
-        for i,p in enumerate(prints):
-            if test:
-                entry['test '+p[0]] = outputs[i]
-            else:
-                entry['train '+p[0]] = outputs[i]
+    #def log(outputs, test, _vars, extra_things_to_print):
+    #    entry = collections.OrderedDict()
+    #    for key in ['epoch', 'iteration', 'seconds']:
+    #        entry[key] = _vars[key]
+    #    for i,p in enumerate(prints):
+    #        if test:
+    #            entry['test '+p[0]] = outputs[i]
+    #        else:
+    #            entry['train '+p[0]] = outputs[i]
 
-        train_output_entries[0].append(entry)
+    #    train_output_entries[0].append(entry)
 
         to_print = entry.items()
         to_print.extend(extra_things_to_print)
@@ -158,34 +158,33 @@ def train_loop(
                 print_str += "{}:{:.4f}\t".format(k,v)
         print print_str[:-1] # omit the last \t
 
-    def save_train_output_and_params(iteration):
-        print "Saving things..."
+    #def save_train_output_and_params(iteration):
+    #    print "Saving things..."
+    #
+    #   if save_checkpoints:
+    #        # Saving weights takes a while.
+    #
+    #        start_time = time.time()
+    #        saver.save(session, "./"+ PARAMS_FILE)
+    #        print "saver.save time: {}".format(time.time() - start_time)
+    #
+    #        start_time = time.time()
+    #        with open(TRAIN_LOOP_FILE, 'w') as f:
+    #            pickle.dump(_vars, f)
+    #        print "_vars pickle dump time: {}".format(time.time() - start_time)
 
-        if save_checkpoints:
-            # Saving weights takes a while. There's a risk of interruption during
-            # this time, leaving the weights file corrupt. Oh well.
+    #    start_time = time.time()
+    #    with open(TRAIN_OUTPUT_FILE, 'a') as f:
+    #        for entry in train_output_entries[0]:
+    #            for k,v in entry.items():
+    #                if isinstance(v, np.generic):
+    #                    entry[k] = np.asscalar(v)
+    #            f.write(json.dumps(entry) + "\n")
+    #    print "ndjson write time: {}".format(time.time() - start_time)
 
-            start_time = time.time()
-            saver.save(session, "./"+ PARAMS_FILE)
-            print "saver.save time: {}".format(time.time() - start_time)
+    #   train_output_entries[0] = []
 
-            start_time = time.time()
-            with open(TRAIN_LOOP_FILE, 'w') as f:
-                pickle.dump(_vars, f)
-            print "_vars pickle dump time: {}".format(time.time() - start_time)
-
-        start_time = time.time()
-        with open(TRAIN_OUTPUT_FILE, 'a') as f:
-            for entry in train_output_entries[0]:
-                for k,v in entry.items():
-                    if isinstance(v, np.generic):
-                        entry[k] = np.asscalar(v)
-                f.write(json.dumps(entry) + "\n")
-        print "ndjson write time: {}".format(time.time() - start_time)
-
-        train_output_entries[0] = []
-
-    print "Hi!"
+    print "Generating a sample.."
     tag = "iter{}".format(_vars['iteration'])
     callback(tag)
 
