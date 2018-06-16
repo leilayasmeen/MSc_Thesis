@@ -205,7 +205,7 @@ def train_loop(
 
     print "Done!"
 
-    break
+ #   break
 
  #       data_load_start_time = time.time()
  #       try:
