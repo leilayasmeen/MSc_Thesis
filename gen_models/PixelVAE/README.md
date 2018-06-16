@@ -21,7 +21,25 @@ python models/mnist_pixelvae_evaluate.py -L 12 -fs 5 -algo cond_z_bias -dpx 16 -
 To train, evaluate, and generate samples:
 
 ```
-python pixelvae.py
+python pixelvaecheckpoints.py
 ```
 
-By default, this runs on real-valued MNIST. You can specify different datasets or model settings within `pixelvae.py`.
+By default, this runs on real-valued MNIST. You can specify different datasets or model settings within the file.
+
+## Real-valued MNIST Custom Sample Generation
+
+To generate samples for a pre-trained model whose weights are stored in the same folder:
+
+```
+python pixelvaesamples.py
+```
+
+By default, this runs on real-valued MNIST. You can specify how many images "num" to generate within the file.
+
+To encode one or more images and then generate samples for a pre-trained distribution whose weights are stored in the same folder:
+
+```
+python pixelvaeinterpolator.py
+```
+
+By default, this runs on real-valued MNIST.
