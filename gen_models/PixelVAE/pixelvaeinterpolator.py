@@ -28,6 +28,9 @@ from scipy.misc import imsave
 import time
 import functools
 
+import theano # NEW
+import theano.tensor as T # NEW
+
 DATASET = 'mnist_256' # mnist_256
 SETTINGS = 'mnist_256' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
@@ -777,9 +780,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
         #LEILAEDIT2: write a function to sample a random index. Will have to adjust the boundaries obviously.
-        sample_fn_imageindex = np.random.randint(0, 10) # just sample from train_data's length. may have to edit mnist and mnist_256
+        #sample_fn_imageindex = np.random.randint(0, 10) # just sample from train_data's length. may have to edit mnist and mnist_256
 
         def generate_and_save_samples(tag):
             def color_grid_vis(X, nh, nw, save_path):
@@ -796,16 +799,22 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             num = 1 # LEILAEDIT: inserted for loop to generate multiple images at once
             for imagenum in range(num):
 
-                #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                #for i in xrange(1): # changed 8 to 1
-                #    latents1_copied[i::1] = sample_fn_latents1 
-                # LEILAEDIT2: grab random image using the index function above. Might need "image_sample = image_sample.append( )".
-                for i in xrange(1):
-                    image_index = sample_fn_imageindex
-                    image_sample = train_data[image_index,:,:] # might have to change to allow full data without batches
+                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
+                latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
                 
-                # LEILAEDIT2: encode the image
-                image_code = enc_fn(image_sample)
+                for i in xrange(1): # changed 8 to 1
+                    latents1_copied[i::1] = sample_fn_latents1  # changed 8 to 1
+                    latents2_copied[i::1] = sample_fn_latents1  # changed 8 to 1
+                
+                latents_interpolated = np.mean(np.array([latents1_copied,latents2_copied]), axis=0)
+
+                # TODO: fixx the next several lines. LEILAEDIT2: grab random image using the index function above. This needs debugging.
+                #for i in xrange(1):
+                #    image_index = sample_fn_imageindex
+                #    image_sample = train_data[image_index,:,:] # might have to change to allow full data without batches
+                #
+                # encode the image
+                #image_code = enc_fn(image_sample)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -816,8 +825,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            #next_sample = dec1_fn(latents1_copied, samples, ch, y, x) LEILAEDIT
-                            next_sample = dec1_fn(image_code, samples, ch, y, x)
+                            next_sample = dec1_fn(latents_interpolated, samples, ch, y, x)
+                            #next_sample = dec1_fn(image_code, samples, ch, y, x) # LEILAEDIT2
                             samples[:,ch,y,x] = next_sample
 
                 print "Saving samples"
