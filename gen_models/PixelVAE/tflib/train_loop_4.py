@@ -130,17 +130,18 @@ def train_loop(
 
         print "Fast-fowarding dataset generator"
         dataset_iters = _vars['iteration'] # LEILAEDIT: change this from 0 to last iteration
-        while dataset_iters < _vars['iteration']:
-            try:
-                train_generator.next()
-            except StopIteration:
-                train_generator = train_data()
-                train_generator.next()
-            dataset_iters += 1
+        #while dataset_iters < _vars['iteration']:
+        #    try:
+        #        train_generator.next()
+        #    except StopIteration:
+        #        train_generator = train_data()
+        #        train_generator.next()
+        #    dataset_iters += 1
     else:
-        print "Initializing variables..."
-        session.run(tf.initialize_all_variables())
-        print "done!"
+        print "No training files found"
+        #session.run(tf.initialize_all_variables())
+        #print "done!"
+        break
 
     train_output_entries = [[]]
     
@@ -193,92 +194,87 @@ def train_loop(
 
         train_output_entries[0] = []
 
-    while True:
+ #   while True:
 
-        if _vars['iteration'] == stop_after:
-            ## LEILAEDIT ADDED THE BELOW 3 LINES
-            print "Hi!"
-            tag = "iter{}".format(_vars['iteration'])
-            callback(tag)
-            save_train_output_and_params(_vars['iteration'])
+ if _vars['iteration'] == stop_after:
+    ## LEILAEDIT ADDED THE BELOW 3 LINES
+    print "Hi!"
+    tag = "iter{}".format(_vars['iteration'])
+    callback(tag)
+    #save_train_output_and_params(_vars['iteration'])
 
-            print "Done!"
+    print "Done!"
 
-            try: # This only matters on Ishaan's computer
-                import experiment_tools
-                experiment_tools.send_sms("done!")
-            except ImportError:
-                pass
+    break
 
-            break
-
-        data_load_start_time = time.time()
-        try:
-            input_vals = train_generator.next()
-        except StopIteration:
-            train_generator = train_data()
-            input_vals = train_generator.next()
-            train_generator.next()
-            _vars['epoch'] += 1
-        data_load_time = time.time() - data_load_start_time
-
-        if inject_iteration:
-            input_vals = [np.int32(_vars['iteration'])] + list(input_vals)
-
-        start_time = time.time()
-        outputs = train_fn(input_vals)
-        run_time = time.time() - start_time
-
-        _vars['seconds'] += run_time
-        _vars['iteration'] += 1
-
-        log(outputs, False, _vars, [('iter time', run_time), ('data time', data_load_time)])
-
-        if ((test_data is not None) and _vars['iteration'] % test_every == (test_every-1)) or ((callback is not None) and _vars['iteration'] % callback_every == (callback_every-1)):
-            if inject_iteration:
-
-                if bn_vars is not None: # If using batchnorm, run over a bunch of training data first to make the running-average stats good.
-                    _train_gen = train_data()
-                    for i in xrange(bn_stats_iters):
-                        try:
-                            bn_stats_fn([np.int32(_vars['iteration'])] + list(_train_gen.next()), i)
-                        except StopIteration:
-                            _train_gen = train_data()
-                            bn_stats_fn([np.int32(_vars['iteration'])] + list(_train_gen.next()), i)
-
-            else:
-
-                if bn_vars is not None: # If using batchnorm, run over a bunch of training data first to make the running-average stats good.
-                    _train_gen = train_data()
-                    for i in xrange(bn_stats_iters):
-                        try:
-                            bn_stats_fn(list(_train_gen.next()), i)
-                        except StopIteration:
-                            _train_gen = train_data()
-                            bn_stats_fn(list(_train_gen.next()), i)
+ #       data_load_start_time = time.time()
+ #       try:
+ #           input_vals = train_generator.next()
+ #       except StopIteration:
+ #           train_generator = train_data()
+ #           input_vals = train_generator.next()
+ #           train_generator.next()
+ #           _vars['epoch'] += 1
+ #       data_load_time = time.time() - data_load_start_time
+ #
+ #      if inject_iteration:
+ #          input_vals = [np.int32(_vars['iteration'])] + list(input_vals)
+ #
+ #      start_time = time.time()
+ #      outputs = train_fn(input_vals)
+ #      run_time = time.time() - start_time
+ #
+ #      _vars['seconds'] += run_time
+ #      _vars['iteration'] += 1
+ #
+ #      log(outputs, False, _vars, [('iter time', run_time), ('data time', data_load_time)])
+ #
+ #      if ((test_data is not None) and _vars['iteration'] % test_every == (test_every-1)) or ((callback is not None) and _vars['iteration'] % callback_every == (callback_every-1)):
+ #          if inject_iteration:
+ #
+ #              if bn_vars is not None: # If using batchnorm, run over a bunch of training data first to make the running-average stats good.
+ #                  _train_gen = train_data()
+ #                  for i in xrange(bn_stats_iters):
+ #                      try:
+ #                          bn_stats_fn([np.int32(_vars['iteration'])] + list(_train_gen.next()), i)
+ #                      except StopIteration:
+ #                          _train_gen = train_data()
+ #                          bn_stats_fn([np.int32(_vars['iteration'])] + list(_train_gen.next()), i)
+ #
+ #          else:
+ #
+ #              if bn_vars is not None: # If using batchnorm, run over a bunch of training data first to make the running-average stats good.
+ #                  _train_gen = train_data()
+ #                  for i in xrange(bn_stats_iters):
+ #                      try:
+ #                          bn_stats_fn(list(_train_gen.next()), i)
+ #                      except StopIteration:
+ #                          _train_gen = train_data()
+ #                          bn_stats_fn(list(_train_gen.next()), i)
 
 
-            if (test_data is not None) and _vars['iteration'] % test_every == (test_every-1):
-                if inject_iteration:
+            #if (test_data is not None) and _vars['iteration'] % test_every == (test_every-1):
+                #if inject_iteration:
 
-                    test_outputs = [
-                        eval_fn([np.int32(_vars['iteration'])] + list(input_vals))
-                        for input_vals in test_data()
-                    ]
+                    #test_outputs = [
+                     #   eval_fn([np.int32(_vars['iteration'])] + list(input_vals))
+                      #  for input_vals in test_data()
+                    #]
 
-                else:
+                #else:
 
-                    test_outputs = [
-                        eval_fn(list(input_vals))
-                        for input_vals in test_data()
-                    ]
-                mean_test_outputs = np.array(test_outputs).mean(axis=0)
+                 #   test_outputs = [
+                  #      eval_fn(list(input_vals))
+                   #     for input_vals in test_data()
+                    #]
+              #  mean_test_outputs = np.array(test_outputs).mean(axis=0)
 
-                log(mean_test_outputs, True, _vars, [])
+               # log(mean_test_outputs, True, _vars, [])
             ## LEILAEDIT
             #if (callback is not None) and _vars['iteration'] % callback_every == (callback_every-1):
                 #tag = "iter{}".format(_vars['iteration'])
                 #callback(tag)
 
-        if _vars['iteration'] % save_every == (save_every-1):
-            save_train_output_and_params(_vars['iteration'])
+        #LEILAEDIT
+        #if _vars['iteration'] % save_every == (save_every-1):
+        #    save_train_output_and_params(_vars['iteration'])
