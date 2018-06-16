@@ -802,7 +802,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # LEILAEDIT2: grab random image using the index function above. Might need "image_sample = image_sample.append( )".
                 for i in xrange(1):
                     image_index = sample_fn_imageindex
-                    image_sample = train_data[image_index::] # might have to change to allow full data without batches
+                    image_sample = train_data[image_index,:,:] # might have to change to allow full data without batches
                 
                 # LEILAEDIT2: encode the image
                 image_code = enc_fn(image_sample)
