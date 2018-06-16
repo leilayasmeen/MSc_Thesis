@@ -28,9 +28,6 @@ from scipy.misc import imsave
 import time
 import functools
 
-import theano # NEW
-import theano.tensor as T # NEW
-
 DATASET = 'mnist_256' # mnist_256
 SETTINGS = 'mnist_256' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
@@ -77,7 +74,7 @@ if SETTINGS == 'mnist_256':
     LR_DECAY_AFTER = TIMES['stop_after']
     LR_DECAY_FACTOR = 1.
 
-    BATCH_SIZE = 100
+    BATCH_SIZE = 100 
     N_CHANNELS = 1
     HEIGHT = 28
     WIDTH = 28
@@ -323,7 +320,7 @@ elif SETTINGS=='64px_big_onelevel':
     LATENTS1_WIDTH = 7
 
 if DATASET == 'mnist_256':
-    train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE)
+    train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE) # TODO: define new data-loader so I don't load batches
 elif DATASET == 'lsun_32':
     train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=True)
 elif DATASET == 'lsun_64':
@@ -799,8 +796,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             num = 1 # LEILAEDIT - can adjust this as needed to generate multiple images
             for imagenum in range(num):
 
-                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                latents1_copied[i::1] = sample_fn_latents1 
+                #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
+                #latents1_copied[i::1] = sample_fn_latents1 
                 #latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # LEILAEDIT
                 #latents2_copied[i::1] = sample_fn_latents1
                 
@@ -812,16 +809,19 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 # Interpolation test #2 (LEILAEDIT): grab random image and encode it
                 # TODO: Hyunjik, for some reason I cannot get this to work. The issue is in line 819.
-                # Function to sample a random index. Will have to adjust the upper boundary to the number of images in the training set.       
-                #sample_fn_imageindex = np.random.randint(0, 10) 
+                # Function to sample a random index. Will have to adjust the upper boundary to the number of images in the dataset.
+                sample_fn_imageindex = np.random.randint(0, 10) 
                 
-                # Based on the index sampled above, choose the corresponding image from the MNIST training set of 50,000 images
-                #for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
-                #    image_index = sample_fn_imageindex
-                #    image_sample = all_images[image_index,:,:] # Hyunjik, this line yields the error explained in my email
-                #
+                # Based on the index sampled above, choose the corresponding image from our training set
+                # Based on mnist_256.py (see file in tflib folder), I think we load the data in batches.
+                # I will have to create a new data-loader file that loads in all of the 50,000 training images in MNIST.
+                # Shouldn't matter for this right now though.
+                for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
+                    image_index = sample_fn_imageindex
+                    image_sample = all_images[image_index,:,:] # Hyunjik, this line yields the error explained in my email
+                    
                 # Encode the image
-                #image_code = enc_fn(image_sample) # TODO: see if this can encodes the sampled image once I figure out how to sample ..
+                image_code = enc_fn(image_sample) # TODO: see if this can encodes the sampled image once I figure out how to sample ..
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -832,9 +832,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(latents1_copied, samples, ch, y, x) # Base case
+                            #next_sample = dec1_fn(latents1_copied, samples, ch, y, x) # Base case
                             #next_sample = dec1_fn(latents_interpolated, samples, ch, y, x) # For Interpolation Test #1
-                            #next_sample = dec1_fn(image_code, samples, ch, y, x) # TODO: test if works w/ latent code when I figure out image encoding
+                            next_sample = dec1_fn(image_code, samples, ch, y, x) # TODO: test if works w/ latent code when I figure out image encoding
                             samples[:,ch,y,x] = next_sample
 
                 print "Saving samples and their corresponding tags"
@@ -844,8 +844,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     1, 
                     'encoded_reconsamples_{}.png'.format(imagenum)
                 )
-                # TODO: save samples and their corresponding labels in numeric format so I can use them to train
-                # CNNs later. Hyunjik, what do you usually use to save images? Thoughts on imsave?
+                # TODO: save samples and their corresponding labels in numeric format so I can use them to train my CNNs.
+                # Hyunjik, what do you usually use to save images in numeric format e.g. when you're making new images to augment datasets?
                 
     elif MODE == 'two_level':
 
