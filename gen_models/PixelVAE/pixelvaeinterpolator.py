@@ -950,7 +950,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.sampling_loop.train_loop( #LEIlAEDIT : changed to sampling loop file. TODO: update to remove uncessary arguments
+    lib.sampling_loop.sampling_loop( #LEIlAEDIT : changed to sampling loop file. TODO: update to remove uncessary arguments
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
