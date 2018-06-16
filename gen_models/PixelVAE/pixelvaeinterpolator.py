@@ -800,7 +800,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for imagenum in range(num):
 
                 latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
+                latents1_copied[i::1] = sample_fn_latents1 
                 #latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # LEILAEDIT
+                #latents2_copied[i::1] = sample_fn_latents1
                 
                 # Interpolation test #1 (LEILAEDIT): perform simple arithmetic on latent vectors works and feed into decoder (this works)
                 #for i in xrange(1): # changed 8 to 1
