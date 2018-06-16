@@ -17,7 +17,7 @@ PARAMS_FILE = 'params.ckpt'
 TRAIN_LOOP_FILE = 'train_loop.pkl'
 TRAIN_OUTPUT_FILE = 'train_output.ndjson'
 
-def sampler_loop( # LEILA TODO: remove unecessary arguments
+def sampling_loop( # LEILA TODO: remove unecessary arguments
     session,
     inputs,
     cost,
