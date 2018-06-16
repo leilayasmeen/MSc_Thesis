@@ -527,6 +527,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         x_sym = tf.placeholder(tf.int32, shape=None)
         logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
         dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
+        
+        #LEILAEDIT2: added placeholder for the image(s) that we will sample
+        image_sample = tf.placeholder(tf.int32, shape=[None, N_CHANNELS, HEIGHT, WIDTH])
+        
         def dec1_fn(_latents, _targets, _ch, _y, _x):
             return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
@@ -534,7 +538,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
-        #LEILAEDIT2: function to sample random image
+        #LEILAEDIT2: write a function to sample a random index. Will have to adjust the boundaries obviously.
         sample_fn_imageindex = np.random.randint(0, 1000)
 
         def generate_and_save_samples(tag):
@@ -555,10 +559,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
                 #for i in xrange(1): # changed 8 to 1
                 #    latents1_copied[i::1] = sample_fn_latents1 
-                # LEILAEDIT2: grab random image using the index function above
+                # LEILAEDIT2: grab random image using the index function above. Might need "image_sample = image_sample.append( )".
                 for i in xrange(1):
                     image_index = sample_fn_imageindex
-                    image_sample = all_images[image_index::]
+                    image_sample = all_images[image_index:::]
                 
                 # LEILAEDIT2: encode the image
                 image_code = enc_fn(image_sample)
