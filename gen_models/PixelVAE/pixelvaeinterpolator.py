@@ -832,7 +832,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(latents_1copied, samples, ch, y, x) # Base case
+                            next_sample = dec1_fn(latents1_copied, samples, ch, y, x) # Base case
                             #next_sample = dec1_fn(latents_interpolated, samples, ch, y, x) # For Interpolation Test #1
                             #next_sample = dec1_fn(image_code, samples, ch, y, x) # TODO: test if works w/ latent code when I figure out image encoding
                             samples[:,ch,y,x] = next_sample
