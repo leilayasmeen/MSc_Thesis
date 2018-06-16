@@ -141,7 +141,7 @@ def train_loop(
         print "No training files found"
         #session.run(tf.initialize_all_variables())
         #print "done!"
-        break
+        #break
 
     train_output_entries = [[]]
     
