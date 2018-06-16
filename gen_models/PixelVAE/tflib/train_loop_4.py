@@ -196,7 +196,7 @@ def train_loop(
 
  #   while True:
 
- if _vars['iteration'] == stop_after:
+    ##if _vars['iteration'] == stop_after:
     ## LEILAEDIT ADDED THE BELOW 3 LINES
     print "Hi!"
     tag = "iter{}".format(_vars['iteration'])
