@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 N_GPUS = 2
 
 import tflib as lib
-import tflib.sampler_loop
+import tflib.sampling_loop
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -787,15 +787,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            num = 5 # LEILAEDIT: insert for loop to generate multiple images at once
+            num = 5 # LEILAEDIT: I inserted a for loop so that we can generate multiple images (or multiple grids) by calling this function once
             for imagenum in range(num):
 
-                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                for i in xrange(1): # changed 8 to 1
-                    latents1_copied[i::1] = sample_fn_latents1 
+                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') #LEILAEDIT: 1 can be changed to the number of images I want to sample within a grid
+                for i in xrange(1): #LEILAEDIT: 1 can be changed to higher values if I want to produce grids of n values instead of single images in each iteration
+                    latents1_copied[i::1] = sample_fn_latents1 #LEILAEDIT: change the 1 to the number in xrange() if I want grids
 
                 samples = np.zeros(
-                    (1, N_CHANNELS, HEIGHT, WIDTH), 
+                    (1, N_CHANNELS, HEIGHT, WIDTH), # LEILAEDIT: change the 1 to n*n where n is in xrange() if I want grids
                     dtype='int32'
                 )
 
@@ -809,9 +809,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 print "Saving samples"
                 color_grid_vis(
                     samples, 
-                    1, 
-                    1, 
-                    'samples_{}.png'.format(imagenum) # LEILAEDIT - was previously .format{tag}
+                    1, # LEILAEDIT: change to n if necessary
+                    1, # LEILAEDIT: change to n if necessary
+                    'samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
                 )
     elif MODE == 'two_level':
 
@@ -918,7 +918,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.sampler_loop.train_loop( #LEIlAEDIT to allow sampling without training. TODO: remove unecessary arguments
+    lib.sampling_loop.train_loop( #LEIlAEDIT: changed loop file to allow sampling without training. TODO: remove unecessary arguments
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
