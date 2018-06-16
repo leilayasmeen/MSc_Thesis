@@ -85,8 +85,248 @@ if SETTINGS == 'mnist_256':
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
 
+elif SETTINGS == '32px_small':
+    MODE = 'two_level'
+
+    EMBED_INPUTS = True
+
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 128
+    DIM_1        = 64
+    DIM_2        = 128
+    DIM_3        = 256
+    LATENT_DIM_1 = 64
+    DIM_PIX_2    = 512
+    DIM_4        = 512
+    LATENT_DIM_2 = 512
+
+    ALPHA1_ITERS = 2000
+    ALPHA2_ITERS = 5000
+    KL_PENALTY = 1.00
+    BETA_ITERS = 1000
+
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 1000,
+        'stop_after': 200000,
+        'callback_every': 20000
+    }
+
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 180000
+    LR_DECAY_FACTOR = 1e-1
+
+    BATCH_SIZE = 64
+    N_CHANNELS = 3
+    HEIGHT = 32
+    WIDTH = 32
+
+    LATENTS1_HEIGHT = 8
+    LATENTS1_WIDTH = 8
+
+elif SETTINGS == '32px_big':
+
+    MODE = 'two_level'
+
+    EMBED_INPUTS = False
+
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 256
+    DIM_1        = 128
+    DIM_2        = 256
+    DIM_3        = 512
+    LATENT_DIM_1 = 128
+    DIM_PIX_2    = 512
+    DIM_4        = 512
+    LATENT_DIM_2 = 512
+
+    ALPHA1_ITERS = 2000
+    ALPHA2_ITERS = 5000
+    KL_PENALTY = 1.00
+    BETA_ITERS = 1000
+
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 1000,
+        'stop_after': 300000,
+        'callback_every': 20000
+    }
+
+    VANILLA = False
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 300000
+    LR_DECAY_FACTOR = 1e-1
+
+    BATCH_SIZE = 64
+    N_CHANNELS = 3
+    HEIGHT = 32
+    WIDTH = 32
+    LATENTS1_HEIGHT = 8
+    LATENTS1_WIDTH = 8
+
+elif SETTINGS == '64px_small':
+    MODE = 'two_level'
+
+    EMBED_INPUTS = True
+
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 128
+    DIM_0        = 64
+    DIM_1        = 64
+    DIM_2        = 128
+    LATENT_DIM_1 = 64
+    DIM_PIX_2    = 256
+    DIM_3        = 256
+    DIM_4        = 512
+    LATENT_DIM_2 = 512
+
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 10000,
+        'stop_after': 200000,
+        'callback_every': 50000
+    }
+
+    VANILLA = False
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 180000
+    LR_DECAY_FACTOR = .1
+
+    ALPHA1_ITERS = 2000
+    ALPHA2_ITERS = 10000
+    KL_PENALTY = 1.0
+    BETA_ITERS = 1000
+
+    BATCH_SIZE = 64
+    N_CHANNELS = 3
+    HEIGHT = 64
+    WIDTH = 64
+    LATENTS1_WIDTH = 16
+    LATENTS1_HEIGHT = 16
+
+elif SETTINGS == '64px_big':
+    MODE = 'two_level'
+
+    EMBED_INPUTS = True
+
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 384
+    DIM_0        = 192
+    DIM_1        = 256
+    DIM_2        = 512
+    LATENT_DIM_1 = 64
+    DIM_PIX_2    = 512
+    DIM_3        = 512
+    DIM_4        = 512
+    LATENT_DIM_2 = 512
+
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 10000,
+        'stop_after': 400000,
+        'callback_every': 50000
+    }
+
+    VANILLA = False
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 180000
+    LR_DECAY_FACTOR = .5
+
+    ALPHA1_ITERS = 1000
+    ALPHA2_ITERS = 10000
+    KL_PENALTY = 1.00
+    BETA_ITERS = 500
+
+    BATCH_SIZE = 48
+    N_CHANNELS = 3
+    HEIGHT = 64
+    WIDTH = 64
+    LATENTS1_WIDTH = 16
+    LATENTS1_HEIGHT = 16
+
+elif SETTINGS=='64px_big_onelevel':
+
+    # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
+    # one_level uses EncFull/DecFull for the bottom (and only) level
+    MODE = 'one_level'
+
+    # Whether to treat pixel inputs to the model as real-valued (as in the 
+    # original PixelCNN) or discrete (gets better likelihoods).
+    EMBED_INPUTS = True
+
+    # Turn on/off the bottom-level PixelCNN in Dec1/DecFull
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 384
+    DIM_0        = 192
+    DIM_1        = 256
+    DIM_2        = 512
+    DIM_3        = 512
+    DIM_4        = 512
+    LATENT_DIM_2 = 512
+
+    ALPHA1_ITERS = 50000
+    ALPHA2_ITERS = 50000
+    KL_PENALTY = 1.0
+    BETA_ITERS = 1000
+
+    # In Dec2, we break each spatial location into N blocks (analogous to channels
+    # in the original PixelCNN) and model each spatial location autoregressively
+    # as P(x)=P(x0)*P(x1|x0)*P(x2|x0,x1)... In my experiments values of N > 1
+    # actually hurt performance. Unsure why; might be a bug.
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 10000,
+        'stop_after': 400000,
+        'callback_every': 50000
+    }
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 180000
+    LR_DECAY_FACTOR = 0.5
+
+    BATCH_SIZE = 48
+    N_CHANNELS = 3
+    HEIGHT = 64
+    WIDTH = 64
+
+    # These aren't actually used for one-level models but some parts
+    # of the code still depend on them being defined.
+    LATENT_DIM_1 = 64
+    LATENTS1_HEIGHT = 7
+    LATENTS1_WIDTH = 7
+
 if DATASET == 'mnist_256':
     train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE)
+elif DATASET == 'lsun_32':
+    train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=True)
+elif DATASET == 'lsun_64':
+    train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=False)
+elif DATASET == 'imagenet_64':
+    train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
 
 lib.print_model_settings(locals().copy())
 
@@ -587,7 +827,96 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     1, 
                     'encoded_reconsamples_{}.png'.format(imagenum) # LEILAEDIT - was previously .format{tag}, also changed name
                 )
-    # Train!
+                
+    elif MODE == 'two_level':
+
+        def dec2_fn(_latents, _targets):
+            return session.run([mu1_prior, logsig1_prior], feed_dict={latents2: _latents, latents1: _targets, total_iters: 99999, bn_is_training: False, bn_stats_iter: 0})
+
+        ch_sym = tf.placeholder(tf.int32, shape=None)
+        y_sym = tf.placeholder(tf.int32, shape=None)
+        x_sym = tf.placeholder(tf.int32, shape=None)
+        logits_sym = tf.reshape(tf.slice(full_outputs1_sample, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
+
+        def dec1_logits_fn(_latents, _targets, _ch, _y, _x):
+            return session.run(logits_sym,
+                               feed_dict={all_latents1: _latents,
+                                          all_images: _targets,
+                                          ch_sym: _ch,
+                                          y_sym: _y,
+                                          x_sym: _x,
+                                          total_iters: 99999,
+                                          bn_is_training: False, 
+                                          bn_stats_iter: 0})
+
+        N_SAMPLES = BATCH_SIZE
+        if N_SAMPLES % N_GPUS != 0:
+            raise Exception("N_SAMPLES must be divisible by N_GPUS")
+        HOLD_Z2_CONSTANT = False
+        HOLD_EPSILON_1_CONSTANT = False
+        HOLD_EPSILON_PIXELS_CONSTANT = False
+
+        # Draw z2 from N(0,I)
+        z2 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_2)).astype('float32')
+        if HOLD_Z2_CONSTANT:
+          z2[:] = z2[0][None]
+
+        # Draw epsilon_1 from N(0,I)
+        epsilon_1 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH)).astype('float32')
+        if HOLD_EPSILON_1_CONSTANT:
+          epsilon_1[:] = epsilon_1[0][None]
+
+        # Draw epsilon_pixels from U[0,1]
+        epsilon_pixels = np.random.uniform(size=(N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH))
+        if HOLD_EPSILON_PIXELS_CONSTANT:
+          epsilon_pixels[:] = epsilon_pixels[0][None]
+
+
+        def generate_and_save_samples(tag):
+            # Draw z1 autoregressively using z2 and epsilon1
+            print "Generating z1"
+            z1 = np.zeros((N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH), dtype='float32')
+            for y in xrange(LATENTS1_HEIGHT):
+              for x in xrange(LATENTS1_WIDTH):
+                z1_prior_mu, z1_prior_logsig = dec2_fn(z2, z1)
+                z1[:,:,y,x] = z1_prior_mu[:,:,y,x] + np.exp(z1_prior_logsig[:,:,y,x]) * epsilon_1[:,:,y,x]
+
+            # Draw pixels (the images) autoregressively using z1 and epsilon_x
+            print "Generating pixels"
+            pixels = np.zeros((N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH)).astype('int32')
+            for y in xrange(HEIGHT):
+                for x in xrange(WIDTH):
+                    for ch in xrange(N_CHANNELS):
+                        # start_time = time.time()
+                        logits = dec1_logits_fn(z1, pixels, ch, y, x)
+                        probs = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+                        probs = probs / np.sum(probs, axis=-1, keepdims=True)
+                        cdf = np.cumsum(probs, axis=-1)
+                        pixels[:,ch,y,x] = np.argmax(cdf >= epsilon_pixels[:,ch,y,x,None], axis=-1)
+                        # print time.time() - start_time
+
+            # Save them
+            def color_grid_vis(X, nh, nw, save_path):
+                # from github.com/Newmu
+                X = X.transpose(0,2,3,1)
+                h, w = X[0].shape[:2]
+                img = np.zeros((h*nh, w*nw, 3))
+                for n, x in enumerate(X):
+                    j = n/nw
+                    i = n%nw
+                    img[j*h:j*h+h, i*w:i*w+w, :] = x
+                imsave(save_path, img)
+
+            print "Saving"
+            rows = int(np.sqrt(N_SAMPLES))
+            while N_SAMPLES % rows != 0:
+                rows -= 1
+            color_grid_vis(
+                pixels, rows, N_SAMPLES/rows, 
+                'samples_{}.png'.format(tag)
+            )
+
+    # Run
 
     if MODE == 'one_level':
         prints=[
