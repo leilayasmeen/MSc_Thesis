@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 N_GPUS = 2
 
 import tflib as lib
-import tflib.train_loop_4
+import tflib.sampler_loop
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -933,7 +933,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.train_loop_4.train_loop( #LEIlAEDIT: changed to train_loop_5
+    lib.sampler_loop.train_loop( #LEIlAEDIT : changed to sampler loop file. TODO: update to remove uncessary arguments
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
