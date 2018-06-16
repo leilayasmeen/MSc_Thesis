@@ -1,6 +1,28 @@
 # PixelVAE
 
-Code for the models in [PixelVAE: A Latent Variable Model for Natural Images](https://arxiv.org/abs/1611.05013)
+Code for the models in [PixelVAE: A Latent Variable Model for Natural Images](https://arxiv.org/abs/1611.05013).
+
+# Files by Leila Islam...
+
+## Real-valued MNIST Custom Sample Generation
+
+To generate samples for a pre-trained model whose weights are already stored in the same folder:
+
+```
+CUDA_VISIBLE_DEVICES=0,1 python pixelvaesamples.py
+```
+
+By default, this runs on real-valued MNIST. You can specify how many images "num" to generate by going into the file.
+
+To encode one or more images and then generate samples for a pre-trained distribution whose weights are stored in the same folder:
+
+```
+CUDA_VISIBLE_DEVICES=0,1 python pixelvaeinterpolator.py
+```
+
+By default, this runs on real-valued MNIST. This is currently being debugged.
+
+# Files by original authors....
 
 ## Binarized MNIST
 
@@ -26,20 +48,3 @@ python pixelvaecheckpoints.py
 
 By default, this runs on real-valued MNIST. You can specify different datasets or model settings within the file.
 
-## Real-valued MNIST Custom Sample Generation
-
-To generate samples for a pre-trained model whose weights are stored in the same folder:
-
-```
-python pixelvaesamples.py
-```
-
-By default, this runs on real-valued MNIST. You can specify how many images "num" to generate within the file.
-
-To encode one or more images and then generate samples for a pre-trained distribution whose weights are stored in the same folder:
-
-```
-python pixelvaeinterpolator.py
-```
-
-By default, this runs on real-valued MNIST.
