@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 N_GPUS = 2
 
 import tflib as lib
-import tflib.sampler_loop
+import tflib.sampling_loop
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -771,20 +771,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
         dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
         
-        #LEILAEDIT2: added placeholder for the image(s) that we will sample
+        # LEILAEDIT: added placeholder for the image(s) that I will sample and then encode. TODO - is this necessary?
+        # Hyunjik - not sure I need this line
         image_sample = tf.placeholder(tf.int32, shape=[None, N_CHANNELS, HEIGHT, WIDTH])
         
         def dec1_fn(_latents, _targets, _ch, _y, _x):
             return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
-
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
-        #LEILAEDIT2: write a function to sample a random index. Will have to adjust the boundaries obviously.
-        #sample_fn_imageindex = np.random.randint(0, 10) # just sample from train_data's length. may have to edit mnist and mnist_256
-
+        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
+        
         def generate_and_save_samples(tag):
+            
+            # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
                 # from github.com/Newmu
                 X = X.transpose(0,2,3,1)
@@ -796,25 +796,30 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            num = 1 # LEILAEDIT: inserted for loop to generate multiple images at once
+            num = 1 # LEILAEDIT - can adjust this as needed to generate multiple images
             for imagenum in range(num):
 
                 latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
+                #latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # LEILAEDIT
                 
-                for i in xrange(1): # changed 8 to 1
-                    latents1_copied[i::1] = sample_fn_latents1  # changed 8 to 1
-                    latents2_copied[i::1] = sample_fn_latents1  # changed 8 to 1
-                
-                latents_interpolated = np.mean(np.array([latents1_copied,latents2_copied]), axis=0)
+                # Interpolation test #1 (LEILAEDIT): perform simple arithmetic on latent vectors works and feed into decoder (this works)
+                #for i in xrange(1): # changed 8 to 1
+                #    latents1_copied[i::1] = sample_fn_latents1  
+                #    latents2_copied[i::1] = sample_fn_latents1  
+                #latents_interpolated = np.mean(np.array([latents1_copied,latents2_copied]), axis=0)
 
-                # TODO: fixx the next several lines. LEILAEDIT2: grab random image using the index function above. This needs debugging.
-                #for i in xrange(1):
+                # Interpolation test #2 (LEILAEDIT): grab random image and encode it
+                # TODO: Hyunjik, for some reason I cannot get this to work. The issue is in line 819.
+                # Function to sample a random index. Will have to adjust the upper boundary to the number of images in the training set.       
+                #sample_fn_imageindex = np.random.randint(0, 10) 
+                
+                # Based on the index sampled above, choose the corresponding image from the MNIST training set of 50,000 images
+                #for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
                 #    image_index = sample_fn_imageindex
-                #    image_sample = train_data[image_index,:,:] # might have to change to allow full data without batches
+                #    image_sample = all_images[image_index,:,:] # Hyunjik, this line yields the error explained in my email
                 #
-                # encode the image
-                #image_code = enc_fn(image_sample)
+                # Encode the image
+                #image_code = enc_fn(image_sample) # TODO: see if this can encodes the sampled image once I figure out how to sample ..
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -825,17 +830,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(latents_interpolated, samples, ch, y, x)
-                            #next_sample = dec1_fn(image_code, samples, ch, y, x) # LEILAEDIT2
+                            next_sample = dec1_fn(latents_1copied, samples, ch, y, x) # Base case
+                            #next_sample = dec1_fn(latents_interpolated, samples, ch, y, x) # For Interpolation Test #1
+                            #next_sample = dec1_fn(image_code, samples, ch, y, x) # TODO: test if works w/ latent code when I figure out image encoding
                             samples[:,ch,y,x] = next_sample
 
-                print "Saving samples"
+                print "Saving samples and their corresponding tags"
                 color_grid_vis(
                     samples, 
                     1, 
                     1, 
-                    'encoded_reconsamples_{}.png'.format(imagenum) # LEILAEDIT - was previously .format{tag}, also changed name
+                    'encoded_reconsamples_{}.png'.format(imagenum)
                 )
+                # TODO: save samples and their corresponding labels in numeric format so I can use them to train
+                # CNNs later. Hyunjik, what do you usually use to save images? Thoughts on imsave?
                 
     elif MODE == 'two_level':
 
@@ -942,7 +950,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.sampler_loop.train_loop( #LEIlAEDIT : changed to sampler loop file. TODO: update to remove uncessary arguments
+    lib.sampling_loop.train_loop( #LEIlAEDIT : changed to sampling loop file. TODO: update to remove uncessary arguments
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
