@@ -549,7 +549,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            num = 5 # LEILAEDIT: inserted for loop to generate multiple images at once
+            num = 1 # LEILAEDIT: inserted for loop to generate multiple images at once
             for imagenum in range(num):
 
                 #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
