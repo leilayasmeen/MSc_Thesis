@@ -768,8 +768,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
         dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
         
-        # LEILAEDIT: added placeholder for the image(s) that I will sample and then encode. TODO - is this necessary?
-        # Hyunjik - not sure I need this line
+        # LEILAEDIT. Hyunjik - not sure I need this line
         image_sample = tf.placeholder(tf.int32, shape=[None, N_CHANNELS, HEIGHT, WIDTH])
         
         def dec1_fn(_latents, _targets, _ch, _y, _x):
@@ -778,7 +777,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
-        
+        x_augmentation_list = [] #LEILEDIT: to enable .npy image saving
+            
         def generate_and_save_samples(tag):
             
             # Function to translate numeric images into plots
@@ -793,7 +793,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            num = 1 # LEILAEDIT - can adjust this as needed to generate multiple images
+            num = 1 # LEILAEDIT: to generate multiple images by calling function once
             for imagenum in range(num):
 
                 #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
@@ -836,7 +836,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             #next_sample = dec1_fn(latents_interpolated, samples, ch, y, x) # For Interpolation Test #1
                             next_sample = dec1_fn(image_code, samples, ch, y, x) # TODO: test if works w/ latent code when I figure out image encoding
                             samples[:,ch,y,x] = next_sample
-
+                            
+                x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
+                x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
+                
                 print "Saving samples and their corresponding tags"
                 color_grid_vis(
                     samples, 
@@ -844,8 +847,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     1, 
                     'encoded_reconsamples_{}.png'.format(imagenum)
                 )
-                # TODO: save samples and their corresponding labels in numeric format so I can use them to train my CNNs.
-                # Hyunjik, what do you usually use to save images in numeric format e.g. when you're making new images to augment datasets?
+
+            np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
