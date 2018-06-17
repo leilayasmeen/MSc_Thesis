@@ -803,6 +803,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #NEW
                 print "Reading in image"
                 imread('samples_0.png')
+                print "Reading in augmented file"
+                imread('x_augmentation_array.npy')
                 print "Generating samples"
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
