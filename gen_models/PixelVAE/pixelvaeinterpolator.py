@@ -819,18 +819,36 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
             for imagenum in range(num):
 
-                # Sample two unique image indices and draw the corresponding images and labels from the training data
-                imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
-                image1 = x_train[imageindices[0],:]
-                image2 = x_train[imageindices[1],:]
+                # Sample two unique image indices 
+                #imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
                 
-                image1 = image1.reshape(-1, 1, 28, 28)
-                image2 = image2.reshape(-1, 1, 28, 28)
+                # Draw the corresponding images and labels from the training data
+                #image1 = x_train[imageindices[0],:]
+                #image2 = x_train[imageindices[1],:]   
+                #label1 = y_train[imageindices[0]]
+                #label2 = y_train[imageindices[1]]
+                
+                # Sample two unique image indices from different classes
+                classindices = random.sample(range(0,9),2)
+                idx1 = np.where(y_train==classindices[0])
+                idx2 = np.where(y_train==classindices[1])
+                
+                x_trainsubset1 = x_train[idx1,:]
+                x_trainsubset2 = x_train[idx2,:]
+                
+                y_trainsubset1 = y_train[idx1,:]
+                y_trainsubset2 = y_train[idx2,:]
+                
+                imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1))
+                imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1))
+                
+                # Draw the corresponding images and labels from the training data
+                image1 = x_trainsubset1[imageindex1,:]
+                image2 = x_trainsubset2[imageindex2,:]   
                 
                 # Reshape
-                label1 = y_train[imageindices[0]]
-                label2 = y_train[imageindices[1]]
-                
+                image1 = image1.reshape(-1, 1, 28, 28)
+                image2 = image2.reshape(-1, 1, 28, 28)
                 label1 = label1.reshape(-1, 1)
                 label2 = label2.reshape(-1, 1)
                   
