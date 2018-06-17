@@ -788,7 +788,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(save_path, img)
 
             num = 2 # LEILAEDIT: I inserted a for loop so that we can generate multiple images (or multiple grids) by calling this function once
-            x_augmentation_array = np.array([])
+            x_augmentation_array = np.empty([], shape=(0, HEIGHT, WIDTH))
             
             for imagenum in range(num):
 
@@ -807,8 +807,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         for ch in xrange(N_CHANNELS):
                             next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
                             samples[:,ch,y,x] = next_sample
-                samples = np.asarray(samples)
-                x_augmentation_array = np.append(x_augmentation_array, samples, axis=0)
+                samples_reshaped = samples.shape(-1, HEIGHT, WIDTH)
+                x_augmentation_array = np.append(x_augmentation_array, samples_reshaped, axis=0)
                 
                 print "Saving samples"
                 color_grid_vis(
