@@ -864,7 +864,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
                 # Combine the latent codes using p~Unif(0,1)
                 p = np.random.uniform(0,1)
-                new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
+                new_code = image_code1 + image_code2
                 new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
 
                 samples = np.zeros(
