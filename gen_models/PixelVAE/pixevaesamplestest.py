@@ -787,7 +787,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
 
-            num = 1 # LEILAEDIT: I inserted a for loop so that we can generate multiple images (or multiple grids) by calling this function once
+            num = 2 # LEILAEDIT: I inserted a for loop so that we can generate multiple images (or multiple grids) by calling this function once
+            x_augmentation_array = []
+            
             for imagenum in range(num):
 
                 latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') #LEILAEDIT: 1 can be changed to the number of images I want to sample within a grid
@@ -806,7 +808,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
                             samples[:,ch,y,x] = next_sample
                 samples = np.asarray(samples)
-                np.save('samplearray',samples)
+                x_augmentation_array = np.append(x_augmentation_array, samples, axis=0)
                 
                 print "Saving samples"
                 color_grid_vis(
@@ -815,6 +817,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     1, # LEILAEDIT: change to n if necessary
                     'samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
                 )
+                
+    np.save('x_augmentation_array', x_augmentation_array)
+    
     elif MODE == 'two_level':
 
         def dec2_fn(_latents, _targets):
