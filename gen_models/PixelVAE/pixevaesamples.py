@@ -9,12 +9,6 @@ sys.path.append(os.getcwd())
 
 N_GPUS = 2
 
-OUT_DIR = '/Images_mnist'
-
-if not os.path.isdir(OUT_DIR):
-   os.makedirs(OUT_DIR)
-   print "Created directory {}".format(OUT_DIR)
-
 import tflib as lib
 import tflib.sampling_loop
 import tflib.ops.kl_unit_gaussian
