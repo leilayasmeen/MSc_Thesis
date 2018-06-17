@@ -810,7 +810,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             #testimage = testimage.reshape((-1, 1, 28, 28))
             
             print "Sampling Random Image"
-            imageindex = np.random.randint(0, x_train[0]-1)
+            imageindex = np.random.randint(0, x_train.shape[0]-1)
             testimage = x_train[imageindex,:]
             
             print "Encoding image"
@@ -829,7 +829,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 # Interpolation test #2 (LEILAEDIT): grab random image and encode it
                 # Function to sample a random index
-                #sample_fn_imageindex = np.random.randint(0, x_train[0]-1)
+                #sample_fn_imageindex = np.random.randint(0, x_train.shape[0]-1)
                 
                 # Based on the index sampled above, choose the corresponding image from our training set
                 #for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
