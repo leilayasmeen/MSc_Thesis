@@ -788,7 +788,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(save_path, img)
 
             num = 2 # LEILAEDIT: I inserted a for loop so that we can generate multiple images (or multiple grids) by calling this function once
-            x_augmentation_array = []
+            x_augmentation_array = np.array([])
             
             for imagenum in range(num):
 
@@ -818,7 +818,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
                 )
                 
-        np.save('x_augmentation_array', x_augmentation_array)
+        np.save('x_augmentation_array', x_augmentation_array, dtype=uint8)
     
     elif MODE == 'two_level':
 
