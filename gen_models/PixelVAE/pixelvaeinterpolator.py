@@ -831,6 +831,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
                 label1 = y_train[imageindices[0]]
                 label2 = y_train[imageindices[1]]
+                
+                label1 = label1.reshape(-1, 1)
+                label2 = label2.reshape(-1, 1)
                   
                 # Encode the images
                 image_code1 = enc_fn(image1)
@@ -838,7 +841,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
                 # Average the latent codes and the targets
                 new_code = np.mean([image_code1,image_code2], axis=0)
-                new_label = np.mean(label1, label2)
+                new_label = np.mean([label1, label2], axis=0)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
