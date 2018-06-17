@@ -800,7 +800,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     (1, N_CHANNELS, HEIGHT, WIDTH), # LEILAEDIT: change the 1 to n*n where n is in xrange() if I want grids
                     dtype='int32'
                 )
-
+                #NEW
+                print "Reading in image"
+                imread('samples_0.png')
                 print "Generating samples"
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
