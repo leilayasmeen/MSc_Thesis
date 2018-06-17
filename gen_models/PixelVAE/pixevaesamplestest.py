@@ -819,7 +819,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
                 )
                 
-            np.save('x_augmentation_array', x_augmentation_array, dtype=np.uint8)
+            np.save('x_augmentation_array', x_augmentation_array)
     
     elif MODE == 'two_level':
 
