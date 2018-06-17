@@ -802,7 +802,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 )
                 #NEW
                 print "Reading in image"
-                testimage = imread('samples_0.png')
+                testimage = imread('samples_0.png', flatten=True)
                 print "Reading in augmented file"
                 testimage2 = np.load('x_augmentation_array.npy')
                 print "Trying to encode image"
