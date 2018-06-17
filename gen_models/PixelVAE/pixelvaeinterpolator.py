@@ -9,6 +9,7 @@ sys.path.append(os.getcwd())
 
 N_GPUS = 2
 
+import random
 import tflib as lib
 import tflib.sampling_loop
 import tflib.ops.kl_unit_gaussian
