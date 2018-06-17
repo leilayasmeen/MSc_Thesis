@@ -825,6 +825,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
                 image1 = x_train[imageindices[0],:]
                 image2 = x_train[imageindices[1],:]
+                
+                image1 = image1.reshape(-1, 1, 28, 28)
+                image2 = image2.reshape(-1, 1, 28, 28)
+                
                 label1 = y_train[imageindices[0]]
                 label2 = y_train[imageindices[1]]
                   
