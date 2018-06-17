@@ -849,10 +849,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 label2 = y_trainsubset2[imageindex2,:]
                 
                 # Reshape
-                image1 = image1.reshape(-1, 1, 28, 28)
-                image2 = image2.reshape(-1, 1, 28, 28)
-                label1 = label1.reshape(-1, 1)
-                label2 = label2.reshape(-1, 1)
+                image1 = image1.reshape(1, 1, 28, 28)
+                image2 = image2.reshape(1, 1, 28, 28)
+                label1 = label1.reshape(1, 1)
+                label2 = label2.reshape(1, 1)
                   
                 # Encode the images
                 image_code1 = enc_fn(image1)
@@ -865,7 +865,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # Combine the latent codes using p~Unif(0,1)
                 p = np.random.uniform(0,1)
                 new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
-                new_label = np.multiply(p,label1) + np.miltiply((1-p),label2)
+                new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
