@@ -833,6 +833,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 idx1 = np.where(np.equal(classindices[0],y_train))
                 idx2 = np.where(np.equal(classindices[1],y_train))
                 
+                x_train = np.array(x_train)
+                y_train = np.array(y_train)
+                
                 x_trainsubset1 = x_train[idx1,:]
                 x_trainsubset2 = x_train[idx2,:]
                 
