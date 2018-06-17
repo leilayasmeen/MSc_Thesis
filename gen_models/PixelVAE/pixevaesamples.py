@@ -799,14 +799,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), # LEILAEDIT: change the 1 to n*n where n is in xrange() if I want grids
                     dtype='int32'
-                )
-                #NEW
-                print "Reading in image"
-                testimage = imread('samples_0.png', mode='P')
-                testimage = testimage.reshape((-1, 1, 28, 28))
-
-                print "Trying to encode image"
-                next_code = enc_fn(testimage)
+                )          
 
                 print "Generating samples"
                 for y in xrange(HEIGHT):
@@ -815,7 +808,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
                             samples[:,ch,y,x] = next_sample
                             
-                x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
+                x_augmentation_list.append(samples) #LEILAEDIT for .npy saving. TODO - needs to be debugged. has an extra dimension.
                 x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
                 
                 print "Saving samples"
