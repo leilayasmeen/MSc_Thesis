@@ -7,6 +7,12 @@ Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, 
 import os, sys
 sys.path.append(os.getcwd())
 
+OUT_DIR = 'samples'
+
+if not os.path.isdir(OUT_DIR):
+   os.makedirs(OUT_DIR)
+   print "Created directory {}".format(OUT_DIR)
+
 N_GPUS = 2
 
 import tflib as lib
