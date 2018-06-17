@@ -804,12 +804,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 print "Reading in image"
                 testimage = imread('samples_0.png', mode='P')
                 testimage = testimage.reshape((-1, 1, 28, 28))
-                print "Reading in augmented file"
-                testimage2 = np.load('x_augmentation_array.npy')
+
                 print "Trying to encode image"
                 next_code = enc_fn(testimage)
-                print "Trying to encode image read as array"
-                next_code2 = enc_fn(testimage2)
+
                 print "Generating samples"
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
