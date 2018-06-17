@@ -25,6 +25,9 @@ import tensorflow as tf
 import scipy.misc
 from scipy.misc import imsave
 
+import keras
+import imageio
+
 import time
 import functools
 
@@ -32,6 +35,11 @@ DATASET = 'mnist_256' # mnist_256
 SETTINGS = 'mnist_256' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
 if SETTINGS == 'mnist_256':
+    
+    from keras.datasets import mnist
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+    # TODO: remember to split x_train and y_train using the same training and test split as in my CNNs!
+    
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
     MODE = 'one_level'
@@ -767,18 +775,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         x_sym = tf.placeholder(tf.int32, shape=None)
         logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
         dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
-        
-        # LEILAEDIT. Hyunjik - not sure I need this line
-        image_sample = tf.placeholder(tf.int32, shape=[None, N_CHANNELS, HEIGHT, WIDTH])
-        
+          
         def dec1_fn(_latents, _targets, _ch, _y, _x):
             return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
-        x_augmentation_list = [] #LEILEDIT: to enable .npy image saving
-            
+        x_augmentation_list = [] #LEILEDIT: to enable .npy image saving. TODO - needs to be debugged. Has an extra dimension.
+        
+        # Reshape image files
+        x_train = x_train.reshape(-1, 1, 28, 28)
+        y_train = y_train.reshape(-1, 1)
+        print "reshaped images"
+        
         def generate_and_save_samples(tag):
             
             # Function to translate numeric images into plots
@@ -792,36 +802,42 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     i = n%nw
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
-
+                
             num = 1 # LEILAEDIT: to generate multiple images by calling function once
+
+            #print "Reading in image"
+            #testimage = imread('samples_0.png', mode='P')
+            #testimage = testimage.reshape((-1, 1, 28, 28))
+            
+            #print "Encoding image"
+            #next_code = enc_fn(testimage)
+                
             for imagenum in range(num):
 
-                #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                #latents1_copied[i::1] = sample_fn_latents1 
+                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
                 #latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # LEILAEDIT
-                #latents2_copied[i::1] = sample_fn_latents1
                 
                 # Interpolation test #1 (LEILAEDIT): perform simple arithmetic on latent vectors works and feed into decoder (this works)
-                #for i in xrange(1): # changed 8 to 1
-                #    latents1_copied[i::1] = sample_fn_latents1  
+                for i in xrange(1): # changed 8 to 1
+                    latents1_copied[i::1] = sample_fn_latents1  
                 #    latents2_copied[i::1] = sample_fn_latents1  
                 #latents_interpolated = np.mean(np.array([latents1_copied,latents2_copied]), axis=0)
 
                 # Interpolation test #2 (LEILAEDIT): grab random image and encode it
-                # TODO: Hyunjik, for some reason I cannot get this to work. The issue is in line 819.
                 # Function to sample a random index. Will have to adjust the upper boundary to the number of images in the dataset.
-                sample_fn_imageindex = np.random.randint(0, 10) 
+                #sample_fn_imageindex = np.random.randint(0, 10) 
                 
                 # Based on the index sampled above, choose the corresponding image from our training set
-                # Based on mnist_256.py (see file in tflib folder), I think we load the data in batches.
-                # I will have to create a new data-loader file that loads in all of the 50,000 training images in MNIST.
-                # Shouldn't matter for this right now though.
-                for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
-                    image_index = sample_fn_imageindex
-                    image_sample = all_images[image_index,:,:] # Hyunjik, this line yields the error explained in my email
+                #for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
+                #    image_index = sample_fn_imageindex
+                #    image_sample = all_images[image_index,:,:] #TODO link to the data I just loaded
                     
-                # Encode the image
-                image_code = enc_fn(image_sample) # TODO: see if this can encodes the sampled image once I figure out how to sample ..
+                # Encode the images
+                #image_code1 = enc_fn(image_sample1)
+                #image_code2 = enc_fn(image_sample2)
+                
+                # Average the codes
+                #new_code = np.mean([image_code1,image_code2], axis=0)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -832,9 +848,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            #next_sample = dec1_fn(latents1_copied, samples, ch, y, x) # Base case
+                            next_sample = dec1_fn(latents1_copied, samples, ch, y, x) # Base case
                             #next_sample = dec1_fn(latents_interpolated, samples, ch, y, x) # For Interpolation Test #1
-                            next_sample = dec1_fn(image_code, samples, ch, y, x) # TODO: test if works w/ latent code when I figure out image encoding
+                            #next_sample = dec1_fn(image_code1, samples, ch, y, x) 
                             samples[:,ch,y,x] = next_sample
                             
                 x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
