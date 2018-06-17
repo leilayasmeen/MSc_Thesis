@@ -782,12 +782,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
-        x_augmentation_list = [] #LEILEDIT: to enable .npy image saving. TODO - needs to be debugged. Has an extra dimension.
+        #x_augmentation_list = [] #TODO - needs to be debugged. Has an extra dimension.
         
         # Reshape image files
         x_train = x_train.reshape(-1, 1, 28, 28)
         y_train = y_train.reshape(-1, 1)
-        print "reshaped images"
+        print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
             
@@ -803,45 +803,37 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(save_path, img)
                 
-            num = 1 # LEILAEDIT: to generate multiple images by calling function once
+            num = 1
 
             #print "Reading in image"
             #testimage = imread('samples_0.png', mode='P')
             #testimage = testimage.reshape((-1, 1, 28, 28))
             
-            print "Sampling Random Image"
-            imageindex = np.random.randint(0, x_train.shape[0]-1)
-            testimage = x_train[imageindex,:]
+            #print "Sampling Random Image"
+            #imageindex1 = np.random.randint(0, x_train.shape[0]-1)
             
-            print "Encoding image"
+            #print "Encoding image"
             #next_code = enc_fn(testimage)
                 
             for imagenum in range(num):
 
-                latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                #latents2_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # LEILAEDIT
-                
-                # Interpolation test #1 (LEILAEDIT): perform simple arithmetic on latent vectors works and feed into decoder (this works)
-                for i in xrange(1): # changed 8 to 1
-                    latents1_copied[i::1] = sample_fn_latents1  
-                #    latents2_copied[i::1] = sample_fn_latents1  
+                #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
                 #latents_interpolated = np.mean(np.array([latents1_copied,latents2_copied]), axis=0)
 
-                # Interpolation test #2 (LEILAEDIT): grab random image and encode it
-                # Function to sample a random index
-                #sample_fn_imageindex = np.random.randint(0, x_train.shape[0]-1)
-                
-                # Based on the index sampled above, choose the corresponding image from our training set
-                #for i in xrange(1): # Will increase this later when I know how to sample more than 1 image
-                #    image_index = sample_fn_imageindex
-                #    image_sample = all_images[image_index,:,:] #TODO link to the data I just loaded
-                    
+                # Sample two unique image indices and draw the corresponding images and labels from the training data
+                imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
+                image1 = x_train[imageindices[0],:]
+                image2 = x_train[imageindices[1],:]
+                label1 = y_train[imageindices[0]]
+                label2 = y_train[imageindices[1]]
+                  
                 # Encode the images
-                #image_code1 = enc_fn(image_sample1)
-                #image_code2 = enc_fn(image_sample2)
+                image_code1 = enc_fn(image1)
+                image_code2 = enc_fn(image2)
                 
-                # Average the codes
-                #new_code = np.mean([image_code1,image_code2], axis=0)
+                # Average the latent codes and the targets
+                new_code = np.mean([image_code1,image_code2], axis=0)
+                new_label = np.mean(label1, label2)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -852,13 +844,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(latents1_copied, samples, ch, y, x) # Base case
-                            #next_sample = dec1_fn(latents_interpolated, samples, ch, y, x) # For Interpolation Test #1
-                            #next_sample = dec1_fn(image_code1, samples, ch, y, x) 
+                            next_sample = dec1_fn(new_code, samples, ch, y, x) 
                             samples[:,ch,y,x] = next_sample
                             
-                x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
-                x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
+                #x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
+                #x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
                 
                 print "Saving samples and their corresponding tags"
                 color_grid_vis(
@@ -868,7 +858,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'encoded_reconsamples_{}.png'.format(imagenum)
                 )
 
-            np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            #np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
