@@ -784,6 +784,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         #x_augmentation_list = [] #TODO - needs to be debugged. Has an extra dimension.
+        #y_augmentation_list = [] #TODO - needs to be debugged. Has an extra dimension.
         
         # Reshape image files
         x_train = x_train.reshape(-1, 1, 28, 28)
@@ -818,9 +819,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
             for imagenum in range(num):
 
-                #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') 
-                #latents_interpolated = np.mean(np.array([latents1_copied,latents2_copied]), axis=0)
-
                 # Sample two unique image indices and draw the corresponding images and labels from the training data
                 imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
                 image1 = x_train[imageindices[0],:]
@@ -829,6 +827,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image1 = image1.reshape(-1, 1, 28, 28)
                 image2 = image2.reshape(-1, 1, 28, 28)
                 
+                # Reshape
                 label1 = y_train[imageindices[0]]
                 label2 = y_train[imageindices[1]]
                 
@@ -840,8 +839,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image_code2 = enc_fn(image2)
                 
                 # Average the latent codes and the targets
-                new_code = np.mean([image_code1,image_code2], axis=0)
-                new_label = np.mean([label1, label2], axis=0)
+                #new_code = np.mean([image_code1,image_code2], axis=0)
+                #new_label = np.mean([label1, label2], axis=0)
+                
+                # Combine the latent codes using p~Unif(0,1)
+                p = np.random.uniform(0,1)
+                new_code = p*image_code1 + (1-p)*image_code2
+                new_label = p*label1 + (1-p)*label2
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -857,6 +861,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             
                 #x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
                 #x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
+                #y_augmentation_list.append(new_label) #LEILAEDIT for .npy saving
+                #y_augmentation_array = np.array(y_augmentation_list) #LEILAEDIT for .npy saving
                 
                 print "Saving samples and their corresponding tags"
                 color_grid_vis(
@@ -866,7 +872,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'encoded_reconsamples_{}.png'.format(imagenum)
                 )
 
-            #np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            #np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving. TODO - needs to be debugged
+            #np.save('y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving. TODO - needs to be debugged
                 
     elif MODE == 'two_level':
 
