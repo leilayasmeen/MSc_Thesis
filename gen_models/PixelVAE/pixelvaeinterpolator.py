@@ -844,7 +844,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
                 # Draw the corresponding images and labels from the training data
                 image1 = x_trainsubset1[imageindex1,:]
-                image2 = x_trainsubset2[imageindex2,:]   
+                image2 = x_trainsubset2[imageindex2,:]  
+                label1 = y_trainsubset1[imageindex1,:]
+                label2 = y_trainsubset2[imageindex2,:]
                 
                 # Reshape
                 image1 = image1.reshape(-1, 1, 28, 28)
