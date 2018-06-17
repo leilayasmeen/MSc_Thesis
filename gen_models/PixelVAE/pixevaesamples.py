@@ -816,7 +816,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, # LEILAEDIT: change to n if necessary
                     1, # LEILAEDIT: change to n if necessary
-                    'samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
+                    '/samples/samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
                 )
                 
             np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
