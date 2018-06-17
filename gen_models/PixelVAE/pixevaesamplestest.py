@@ -808,8 +808,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
                             samples[:,ch,y,x] = next_sample
                             
-                samples_reshaped = samples.shape(-1, HEIGHT, WIDTH)
-                x_augmentation_list = x_augmentation_list.append(x_augmentation_list, samples_reshaped, axis=0)
+                x_augmentation_list = x_augmentation_list.append(x_augmentation_list, samples, axis=0)
                 x_augmentation_array = np.array(x_augmentation_list)
                 
                 print "Saving samples"
