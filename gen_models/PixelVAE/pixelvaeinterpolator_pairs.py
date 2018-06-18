@@ -892,7 +892,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            num = 1
+            num = 50
 
             #print "Reading in image"
             #testimage = imread('samples_0.png', mode='P')
@@ -999,14 +999,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(new_code12, samples12, ch, y, x) 
-                            samples12[:,ch,y,x] = next_sample
+                            next_sample12 = dec1_fn(new_code12, samples12, ch, y, x) 
+                            samples12[:,ch,y,x] = next_sample12
                             
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(new_code34, samples34, ch, y, x) 
-                            samples34[:,ch,y,x] = next_sample
+                            next_sample34 = dec1_fn(new_code34, samples34, ch, y, x) 
+                            samples34[:,ch,y,x] = next_sample34
                            
                 #LEILAEDIT for .npy saving
                 x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
