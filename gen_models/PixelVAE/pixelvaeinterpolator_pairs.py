@@ -789,8 +789,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
-        #x_augmentation_list = [] #TODO - needs to be debugged. Has an extra dimension.
-        #y_augmentation_list = [] #TODO - needs to be debugged. Has an extra dimension.
+        x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
+        y_augmentation_set = np.zeros((1, 1)) #LEILEDIT: to enable .npy image saving
         
         # Reshape image files
         x_train = x_train.reshape(-1, 1, 28, 28)
@@ -926,11 +926,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         for ch in xrange(N_CHANNELS):
                             next_sample = dec1_fn(new_code34, samples34, ch, y, x) 
                             samples34[:,ch,y,x] = next_sample
-                            
-                #x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
-                #x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
-                #y_augmentation_list.append(new_label) #LEILAEDIT for .npy saving
-                #y_augmentation_array = np.array(y_augmentation_list) #LEILAEDIT for .npy saving
+                           
+                #LEILAEDIT for .npy saving
+                x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
+                x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
+                y_augmentation_set = np.concatenate((y_augmentation_set, new_code12), axis=0)#LEILAEDIT for .npy saving
+                y_augmentation_set = np.concatenate((y_augmentation_set, new_code34), axis=0)#LEILAEDIT for .npy saving
                 
                 print "Saving samples and their corresponding tags"
                 color_grid_vis(
@@ -946,8 +947,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'encoded_reconsamples_38_{}.png'.format(imagenum)
                 )
 
-            #np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving. TODO - needs to be debugged
-            #np.save('y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving. TODO - needs to be debugged
+            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
+            y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+            np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save('y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
