@@ -335,7 +335,7 @@ elif SETTINGS=='64px_big_onelevel':
     LATENTS1_WIDTH = 7
 
 if DATASET == 'mnist_256':
-    train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE) # TODO: define new data-loader so I don't load batches
+    train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE) 
 elif DATASET == 'lsun_32':
     train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=True)
 elif DATASET == 'lsun_64':
@@ -766,12 +766,93 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 kl_cost_1 *= float(LATENT_DIM_2) / (N_CHANNELS * WIDTH * HEIGHT)
 
                 cost = reconst_cost + (alpha * kl_cost_1)
+                  
+            elif MODE == 'two_level':
+                # Layer 1
 
+                if EMBED_INPUTS:
+                    mu_and_logsig1, h1 = Enc1(embedded_images)
+                else:
+                    mu_and_logsig1, h1 = Enc1(scaled_images)
+                mu1, logsig1, sig1 = split(mu_and_logsig1)
+
+                if mu1.get_shape().as_list()[2] != LATENTS1_HEIGHT:
+                    raise Exception("LATENTS1_HEIGHT doesn't match mu1 shape!")
+                if mu1.get_shape().as_list()[3] != LATENTS1_WIDTH:
+                    raise Exception("LATENTS1_WIDTH doesn't match mu1 shape!")
+
+                eps = tf.random_normal(tf.shape(mu1))
+                latents1 = mu1 + (eps * sig1)
+
+                if EMBED_INPUTS:
+                    outputs1 = Dec1(latents1, embedded_images)
+                    outputs1_sample = Dec1(latents1_sample, embedded_images)
+                else:
+                    outputs1 = Dec1(latents1, scaled_images)
+                    outputs1_sample = Dec1(latents1_sample, scaled_images)
+
+                reconst_cost = tf.reduce_mean(
+                    tf.nn.sparse_softmax_cross_entropy_with_logits(
+                        logits=tf.reshape(outputs1, [-1, 256]),
+                        labels=tf.reshape(images, [-1])
+                    )
+                )
+
+                # Layer 2
+
+                mu_and_logsig2 = Enc2(h1)
+                mu2, logsig2, sig2 = split(mu_and_logsig2)
+
+                eps = tf.random_normal(tf.shape(mu2))
+                latents2 = mu2 + (eps * sig2)
+
+                outputs2 = Dec2(latents2, latents1)
+
+                mu1_prior, logsig1_prior, sig1_prior = split(outputs2)
+                logsig1_prior, sig1_prior = clamp_logsig_and_sig(logsig1_prior, sig1_prior)
+                mu1_prior = 2. * tf.nn.softsign(mu1_prior / 2.)
+
+                # Assembly
+
+                # An alpha of exactly 0 can sometimes cause inf/nan values, so we're
+                # careful to avoid it.
+                alpha1 = tf.minimum(1., tf.cast(total_iters+1, 'float32') / ALPHA1_ITERS) * KL_PENALTY
+                alpha2 = tf.minimum(1., tf.cast(total_iters+1, 'float32') / ALPHA2_ITERS) * alpha1# * KL_PENALTY
+
+                kl_cost_1 = tf.reduce_mean(
+                    lib.ops.kl_gaussian_gaussian.kl_gaussian_gaussian(
+                        mu1, 
+                        logsig1,
+                        sig1,
+                        mu1_prior,
+                        logsig1_prior,
+                        sig1_prior
+                    )
+                )
+
+                kl_cost_2 = tf.reduce_mean(
+                    lib.ops.kl_unit_gaussian.kl_unit_gaussian(
+                        mu2, 
+                        logsig2,
+                        sig2
+                    )
+                )
+
+                kl_cost_1 *= float(LATENT_DIM_1 * LATENTS1_WIDTH * LATENTS1_HEIGHT) / (N_CHANNELS * WIDTH * HEIGHT)
+                kl_cost_2 *= float(LATENT_DIM_2) / (N_CHANNELS * WIDTH * HEIGHT)
+
+                cost = reconst_cost + (alpha1 * kl_cost_1) + (alpha2 * kl_cost_2)
+                 
             tower_cost.append(cost)
+            if MODE == 'two_level':
+                tower_outputs1_sample.append(outputs1_sample)
 
     full_cost = tf.reduce_mean(
         tf.concat([tf.expand_dims(x, 0) for x in tower_cost], axis=0), 0
     )
+   
+    if MODE == 'two_level':
+        full_outputs1_sample = tf.concat(tower_outputs1_sample, axis=0)
 
     # Sampling
 
@@ -1048,7 +1129,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             ('reconst', reconst_cost), 
             ('kl1', kl_cost_1)
         ]
-
+      
+    elif MODE == 'two_level':
+        prints=[
+            ('alpha1', alpha1),
+            ('alpha2', alpha2),
+            ('reconst', reconst_cost), 
+            ('kl1', kl_cost_1),
+            ('kl2', kl_cost_2),
+        ]
+         
     decayed_lr = tf.train.exponential_decay(
         LR,
         total_iters,
