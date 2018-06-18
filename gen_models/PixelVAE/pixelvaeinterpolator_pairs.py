@@ -825,8 +825,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
             for imagenum in range(num):
                 
-                # Sample two unique image indices from classes 0, 3, 6, 8
-                classindices = [0,6,3,8]
+                # Sample unique image indices from classes 0, 3, 6, 8. Images will be interpolated in pairs. Pairs are listed in order.
+                classindices = np.array[0,6,3,8]
+                
+                # TODO: make this less manual using this structure
+                #classindices = np.array([[0,6],3,8]])
+                #idx = np.zeros(classindices.shape[0])
+                #for classnums in xrange(classindices.shape[0]):
+                #  idxfirst[classnums] = np.where(np.equal(classindices[0][classnums],y_train))
+                #  idxsecond[classnums] = np.where(np.equal(classindices[1][classnums],y_train))
+                  
                 idx1 = np.where(np.equal(classindices[0],y_train))
                 idx2 = np.where(np.equal(classindices[1],y_train))
                 idx3 = np.where(np.equal(classindices[2],y_train))
