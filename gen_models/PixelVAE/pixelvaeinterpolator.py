@@ -852,8 +852,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                 #y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
                 
-                imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
-                imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
+                imageindex1 = 1 #random.sample(range(0, x_trainsubset1.shape[0]-1),1)
+                imageindex2 = 1 #random.sample(range(0, x_trainsubset2.shape[0]-1),1)
                 
                 # Draw the corresponding images and labels from the training data
                 image1 = x_trainsubset1[imageindex1,:]
