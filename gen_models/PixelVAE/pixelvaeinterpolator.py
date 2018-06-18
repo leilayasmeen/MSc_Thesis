@@ -870,8 +870,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
-        x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
-        y_augmentation_set = np.zeros((1, 1)) #LEILEDIT: to enable .npy image saving
         
         # Reshape image files
         x_train = x_train.reshape(-1, 1, 28, 28)
@@ -879,7 +877,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
-            
+            x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
+            y_augmentation_set = np.zeros((1, 1)) #LEILEDIT: to enable .npy image saving
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
                 # from github.com/Newmu
