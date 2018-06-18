@@ -910,13 +910,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(new_code12, samples, ch, y, x) 
+                            next_sample = dec1_fn(new_code12, samples12, ch, y, x) 
                             samples12[:,ch,y,x] = next_sample
                             
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(new_code34, samples, ch, y, x) 
+                            next_sample = dec1_fn(new_code34, samples34, ch, y, x) 
                             samples34[:,ch,y,x] = next_sample
                             
                 #x_augmentation_list.append(samples) #LEILAEDIT for .npy saving
