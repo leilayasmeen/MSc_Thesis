@@ -809,7 +809,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     j = n/nw
                     i = n%nw
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(save_path, img)
+                imsave(OUT_DIR + '/' + save_path, img)
                 
             num = 1
 
@@ -949,8 +949,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save('y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
@@ -1029,7 +1029,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     j = n/nw
                     i = n%nw
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(save_path, img)
+                imsave(OUT_DIR + '/' + save_path, img)
 
             print "Saving"
             rows = int(np.sqrt(N_SAMPLES))
