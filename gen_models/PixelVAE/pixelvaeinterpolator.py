@@ -844,13 +844,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
                 x_trainsubset1 = x_train_array[idx1,:]
                 x_trainsubset2 = x_train_array[idx2,:]
-                y_trainsubset1 = y_train[idx1,:]
-                y_trainsubset2 = y_train[idx2,:]
+                y_trainsubset1 = y_train_array[idx1,:]
+                y_trainsubset2 = y_train_array[idx2,:]
                 
-                x_trainsubset1 = x_trainsubset1.reshape(-1, 1, 28, 28)
-                x_trainsubset2 = x_trainsubset2.reshape(-1, 1, 28, 28)
-                y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
+                #x_trainsubset1 = x_trainsubset1.reshape(-1, 1, 28, 28)
+                #x_trainsubset2 = x_trainsubset2.reshape(-1, 1, 28, 28)
+                #y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
+                #y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
                 
                 imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
                 imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
