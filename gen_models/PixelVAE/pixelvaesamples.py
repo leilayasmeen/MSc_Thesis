@@ -794,7 +794,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(save_path, img)
 
             num = 2 # LEILAEDIT: inserted a for loop so I can generate multiple images (or multiple grids) by calling this function once
-            x_augmentation_list = [] #LEILEDIT: to enable .npy image saving
+            x_augmentation_set = np.zeroes(1, 1, 28, 28) #LEILEDIT: to enable .npy image saving
             
             for imagenum in range(num):
 
@@ -813,9 +813,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         for ch in xrange(N_CHANNELS):
                             next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
                             samples[:,ch,y,x] = next_sample
-                            
-                x_augmentation_list.append(samples) #LEILAEDIT for .npy saving. TODO - needs to be debugged. has an extra dimension.
-                x_augmentation_array = np.array(x_augmentation_list) #LEILAEDIT for .npy saving
+                           
+                #LEILAEDIT for .npy saving. TODO - needs to be debugged. has an extra dimension.
+                x_augmentation_set = np.concatenate(x_augmentation_set, samples, axis=0)#LEILAEDIT for .npy saving
                 
                 print "Saving samples"
                 color_grid_vis(
@@ -825,7 +825,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'samples_{}.png'.format(imagenum) # LEILAEDIT: was previously .format{tag}, I changed to label by image number
                 )
                 
-            np.save('x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save('x_augmentation_set', x_augmentation_set) #LEILAEDIT for .npy saving
     
     elif MODE == 'two_level':
 
