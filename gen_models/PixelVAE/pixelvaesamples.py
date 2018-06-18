@@ -815,7 +815,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             samples[:,ch,y,x] = next_sample
                            
                 #LEILAEDIT for .npy saving. TODO - needs to be debugged. has an extra dimension.
-                x_augmentation_set = np.concatenate(x_augmentation_set, samples, axis=0)#LEILAEDIT for .npy saving
+                x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                 
                 print "Saving samples"
                 color_grid_vis(
