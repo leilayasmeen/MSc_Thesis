@@ -875,7 +875,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(OUT_DIR + '/' + save_path, img)
 
             num = 2 # LEILAEDIT: inserted a for loop so I can generate multiple images (or multiple grids) by calling this function once
-            x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
+            x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
             
             for imagenum in range(num):
 
