@@ -966,7 +966,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 p = np.random.uniform(0,1)
                 new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
                 new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                new_label = new_label.reshape(1,10)
+                new_label = new_label.reshape(1,1,10)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
