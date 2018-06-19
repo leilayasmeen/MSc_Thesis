@@ -66,6 +66,7 @@ if SETTINGS == 'mnist_256':
     DIM_3        = 32
     DIM_4        = 64
     LATENT_DIM_2 = 128
+    NUM_CLASSES = 10
 
     ALPHA1_ITERS = 5000
     ALPHA2_ITERS = 5000
@@ -872,14 +873,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
         # Reshape image files
-        x_train = x_train.reshape(-1, 1, 28, 28)
+        x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
         y_train = y_train.reshape(-1, 1)
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
             
-            x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1)) #LEILEDIT: to enable .npy image saving
+            x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
+            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -934,10 +935,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 y_trainsubset3 = y_train_array[idx3,:]
                 y_trainsubset4 = y_train_array[idx4,:]
                 
-                x_trainsubset1 = x_trainsubset1.reshape(-1, 1, 28, 28)
-                x_trainsubset2 = x_trainsubset2.reshape(-1, 1, 28, 28)
-                x_trainsubset3 = x_trainsubset3.reshape(-1, 1, 28, 28)
-                x_trainsubset4 = x_trainsubset4.reshape(-1, 1, 28, 28)
+                x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+                x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+                x_trainsubset3 = x_trainsubset3.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+                x_trainsubset4 = x_trainsubset4.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
                 y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                 y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
                 y_trainsubset3 = y_trainsubset3.reshape(-1, 1)
@@ -959,10 +960,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 label4 = y_trainsubset2[imageindex4,:]
                 
                 # Reshape
-                image1 = image1.reshape(1, 1, 28, 28)
-                image2 = image2.reshape(1, 1, 28, 28)
-                image3 = image3.reshape(1, 1, 28, 28)
-                image4 = image4.reshape(1, 1, 28, 28)
+                image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                image3 = image3.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                image4 = image4.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                 label1 = label1.reshape(1, 1)
                 label2 = label2.reshape(1, 1)
                 label3 = label3.reshape(1, 1)
@@ -973,6 +974,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image_code2 = enc_fn(image2)
                 image_code3 = enc_fn(image3)
                 image_code4 = enc_fn(image4)
+                  
+                # Change the labels to matrix form before performing interpolations
+                label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
+                label2 = np_utils.to_categorical(label2, NUM_CLASSES)
+                label3 = np_utils.to_categorical(label3, NUM_CLASSES) 
+                label4 = np_utils.to_categorical(label4, NUM_CLASSES)             
                 
                 # Average the latent codes and the targets
                 #new_code = np.mean([image_code1,image_code2], axis=0)
@@ -985,7 +992,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 new_label12 = np.multiply(p1,label1) + np.multiply((1-p1),label2)
                 new_code34 = np.multiply(p2,image_code3) + np.multiply((1-p2),image_code4)
                 new_label34 = np.multiply(p2,label3) + np.multiply((1-p2),label4)
-
+               
+                # Reshape the new labels to enable saving in the proper format for the neural networks later on
+                new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
+                new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
+                  
                 samples12 = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
                     dtype='int32'
