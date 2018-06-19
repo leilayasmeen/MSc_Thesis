@@ -918,7 +918,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #label2 = y_train[imageindices[1]]
                 
                 # Sample two unique image indices from different classes
-                classindices = random.sample(range(0,9),2) # TODO - replace upper bound with NUM_CLASSES
+                classindices = random.sample(range(0,NUM_CLASSES-1),2)
                 idx1 = np.where(np.equal(classindices[0],y_train))
                 idx2 = np.where(np.equal(classindices[1],y_train))
                 
@@ -930,10 +930,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 y_trainsubset1 = y_train_array[idx1,:]
                 y_trainsubset2 = y_train_array[idx2,:]
                 
-                x_trainsubset1 = x_trainsubset1.reshape(-1, 1, 28, 28) # TODO - replace with HEIGHT, WIDTH
-                x_trainsubset2 = x_trainsubset2.reshape(-1, 1, 28, 28)
+                x_trainsubset1 = x_trainsubset1.reshape(-1, NUM_CHANNELS, HEIGHT, WIDTH) 
+                x_trainsubset2 = x_trainsubset2.reshape(-1, NUM_CHANNELS, HEIGHT, WIDTH)
                 y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                y_trainsubset2 = y_trainsubset2.reshape(-1, 1) # TODO - replace with NUM_CLASSES
+                y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
                 
                 imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
                 imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
@@ -945,8 +945,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 label2 = y_trainsubset2[imageindex2,:]
                 
                 # Reshape
-                image1 = image1.reshape(1, 1, 28, 28)
-                image2 = image2.reshape(1, 1, 28, 28)
+                image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                 label1 = label1.reshape(1, 1)
                 label2 = label2.reshape(1, 1)
                   
@@ -955,8 +955,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image_code2 = enc_fn(image2)
                
                 # Change labels matrix form before performing interpolations
-                label1 = np_utils.to_categorical(label1, 10) # TODO: change to NUM_CLASSES
-                label2 = np_utils.to_categorical(label2, 10) # TODO: change to NUM_CLASSES
+                label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
+                label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
                 
                 # Average the latent codes and the targets
                 #new_code = np.mean([image_code1,image_code2], axis=0)
@@ -966,7 +966,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 p = np.random.uniform(0,1)
                 new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
                 new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                new_label = new_label.reshape(1,1,10)
+                new_label = new_label.reshape(1,1,NUM_CLASSES)
 
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
