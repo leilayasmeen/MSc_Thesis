@@ -33,7 +33,7 @@ import scipy.misc
 from scipy.misc import imsave
 
 import keras
-from keras.utils import np_utils
+from keras.utils import np_utils as np_utils
 import imageio
 
 import time
