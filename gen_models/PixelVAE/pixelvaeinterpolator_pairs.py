@@ -878,7 +878,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
-            
+            from keras.utils import np_utils
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
             y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving
             
