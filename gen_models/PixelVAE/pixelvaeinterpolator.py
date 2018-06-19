@@ -873,14 +873,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
         # Reshape image files
-        x_train = x_train.reshape(-1, 1, HEIGHT, WIDTH)
+        x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
         y_train = y_train.reshape(-1, 1)
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
             from keras.utils import np_utils           
-            x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1, 10)) #LEILEDIT: to enable .npy image saving. TODO - replace with vars
+            x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
+            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. TODO - replace with vars
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -930,8 +930,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 y_trainsubset1 = y_train_array[idx1,:]
                 y_trainsubset2 = y_train_array[idx2,:]
                 
-                x_trainsubset1 = x_trainsubset1.reshape(-1, NUM_CHANNELS, HEIGHT, WIDTH) 
-                x_trainsubset2 = x_trainsubset2.reshape(-1, NUM_CHANNELS, HEIGHT, WIDTH)
+                x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
+                x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
                 y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                 y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
                 
