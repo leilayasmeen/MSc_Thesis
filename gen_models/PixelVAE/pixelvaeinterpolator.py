@@ -66,6 +66,7 @@ if SETTINGS == 'mnist_256':
     DIM_3        = 32
     DIM_4        = 64
     LATENT_DIM_2 = 128
+    NUM_CLASSES = 10
 
     ALPHA1_ITERS = 5000
     ALPHA2_ITERS = 5000
@@ -872,13 +873,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
         # Reshape image files
-        x_train = x_train.reshape(-1, 1, 28, 28)
+        x_train = x_train.reshape(-1, 1, HEIGHT, WIDTH)
         y_train = y_train.reshape(-1, 1)
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
             x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1)) #LEILEDIT: to enable .npy image saving
+            y_augmentation_set = np.zeros((1, 1, 10)) #LEILEDIT: to enable .npy image saving. TODO - replace with vars
+            
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
                 # from github.com/Newmu
@@ -915,7 +917,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #label2 = y_train[imageindices[1]]
                 
                 # Sample two unique image indices from different classes
-                classindices = random.sample(range(0,9),2)
+                classindices = random.sample(range(0,9),2) # TODO - replace upper bound with NUM_CLASSES
                 idx1 = np.where(np.equal(classindices[0],y_train))
                 idx2 = np.where(np.equal(classindices[1],y_train))
                 
@@ -927,10 +929,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 y_trainsubset1 = y_train_array[idx1,:]
                 y_trainsubset2 = y_train_array[idx2,:]
                 
-                x_trainsubset1 = x_trainsubset1.reshape(-1, 1, 28, 28)
+                x_trainsubset1 = x_trainsubset1.reshape(-1, 1, 28, 28) # TODO - replace with HEIGHT, WIDTH
                 x_trainsubset2 = x_trainsubset2.reshape(-1, 1, 28, 28)
                 y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
+                y_trainsubset2 = y_trainsubset2.reshape(-1, 1) # TODO - replace with NUM_CLASSES
                 
                 imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
                 imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
@@ -950,6 +952,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # Encode the images
                 image_code1 = enc_fn(image1)
                 image_code2 = enc_fn(image2)
+               
+                # Change labels matrix form before performing interpolations
+                label1 = np_utils.to_categorical(label1, 10) # TODO: change to NUM_CLASSES
+                label2 = np_utils.to_categorical(label2, 10) # TODO: change to NUM_CLASSES
                 
                 # Average the latent codes and the targets
                 #new_code = np.mean([image_code1,image_code2], axis=0)
