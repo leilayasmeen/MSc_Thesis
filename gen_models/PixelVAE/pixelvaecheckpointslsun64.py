@@ -18,7 +18,8 @@ import tflib.ops.linear
 import tflib.ops.batchnorm
 import tflib.ops.embedding
 
-import tflib.mnist_256
+#import tflib.mnist_256
+import tflib.lsun_bedrooms
 
 import numpy as np
 import tensorflow as tf
