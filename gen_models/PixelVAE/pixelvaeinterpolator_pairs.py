@@ -956,8 +956,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image4 = x_trainsubset4[imageindex4,:]  
                 label1 = y_trainsubset1[imageindex1,:]
                 label2 = y_trainsubset2[imageindex2,:]
-                label3 = y_trainsubset1[imageindex3,:]
-                label4 = y_trainsubset2[imageindex4,:]
+                label3 = y_trainsubset3[imageindex3,:]
+                label4 = y_trainsubset4[imageindex4,:]
                 
                 # Reshape
                 image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
