@@ -33,7 +33,6 @@ import scipy.misc
 from scipy.misc import imsave
 
 import keras
-from keras.utils import np_utils as np_utils
 import imageio
 
 import time
@@ -879,6 +878,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
+            from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, 1, 28, 28)) #LEILEDIT: to enable .npy image saving
             y_augmentation_set = np.zeros((1, 1, 10)) #LEILEDIT: to enable .npy image saving. TODO - replace with vars
             
