@@ -19,7 +19,8 @@ import tflib.ops.batchnorm
 import tflib.ops.embedding
 
 #import tflib.mnist_256
-import tflib.lsun_bedrooms
+#import tflib.lsun_bedrooms
+import tflib.cifar10
 
 import numpy as np
 import tensorflow as tf
@@ -29,7 +30,7 @@ from imageio import imsave
 import time
 import functools
 
-DATASET = 'lsun_64'
+DATASET = 'cifar10'#'lsun_64'
 SETTINGS = '64px_big' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
 if SETTINGS == 'mnist_256':
@@ -311,16 +312,14 @@ elif SETTINGS=='64px_big_onelevel':
 
     BATCH_SIZE = 48
     N_CHANNELS = 3
-    HEIGHT = 64
-    WIDTH = 64
+    HEIGHT = 32 #64 LEILAEDIT
+    WIDTH = 32 #64 LEILAEDIT
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
     LATENT_DIM_1 = 64
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
-
-
 
 if DATASET == 'mnist_256':
     train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE)
@@ -330,6 +329,8 @@ elif DATASET == 'lsun_64':
     train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=False)
 elif DATASET == 'imagenet_64':
     train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
+elif DATASET == 'cifar10':
+    train_data, dev_data = lib.cifar10.load(BATCH_SIZE) # LEILAEDIT
 
 lib.print_model_settings(locals().copy())
 
@@ -593,7 +594,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             def EncFull(images):
                 output = images
 
-                if WIDTH == 64:
+                if WIDTH == 32: # 64 LEILAEDIT
                     if EMBED_INPUTS:
                         output = lib.ops.conv2d.Conv2D('EncFull.Input', input_dim=N_CHANNELS*DIM_EMBED, output_dim=DIM_0, filter_size=1, inputs=output, he_init=False)
                     else:
@@ -635,7 +636,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             def DecFull(latents, images):
                 output = tf.clip_by_value(latents, -50., 50.)
 
-                if WIDTH == 64:
+                if WIDTH == 32: # 64:LEILAEDIT
                     output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*4*DIM_4, initialization='glorot', inputs=output)
                     output = tf.reshape(output, [-1, DIM_4, 4, 4])
                     output = ResidualBlock('DecFull.Res2', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
@@ -661,7 +662,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     output = ResidualBlock('DecFull.Res6', input_dim=DIM_2, output_dim=DIM_1, filter_size=3, resample='up', he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res7', input_dim=DIM_1, output_dim=DIM_1, filter_size=3, resample=None, he_init=True, inputs=output)
 
-                if WIDTH == 64:
+                if WIDTH == 32: #64:
                     dim = DIM_0
                 else:
                     dim = DIM_1
@@ -679,7 +680,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     output = ResidualBlock('DecFull.Pix2Res', input_dim=2*dim,   output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
                     output = ResidualBlock('DecFull.Pix3Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
                     output = ResidualBlock('DecFull.Pix4Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
-                    if WIDTH != 64:
+                    if WIDTH != 32: #64: LEILAEDIT
                         output = ResidualBlock('DecFull.Pix5Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
