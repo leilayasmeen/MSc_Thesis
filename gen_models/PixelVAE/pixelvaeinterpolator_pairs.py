@@ -29,11 +29,10 @@ import tflib.mnist_256
 
 import numpy as np
 import tensorflow as tf
-import scipy.misc
-from scipy.misc import imsave
+import imageio
+from imageio import imsave
 
 import keras
-import imageio
 
 import time
 import functools
@@ -897,7 +896,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             num = 50
 
             #print "Reading in image"
-            #testimage = imread('samples_0.png', mode='P')
+            #testimage = imread('samples_0.png')
             #testimage = testimage.reshape((-1, 1, 28, 28))
             
             #print "Sampling Random Image"

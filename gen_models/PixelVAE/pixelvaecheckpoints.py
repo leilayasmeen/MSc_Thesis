@@ -22,8 +22,8 @@ import tflib.mnist_256
 
 import numpy as np
 import tensorflow as tf
-import scipy.misc
-from scipy.misc import imsave
+import imageio
+from imageio import imsave
 
 import time
 import functools
