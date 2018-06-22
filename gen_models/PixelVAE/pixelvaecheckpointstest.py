@@ -31,7 +31,7 @@ import time
 import functools
 
 DATASET = 'cifar10'#'lsun_64'
-SETTINGS = '64px_big' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
+SETTINGS =  '32px_small#'64px_big' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
 if SETTINGS == 'mnist_256':
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
@@ -312,8 +312,8 @@ elif SETTINGS=='64px_big_onelevel':
 
     BATCH_SIZE = 48
     N_CHANNELS = 3
-    HEIGHT = 32 #64 LEILAEDIT
-    WIDTH = 32 #64 LEILAEDIT
+    HEIGHT = 64
+    WIDTH = 64
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
@@ -321,6 +321,62 @@ elif SETTINGS=='64px_big_onelevel':
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
 
+elif SETTINGS=='32px_cifar':
+
+    # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
+    # one_level uses EncFull/DecFull for the bottom (and only) level
+    MODE = 'one_level'
+
+    # Whether to treat pixel inputs to the model as real-valued (as in the 
+    # original PixelCNN) or discrete (gets better likelihoods).
+    EMBED_INPUTS = True
+
+    # Turn on/off the bottom-level PixelCNN in Dec1/DecFull
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 384
+    DIM_0        = 192
+    DIM_1        = 256
+    DIM_2        = 512
+    DIM_3        = 512
+    DIM_4        = 512
+    LATENT_DIM_2 = 512
+
+    ALPHA1_ITERS = 50000
+    ALPHA2_ITERS = 50000
+    KL_PENALTY = 1.0
+    BETA_ITERS = 1000
+
+    # In Dec2, we break each spatial location into N blocks (analogous to channels
+    # in the original PixelCNN) and model each spatial location autoregressively
+    # as P(x)=P(x0)*P(x1|x0)*P(x2|x0,x1)... In my experiments values of N > 1
+    # actually hurt performance. Unsure why; might be a bug.
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 10000,
+        'stop_after': 400000,
+        'callback_every': 50000
+    }
+    
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 180000
+    LR_DECAY_FACTOR = 0.5
+
+    BATCH_SIZE = 48
+    N_CHANNELS = 3
+    HEIGHT = 32 #LEILAEDIT
+    WIDTH = 32 #LEILAEDIT
+
+    # These aren't actually used for one-level models but some parts
+    # of the code still depend on them being defined.
+    LATENT_DIM_1 = 64
+    LATENTS1_HEIGHT = 7
+    LATENTS1_WIDTH = 7
+    
 if DATASET == 'mnist_256':
     train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE)
 elif DATASET == 'lsun_32':
@@ -330,7 +386,7 @@ elif DATASET == 'lsun_64':
 elif DATASET == 'imagenet_64':
     train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
 elif DATASET == 'cifar10':
-    train_data, dev_data = lib.cifar10.load(BATCH_SIZE) # LEILAEDIT
+    train_data, dev_data = lib.cifar10.load(BATCH_SIZE) #LEILAEDIT
 
 lib.print_model_settings(locals().copy())
 
@@ -590,7 +646,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 return output
 
-            # Only for 64px_big_onelevel and MNIST. Needs modification for others.
+            # Only for 32px_cifar, 64px_big_onelevel, and MNIST. Needs modification for others.
             def EncFull(images):
                 output = images
 
@@ -632,7 +688,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 return output
 
-            # Only for 64px_big_onelevel and MNIST. Needs modification for others.
+            # Only for 32px_CIFAR, 64px_big_onelevel and MNIST. Needs modification for others.
             def DecFull(latents, images):
                 output = tf.clip_by_value(latents, -50., 50.)
 
