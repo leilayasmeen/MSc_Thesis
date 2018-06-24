@@ -869,13 +869,34 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
+        all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
         
         # Reshape image files
         x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
         y_train = y_train.reshape(-1, 1)
         print "Reshaped loaded images."
+         
+        # Encode all images
+        for j in range(x_train.shape[0]-1):
+            saver = enc_fn(x_train[j,:])
+            saver = saver.append(y_train[j,:])
+            all_latents_and_class = np.concatenate((all_latents_and_class, saver), axis=0)
         
+        all_latents_and_class = np.delete(all_latents_and_class, (0), axis=0)
+         
+        # Find means of latent vectors, by class
+        classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
+        for k in range(NUM_CLASSES-1):
+            idk = np.where(np.equal(y_train,k))
+            all_latents_groupk = all_latents_and_class[idk,:]
+            classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
+      
+        # Find the two classes that are closest to each other
+        # find all pairs
+        # find distance between each pairnumpy.linalg.norm(a-b)
+        #all_latents_groupk = np.delete(all_latents_groupk, -1, axis=1)
+        
+        # Generate samples by interpolating within these two sets of pairs
         def generate_and_save_samples(tag):
             from keras.utils import np_utils
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
