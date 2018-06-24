@@ -941,7 +941,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     1, 
                     'original_{}.png'.format(imagenum)
                 )
-               print "Saving reconstructed sample"
+                print "Saving reconstructed sample"
                 color_grid_vis(
                     samples, 
                     1, 
