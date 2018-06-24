@@ -7,6 +7,7 @@ from fuel.datasets.hdf5 import H5PYDataset
 from fuel.schemes import ShuffledScheme, SequentialScheme
 from fuel.streams import DataStream
 # from fuel.transformers.image import RandomFixedSizeCrop
+from sklearn.model_selection import train_test_split
 
 PATH = 'cifar10.hdf5'
 
@@ -33,8 +34,10 @@ def _make_stream(stream, bs):
     return new_stream
 
 def load(batch_size=128):
-    tr_data = H5PYDataset(PATH, which_sets=('train',))
-    te_data = H5PYDataset(PATH, which_sets=('valid',))
+    seed = 333
+    full_training_data = H5PYDataset(PATH, which_sets=('train'))
+    
+    tr_data, te_data = train_test_split(full_training_data, test_size=0.1, random_state=seed)
 
     ntrain = tr_data.num_examples
     nval = te_data.num_examples
