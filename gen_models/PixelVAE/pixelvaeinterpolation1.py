@@ -893,7 +893,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 1
+            numsamples = 50
             pvals = np.linspace(0.0, 1.0, num=10)
 
             #print "Reading in image"
@@ -973,7 +973,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      dtype='int32'
                   )
 
-                  print "Generating samples"
+                  #print "Generating samples"
                   for y in xrange(HEIGHT):
                      for x in xrange(WIDTH):
                            for ch in xrange(N_CHANNELS):
@@ -984,12 +984,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
                 
-                  print "Saving samples and their corresponding tags"
+                  #print "Saving samples and their corresponding tags"
                   color_grid_vis(
                      samples, 
                      1, 
                      1, 
-                     'encoded_reconsamples_{}.png'.format(imagenum)
+                     'encoded_reconsamples_{}_{}.png'.format(imagenum,p)
                   )
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
