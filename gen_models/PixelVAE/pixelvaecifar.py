@@ -525,8 +525,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 output = tf.clip_by_value(latents, -50., 50.)
 
                 if WIDTH == 32: # 64:LEILAEDIT
-                    output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*2*DIM_4, initialization='glorot', inputs=output)
-                    output = tf.reshape(output, [-1, DIM_4/2, 4, 4])
+                    output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*4*DIM_4, initialization='glorot', inputs=output)
+                    output = tf.reshape(output, [-1, DIM_4, 4, 4])
                     output = ResidualBlock('DecFull.Res2', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res3', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res4', input_dim=DIM_4, output_dim=DIM_3, filter_size=3, resample='up', he_init=True, inputs=output)
