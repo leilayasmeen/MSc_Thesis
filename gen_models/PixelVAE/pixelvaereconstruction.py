@@ -7,7 +7,7 @@ Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, 
 import os, sys
 sys.path.append(os.getcwd())
 
-OUT_DIR = 'linear_interpolations_mnist'
+OUT_DIR = 'reconstructions_mnist'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
@@ -893,7 +893,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            num = 50
+            num = 1
 
             #print "Reading in image"
             #testimage = imread('samples_0.png', mode='P')
@@ -907,14 +907,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
             for imagenum in range(num):
 
-                # Sample two unique image indices 
+                print "Sampling Random Image Index"
                 #imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
-                
-                # Draw the corresponding images and labels from the training data
+                           
+                print "Drawing Corresponding Image and Label Out"
                 #image1 = x_train[imageindices[0],:]
-                #image2 = x_train[imageindices[1],:]   
-                #label1 = y_train[imageindices[0]]
-                #label2 = y_train[imageindices[1]]
                 
                 # Sample two unique image indices from different classes
                 classindices = random.sample(range(0,NUM_CLASSES-1),2)
@@ -922,51 +919,23 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 idx2 = np.where(np.equal(classindices[1],y_train))
                 
                 x_train_array = np.array(x_train)
-                y_train_array = np.array(y_train)
                 
                 x_trainsubset1 = x_train_array[idx1,:]
                 x_trainsubset2 = x_train_array[idx2,:]
-                y_trainsubset1 = y_train_array[idx1,:]
-                y_trainsubset2 = y_train_array[idx2,:]
                 
                 x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
                 
                 imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
-                imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
                 
-                # Draw the corresponding images and labels from the training data
-                image1 = x_trainsubset1[imageindex1,:]
-                image2 = x_trainsubset2[imageindex2,:]  
-                label1 = y_trainsubset1[imageindex1,:]
-                label2 = y_trainsubset2[imageindex2,:]
+                # Draw the corresponding image from the training data
+                image = x_trainsubset[imageindex1,:]
                 
                 # Reshape
-                image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                label1 = label1.reshape(1, 1)
-                label2 = label2.reshape(1, 1)
+                image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                   
                 # Encode the images
-                image_code1 = enc_fn(image1)
-                image_code2 = enc_fn(image2)
+                image_code = enc_fn(image)
                
-                # Change labels matrix form before performing interpolations
-                label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
-                label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
-                
-                # Average the latent codes and the targets
-                #new_code = np.mean([image_code1,image_code2], axis=0)
-                #new_label = np.mean([label1, label2], axis=0)
-                
-                # Combine the latent codes using p~Unif(0,1)
-                p = np.random.uniform(0,1)
-                new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
-                new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                new_label = new_label.reshape(1,1,NUM_CLASSES)
-
                 samples = np.zeros(
                     (1, N_CHANNELS, HEIGHT, WIDTH), 
                     dtype='int32'
@@ -976,12 +945,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 for y in xrange(HEIGHT):
                     for x in xrange(WIDTH):
                         for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(new_code, samples, ch, y, x) 
+                            next_sample = dec1_fn(image_code, samples, ch, y, x) 
                             samples[:,ch,y,x] = next_sample
                             
                 #LEILAEDIT for .npy saving
                 x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
-                y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
                 
                 print "Saving samples and their corresponding tags"
                 color_grid_vis(
@@ -992,9 +960,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 )
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-            y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
             np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
