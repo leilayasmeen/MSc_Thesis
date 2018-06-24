@@ -35,7 +35,7 @@ def _make_stream(stream, bs):
 
 def load(batch_size=128):
     seed = 333
-    full_training_data = H5PYDataset(PATH, which_sets=('train'))
+    full_training_data = H5PYDataset(PATH, which_sets=('train','test'))
     
     tr_data, te_data = train_test_split(full_training_data, test_size=0.1, random_state=seed)
 
