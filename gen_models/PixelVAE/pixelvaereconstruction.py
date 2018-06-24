@@ -934,7 +934,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #LEILAEDIT for .npy saving
                 x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                 
-                print "Saving samples and their corresponding tags"
+                print "Saving original sample"
+                color_grid_vis(
+                    image, 
+                    1, 
+                    1, 
+                    'original_{}.png'.format(imagenum)
+                )
+               print "Saving reconstructed sample"
                 color_grid_vis(
                     samples, 
                     1, 
