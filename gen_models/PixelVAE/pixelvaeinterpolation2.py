@@ -877,7 +877,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print "Reshaped loaded images."
          
         # Encode all images
-        for j in range(x_train.shape[0]-1):
+        for j in range(x_train.shape[0]):
             saver = enc_fn(x_train[j,:])
             saver = saver.append(y_train[j,:])
             all_latents_and_class = np.concatenate((all_latents_and_class, saver), axis=0)
@@ -886,15 +886,24 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
          
         # Find means of latent vectors, by class
         classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
-        for k in range(NUM_CLASSES-1):
+        for k in range(NUM_CLASSES):
             idk = np.where(np.equal(y_train,k))
             all_latents_groupk = all_latents_and_class[idk,:]
             classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
       
-        # Find the two classes that are closest to each other
-        # find all pairs
-        # find distance between each pairnumpy.linalg.norm(a-b)
-        #all_latents_groupk = np.delete(all_latents_groupk, -1, axis=1)
+        # Find the two pairs of classes that are closest to each other
+        # Find all pairs
+        pairs = np.array(list(itertools.combinations(range(NUM_CLASSES),2)))
+        num_pairs = pairs.shape[0]
+         
+        # Find distances between the members of each pair
+        meandist = np.zeros((num_pairs, LATENT_DIM_2)).astype('float32')
+        for m in range(num_pairs):
+             a.idx = np.where(np.equal(pairs[m,0],
+             b.idx = classmeans[pairs[m,0],:]
+             meandist[m,:] = np.linalg.norm(a-b)
+         
+        classpairs = np.append(closestpairs)
         
         # Generate samples by interpolating within these two sets of pairs
         def generate_and_save_samples(tag):
@@ -929,7 +938,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for imagenum in range(num):
                 
                 # Sample unique image indices from classes 0, 3, 6, 8. Images will be interpolated in pairs. Pairs are listed in order.
-                classindices = np.array([0,6,3,8])
+                #classindices = np.array([0,6,3,8])
+                classindices = classpairs
                 
                 # TODO: make this less manual using this structure
                 #classindices = np.array([[0,6],[3,8]])
