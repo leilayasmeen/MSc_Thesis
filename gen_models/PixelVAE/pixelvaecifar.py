@@ -515,7 +515,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 return mu_and_sigma, output
 
             def Dec1(latents, images):
-                output = tf.clip_by_value(latents, -50., 50.)
+                output = tf.clip_by_value(latents, -50, 50) #LEILAEDIT: changed from 50.
 
                 if LATENTS1_WIDTH == 16:
                     output = lib.ops.conv2d.Conv2D('Dec1.Input', input_dim=LATENT_DIM_1, output_dim=DIM_2, filter_size=1, inputs=output, he_init=False)
@@ -603,7 +603,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 return output
 
             def Dec2(latents, targets):
-                output = tf.clip_by_value(latents, -50., 50.)
+                output = tf.clip_by_value(latents, -50, 50) #LEILAEDIT
                 output = lib.ops.linear.Linear('Dec2.Input', input_dim=LATENT_DIM_2, output_dim=4*4*DIM_4, inputs=output)
 
                 output = tf.reshape(output, [-1, DIM_4, 4, 4])
@@ -696,7 +696,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             # Only for 32px_CIFAR, 64px_big_onelevel and MNIST. Needs modification for others.
             def DecFull(latents, images):
-                output = tf.clip_by_value(latents, -50., 50.)
+                output = tf.clip_by_value(latents, -50, 50) #LEILAEDIT
 
                 if WIDTH == 32: # 64:LEILAEDIT
                     output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*4*DIM_4, initialization='glorot', inputs=output)
