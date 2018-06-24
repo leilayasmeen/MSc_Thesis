@@ -960,8 +960,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
                 # Average the latent codes and the targets
                 #new_code = np.mean([image_code1,image_code2], axis=0)
-                #new_label = np.mean([label1, label2], axis=0)
-                
+                #new_label = np.mean([label1, label2], axis=0) 
                
                 # Combine the latent codes
                 for p in pvals:
@@ -993,10 +992,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      'encoded_reconsamples_{}.png'.format(imagenum)
                   )
 
-        x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-        y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-        np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-        np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
+            y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
                 
                 
     elif MODE == 'two_level':
