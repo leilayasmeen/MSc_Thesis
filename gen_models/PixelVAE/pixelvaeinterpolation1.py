@@ -930,10 +930,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 y_trainsubset1 = y_train_array[idx1,:]
                 y_trainsubset2 = y_train_array[idx2,:]
                 
-                #x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                #x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                #y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                #y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
+                x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
+                x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+                y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
+                y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
                 
                 imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
                 imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
@@ -954,7 +954,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image_code1 = enc_fn(image1)
                 image_code2 = enc_fn(image2)
                
-                # Change labels matrix form before performing interpolations
+                # Change labels to matrix form before performing interpolations
                 label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
                 label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
                 
@@ -962,40 +962,42 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #new_code = np.mean([image_code1,image_code2], axis=0)
                 #new_label = np.mean([label1, label2], axis=0)
                 
-                # Combine the latent codes using p~Unif(0,1)
-                p = np.random.uniform(0,1)
-                new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
-                new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                new_label = new_label.reshape(1,1,NUM_CLASSES)
+               
+                # Combine the latent codes
+                for p in pvals:
+                  new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
+                  new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
+                  new_label = new_label.reshape(1,1,NUM_CLASSES)
 
-                samples = np.zeros(
-                    (1, N_CHANNELS, HEIGHT, WIDTH), 
-                    dtype='int32'
-                )
+                  samples = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
 
-                print "Generating samples"
-                for y in xrange(HEIGHT):
-                    for x in xrange(WIDTH):
-                        for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(new_code, samples, ch, y, x) 
-                            samples[:,ch,y,x] = next_sample
+                  print "Generating samples"
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                           for ch in xrange(N_CHANNELS):
+                              next_sample = dec1_fn(new_code, samples, ch, y, x) 
+                              samples[:,ch,y,x] = next_sample
                             
-                #LEILAEDIT for .npy saving
-                x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
-                y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
+                  #LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
                 
-                print "Saving samples and their corresponding tags"
-                color_grid_vis(
-                    samples, 
-                    1, 
-                    1, 
-                    'encoded_reconsamples_{}.png'.format(imagenum)
-                )
+                  print "Saving samples and their corresponding tags"
+                  color_grid_vis(
+                     samples, 
+                     1, 
+                     1, 
+                     'encoded_reconsamples_{}.png'.format(imagenum)
+                  )
 
-            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-            y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+               x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
+               y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+               np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+               np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+                
                 
     elif MODE == 'two_level':
 
