@@ -342,13 +342,13 @@ elif SETTINGS=='32px_cifar':
     HIGHER_LEVEL_PIXCNN = True
 
     DIM_EMBED    = 16
-    DIM_PIX_1    = 192 #384
-    DIM_0        = 96 #192
-    DIM_1        = 128 #256
-    DIM_2        = 256 #512
-    DIM_3        = 256 #512
-    DIM_4        = 256 #512
-    LATENT_DIM_2 = 256 #512
+    DIM_PIX_1    = 192 #LEILA EDIT: was previously 384
+    DIM_0        = 96 #LEILA EDIT: was previously 192
+    DIM_1        = 128 #LEILA EDIT: was previously 256
+    DIM_2        = 256 #LEILA EDIT: was previously 512
+    DIM_3        = 256 #LEILA EDIT: was previously 512
+    DIM_4        = 256 #LEILA EDIT: was previously 512
+    LATENT_DIM_2 = 256 #LEILA EDIT: was previously 512
 
     ALPHA1_ITERS = 50000
     ALPHA2_ITERS = 50000
@@ -379,7 +379,7 @@ elif SETTINGS=='32px_cifar':
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
-    LATENT_DIM_1 = 32 #64
+    LATENT_DIM_1 = 32 #LEILAEDIT: was previously 64
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
     
@@ -571,8 +571,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     if WIDTH != 32: #64: LEILAEDIT
                         output = ResidualBlock('DecFull.Pix5Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
 
-                    #output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
-                    output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=128*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
+                    output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
+                    #output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=128*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
                      
                 else:
 
