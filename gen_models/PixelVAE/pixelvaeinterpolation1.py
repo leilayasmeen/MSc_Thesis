@@ -993,10 +993,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      'encoded_reconsamples_{}.png'.format(imagenum)
                   )
 
-            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-            y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+            #x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
+            #y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+            #np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            #np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
                 
                 
     elif MODE == 'two_level':
