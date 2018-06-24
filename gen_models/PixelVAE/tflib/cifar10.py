@@ -35,9 +35,12 @@ def _make_stream(stream, bs):
 
 def load(batch_size=128):
     seed = 333
-    full_training_data = H5PYDataset(PATH, which_sets=('train',))
+    #full_training_data = H5PYDataset(PATH, which_sets=('train',))
     
-    tr_data, te_data = train_test_split(full_training_data, test_size=0.1, random_state=seed)
+    #tr_data, te_data = train_test_split(full_training_data, test_size=0.1, random_state=seed)
+    
+    tr_data = H5PYDataset(PATH, which_sets=('train',))
+    te_data = H5PYDataset(PATH, which_sets=('test',))
 
     ntrain = tr_data.num_examples
     nval = te_data.num_examples
