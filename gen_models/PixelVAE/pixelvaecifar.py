@@ -525,8 +525,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 output = tf.clip_by_value(latents, -50., 50.)
 
                 if WIDTH == 32: # 64:LEILAEDIT
-                    output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*4*DIM_4, initialization='glorot', inputs=output)
-                    output = tf.reshape(output, [-1, DIM_4, 4, 4])
+                    output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*2*DIM_4, initialization='glorot', inputs=output)
+                    output = tf.reshape(output, [-1, DIM_4/2, 4, 4])
                     output = ResidualBlock('DecFull.Res2', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res3', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res4', input_dim=DIM_4, output_dim=DIM_3, filter_size=3, resample='up', he_init=True, inputs=output)
@@ -562,6 +562,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     else:
                         masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
 
+                    # Hyunjik: line 567 is where the issue comes in.
                     # Warning! Because of the masked convolutions it's very important that masked_images comes first in this concat
                     output = tf.concat([masked_images, output], axis=1)
 
@@ -572,15 +573,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         output = ResidualBlock('DecFull.Pix5Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
-                    #output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=128*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
-                     
+                  
                 else:
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=dim, output_dim=256*N_CHANNELS, filter_size=1, he_init=False, inputs=output)
 
                 return tf.transpose(
                     tf.reshape(output, [-1, 256, N_CHANNELS, HEIGHT, WIDTH]),
-                    #tf.reshape(output, [-1, 128, N_CHANNELS, HEIGHT, WIDTH]),
                     [0,2,3,4,1]
                 )
 
@@ -600,7 +599,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             scaled_images = (tf.cast(images, 'float32') - 128.) / 64.
             if EMBED_INPUTS:
                 embedded_images = lib.ops.embedding.Embedding('Embedding', 256, DIM_EMBED, images)
-                #embedded_images = lib.ops.embedding.Embedding('Embedding', 128, DIM_EMBED, images)
                 embedded_images = tf.transpose(embedded_images, [0,4,1,2,3])
                 embedded_images = tf.reshape(embedded_images, [-1, DIM_EMBED*N_CHANNELS, HEIGHT, WIDTH])
 
@@ -625,7 +623,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 reconst_cost = tf.reduce_mean(
                     tf.nn.sparse_softmax_cross_entropy_with_logits(
                         logits=tf.reshape(outputs1, [-1, 256]),
-                        #logits=tf.reshape(outputs1, [-1, 128]),
                         labels=tf.reshape(images, [-1])
                     )
                 )
