@@ -341,7 +341,7 @@ elif SETTINGS=='32px_cifar':
     PIXEL_LEVEL_PIXCNN = True
     HIGHER_LEVEL_PIXCNN = True
 
-    DIM_EMBED    = 8 #16
+    DIM_EMBED    = 16
     DIM_PIX_1    = 192 #384
     DIM_0        = 96 #192
     DIM_1        = 128 #256
@@ -374,12 +374,12 @@ elif SETTINGS=='32px_cifar':
 
     BATCH_SIZE = 48
     N_CHANNELS = 3
-    HEIGHT = 32 #LEILAEDIT
-    WIDTH = 32 #LEILAEDIT
+    HEIGHT = 32 #64
+    WIDTH = 32 #64
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
-    LATENT_DIM_1 = 32
+    LATENT_DIM_1 = 32 #64
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
     
@@ -482,7 +482,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             def EncFull(images):
                 output = images
 
-                if WIDTH == 32: # 64 LEILAEDIT
+                if WIDTH == 32: #64 
                     if EMBED_INPUTS:
                         output = lib.ops.conv2d.Conv2D('EncFull.Input', input_dim=N_CHANNELS*DIM_EMBED, output_dim=DIM_0, filter_size=1, inputs=output, he_init=False)
                     else:
@@ -571,14 +571,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     if WIDTH != 32: #64: LEILAEDIT
                         output = ResidualBlock('DecFull.Pix5Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
 
-                    output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
-
+                    #output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
+                    output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=128*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
+                     
                 else:
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=dim, output_dim=256*N_CHANNELS, filter_size=1, he_init=False, inputs=output)
 
                 return tf.transpose(
                     tf.reshape(output, [-1, 256, N_CHANNELS, HEIGHT, WIDTH]),
+                    #tf.reshape(output, [-1, 128, N_CHANNELS, HEIGHT, WIDTH]),
                     [0,2,3,4,1]
                 )
 
@@ -598,6 +600,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             scaled_images = (tf.cast(images, 'float32') - 128.) / 64.
             if EMBED_INPUTS:
                 embedded_images = lib.ops.embedding.Embedding('Embedding', 256, DIM_EMBED, images)
+                #embedded_images = lib.ops.embedding.Embedding('Embedding', 128, DIM_EMBED, images)
                 embedded_images = tf.transpose(embedded_images, [0,4,1,2,3])
                 embedded_images = tf.reshape(embedded_images, [-1, DIM_EMBED*N_CHANNELS, HEIGHT, WIDTH])
 
@@ -622,6 +625,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 reconst_cost = tf.reduce_mean(
                     tf.nn.sparse_softmax_cross_entropy_with_logits(
                         logits=tf.reshape(outputs1, [-1, 256]),
+                        #logits=tf.reshape(outputs1, [-1, 128]),
                         labels=tf.reshape(images, [-1])
                     )
                 )
