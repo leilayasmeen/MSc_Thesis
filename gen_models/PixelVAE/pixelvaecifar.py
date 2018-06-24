@@ -33,6 +33,12 @@ import functools
 DATASET = 'cifar10'#'lsun_64'
 SETTINGS =  '32px_small#'64px_big' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
+OUT_DIR = DATASET + '_results'
+
+if not os.path.isdir(OUT_DIR):
+   os.makedirs(OUT_DIR)
+   print "Created directory {}".format(OUT_DIR)
+
 if SETTINGS == 'mnist_256':
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
