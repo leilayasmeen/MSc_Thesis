@@ -907,7 +907,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for imagenum in range(num):
 
                 print "Sampling Random Image Index"
-                idx = random.sample(range(0, x_train.shape[0]-1), 2)
+                idx = random.sample(range(0, x_train.shape[0]-1), 1)
                            
                 print "Drawing Corresponding Image and Label Out"            
                 x_train_array = np.array(x_train)
