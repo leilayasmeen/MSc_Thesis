@@ -879,7 +879,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def generate_and_save_samples(tag):
             from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. TODO - replace with vars
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -908,28 +907,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for imagenum in range(num):
 
                 print "Sampling Random Image Index"
-                #imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
+                idx = random.sample(range(0, x_train.shape[0]-1), 2)
                            
-                print "Drawing Corresponding Image and Label Out"
-                #image1 = x_train[imageindices[0],:]
-                
-                # Sample two unique image indices from different classes
-                classindices = random.sample(range(0,NUM_CLASSES-1),2)
-                idx1 = np.where(np.equal(classindices[0],y_train))
-                idx2 = np.where(np.equal(classindices[1],y_train))
-                
+                print "Drawing Corresponding Image and Label Out"            
                 x_train_array = np.array(x_train)
-                
-                x_trainsubset1 = x_train_array[idx1,:]
-                x_trainsubset2 = x_train_array[idx2,:]
-                
-                x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                
-                imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
-                
-                # Draw the corresponding image from the training data
-                image = x_trainsubset[imageindex1,:]
-                
+                image = x_train_array[idx,:]
+
                 # Reshape
                 image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                   
@@ -956,7 +939,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     samples, 
                     1, 
                     1, 
-                    'encoded_reconsamples_{}.png'.format(imagenum)
+                    'reconstruction_{}.png'.format(imagenum)
                 )
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
