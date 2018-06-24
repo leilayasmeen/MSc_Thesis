@@ -879,7 +879,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def generate_and_save_samples(tag):
             from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH), dtype='uint8') #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES), dtype='uint8') #LEILEDIT: to enable .npy image saving. TODO - replace with vars
+            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -993,8 +993,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array, dtype='uint8') #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array, dtype='uint8') #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
                 
                 
     elif MODE == 'two_level':
