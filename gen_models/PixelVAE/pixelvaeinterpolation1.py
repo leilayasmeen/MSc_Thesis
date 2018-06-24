@@ -7,12 +7,6 @@ Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, 
 import os, sys
 sys.path.append(os.getcwd())
 
-OUT_DIR = 'linear_interpolations_mnist'
-
-if not os.path.isdir(OUT_DIR):
-   os.makedirs(OUT_DIR)
-   print "Created directory {}".format(OUT_DIR)
-
 N_GPUS = 2
 
 import random
@@ -39,6 +33,12 @@ import functools
 
 DATASET = 'mnist_256' # mnist_256
 SETTINGS = 'mnist_256' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
+
+OUT_DIR = 'linear_interpolations_' + DATASET
+
+if not os.path.isdir(OUT_DIR):
+   os.makedirs(OUT_DIR)
+   print "Created directory {}".format(OUT_DIR)
 
 if SETTINGS == 'mnist_256':
     
