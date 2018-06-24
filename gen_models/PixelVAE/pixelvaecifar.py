@@ -341,14 +341,14 @@ elif SETTINGS=='32px_cifar':
     PIXEL_LEVEL_PIXCNN = True
     HIGHER_LEVEL_PIXCNN = True
 
-    DIM_EMBED    = 16
-    DIM_PIX_1    = 384
-    DIM_0        = 192
-    DIM_1        = 256
-    DIM_2        = 512
-    DIM_3        = 512
-    DIM_4        = 512
-    LATENT_DIM_2 = 512
+    DIM_EMBED    = 8 #16
+    DIM_PIX_1    = 192 #384
+    DIM_0        = 96 #192
+    DIM_1        = 128 #256
+    DIM_2        = 256 #512
+    DIM_3        = 256 #512
+    DIM_4        = 256 #512
+    LATENT_DIM_2 = 256 #512
 
     ALPHA1_ITERS = 50000
     ALPHA2_ITERS = 50000
@@ -379,7 +379,7 @@ elif SETTINGS=='32px_cifar':
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
-    LATENT_DIM_1 = 64
+    LATENT_DIM_1 = 32
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
     
