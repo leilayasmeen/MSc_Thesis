@@ -644,92 +644,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 cost = reconst_cost + (alpha * kl_cost_1)
 
-            elif MODE == 'two_level':
-                # Layer 1
-
-                if EMBED_INPUTS:
-                    mu_and_logsig1, h1 = Enc1(embedded_images)
-                else:
-                    mu_and_logsig1, h1 = Enc1(scaled_images)
-                mu1, logsig1, sig1 = split(mu_and_logsig1)
-
-                if mu1.get_shape().as_list()[2] != LATENTS1_HEIGHT:
-                    raise Exception("LATENTS1_HEIGHT doesn't match mu1 shape!")
-                if mu1.get_shape().as_list()[3] != LATENTS1_WIDTH:
-                    raise Exception("LATENTS1_WIDTH doesn't match mu1 shape!")
-
-                eps = tf.random_normal(tf.shape(mu1))
-                latents1 = mu1 + (eps * sig1)
-
-                if EMBED_INPUTS:
-                    outputs1 = Dec1(latents1, embedded_images)
-                    outputs1_sample = Dec1(latents1_sample, embedded_images)
-                else:
-                    outputs1 = Dec1(latents1, scaled_images)
-                    outputs1_sample = Dec1(latents1_sample, scaled_images)
-
-                reconst_cost = tf.reduce_mean(
-                    tf.nn.sparse_softmax_cross_entropy_with_logits(
-                        logits=tf.reshape(outputs1, [-1, 256]),
-                        labels=tf.reshape(images, [-1])
-                    )
-                )
-
-                # Layer 2
-
-                mu_and_logsig2 = Enc2(h1)
-                mu2, logsig2, sig2 = split(mu_and_logsig2)
-
-                eps = tf.random_normal(tf.shape(mu2))
-                latents2 = mu2 + (eps * sig2)
-
-                outputs2 = Dec2(latents2, latents1)
-
-                mu1_prior, logsig1_prior, sig1_prior = split(outputs2)
-                logsig1_prior, sig1_prior = clamp_logsig_and_sig(logsig1_prior, sig1_prior)
-                mu1_prior = 2. * tf.nn.softsign(mu1_prior / 2.)
-
-                # Assembly
-
-                # An alpha of exactly 0 can sometimes cause inf/nan values, so we're
-                # careful to avoid it.
-                alpha1 = tf.minimum(1., tf.cast(total_iters+1, 'float32') / ALPHA1_ITERS) * KL_PENALTY
-                alpha2 = tf.minimum(1., tf.cast(total_iters+1, 'float32') / ALPHA2_ITERS) * alpha1# * KL_PENALTY
-
-                kl_cost_1 = tf.reduce_mean(
-                    lib.ops.kl_gaussian_gaussian.kl_gaussian_gaussian(
-                        mu1, 
-                        logsig1,
-                        sig1,
-                        mu1_prior,
-                        logsig1_prior,
-                        sig1_prior
-                    )
-                )
-
-                kl_cost_2 = tf.reduce_mean(
-                    lib.ops.kl_unit_gaussian.kl_unit_gaussian(
-                        mu2, 
-                        logsig2,
-                        sig2
-                    )
-                )
-
-                kl_cost_1 *= float(LATENT_DIM_1 * LATENTS1_WIDTH * LATENTS1_HEIGHT) / (N_CHANNELS * WIDTH * HEIGHT)
-                kl_cost_2 *= float(LATENT_DIM_2) / (N_CHANNELS * WIDTH * HEIGHT)
-
-                cost = reconst_cost + (alpha1 * kl_cost_1) + (alpha2 * kl_cost_2)
-
             tower_cost.append(cost)
-            if MODE == 'two_level':
-                tower_outputs1_sample.append(outputs1_sample)
 
     full_cost = tf.reduce_mean(
         tf.concat([tf.expand_dims(x, 0) for x in tower_cost], axis=0), 0
     )
-
-    if MODE == 'two_level':
-        full_outputs1_sample = tf.concat(tower_outputs1_sample, axis=0)
 
     # Sampling
 
@@ -784,95 +703,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 'samples_{}.png'.format(tag) # changed to 1 and 1
             )
 
-
-    elif MODE == 'two_level':
-
-        def dec2_fn(_latents, _targets):
-            return session.run([mu1_prior, logsig1_prior], feed_dict={latents2: _latents, latents1: _targets, total_iters: 99999, bn_is_training: False, bn_stats_iter: 0})
-
-        ch_sym = tf.placeholder(tf.int32, shape=None)
-        y_sym = tf.placeholder(tf.int32, shape=None)
-        x_sym = tf.placeholder(tf.int32, shape=None)
-        logits_sym = tf.reshape(tf.slice(full_outputs1_sample, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
-
-        def dec1_logits_fn(_latents, _targets, _ch, _y, _x):
-            return session.run(logits_sym,
-                               feed_dict={all_latents1: _latents,
-                                          all_images: _targets,
-                                          ch_sym: _ch,
-                                          y_sym: _y,
-                                          x_sym: _x,
-                                          total_iters: 99999,
-                                          bn_is_training: False, 
-                                          bn_stats_iter: 0})
-
-        N_SAMPLES = BATCH_SIZE
-        if N_SAMPLES % N_GPUS != 0:
-            raise Exception("N_SAMPLES must be divisible by N_GPUS")
-        HOLD_Z2_CONSTANT = False
-        HOLD_EPSILON_1_CONSTANT = False
-        HOLD_EPSILON_PIXELS_CONSTANT = False
-
-        # Draw z2 from N(0,I)
-        z2 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_2)).astype('float32')
-        if HOLD_Z2_CONSTANT:
-          z2[:] = z2[0][None]
-
-        # Draw epsilon_1 from N(0,I)
-        epsilon_1 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH)).astype('float32')
-        if HOLD_EPSILON_1_CONSTANT:
-          epsilon_1[:] = epsilon_1[0][None]
-
-        # Draw epsilon_pixels from U[0,1]
-        epsilon_pixels = np.random.uniform(size=(N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH))
-        if HOLD_EPSILON_PIXELS_CONSTANT:
-          epsilon_pixels[:] = epsilon_pixels[0][None]
-
-
-        def generate_and_save_samples(tag):
-            # Draw z1 autoregressively using z2 and epsilon1
-            print "Generating z1"
-            z1 = np.zeros((N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH), dtype='float32')
-            for y in xrange(LATENTS1_HEIGHT):
-              for x in xrange(LATENTS1_WIDTH):
-                z1_prior_mu, z1_prior_logsig = dec2_fn(z2, z1)
-                z1[:,:,y,x] = z1_prior_mu[:,:,y,x] + np.exp(z1_prior_logsig[:,:,y,x]) * epsilon_1[:,:,y,x]
-
-            # Draw pixels (the images) autoregressively using z1 and epsilon_x
-            print "Generating pixels"
-            pixels = np.zeros((N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH)).astype('int32')
-            for y in xrange(HEIGHT):
-                for x in xrange(WIDTH):
-                    for ch in xrange(N_CHANNELS):
-                        # start_time = time.time()
-                        logits = dec1_logits_fn(z1, pixels, ch, y, x)
-                        probs = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
-                        probs = probs / np.sum(probs, axis=-1, keepdims=True)
-                        cdf = np.cumsum(probs, axis=-1)
-                        pixels[:,ch,y,x] = np.argmax(cdf >= epsilon_pixels[:,ch,y,x,None], axis=-1)
-                        # print time.time() - start_time
-
-            # Save them
-            def color_grid_vis(X, nh, nw, save_path):
-                # from github.com/Newmu
-                X = X.transpose(0,2,3,1)
-                h, w = X[0].shape[:2]
-                img = np.zeros((h*nh, w*nw, 3))
-                for n, x in enumerate(X):
-                    j = n/nw
-                    i = n%nw
-                    img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(save_path, img)
-
-            print "Saving"
-            rows = int(np.sqrt(N_SAMPLES))
-            while N_SAMPLES % rows != 0:
-                rows -= 1
-            color_grid_vis(
-                pixels, rows, N_SAMPLES/rows, 
-                'samples_{}.png'.format(tag)
-            )
-
     # Train!
 
     if MODE == 'one_level':
@@ -881,22 +711,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             ('reconst', reconst_cost), 
             ('kl1', kl_cost_1)
         ]
-    elif MODE == 'two_level':
-        prints=[
-            ('alpha1', alpha1),
-            ('alpha2', alpha2),
-            ('reconst', reconst_cost), 
-            ('kl1', kl_cost_1),
-            ('kl2', kl_cost_2),
-        ]
-
-    decayed_lr = tf.train.exponential_decay(
-        LR,
-        total_iters,
-        LR_DECAY_AFTER,
-        LR_DECAY_FACTOR,
-        staircase=True
-    )
 
     lib.train_loop_3.train_loop(
         session=session,
