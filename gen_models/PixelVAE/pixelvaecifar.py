@@ -712,7 +712,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             ('reconst', reconst_cost), 
             ('kl1', kl_cost_1)
         ]
-
+      
+   decayed_lr = tf.train.exponential_decay(
+        LR,
+        total_iters,
+        LR_DECAY_AFTER,
+        LR_DECAY_FACTOR,
+        staircase=True
+    )
+   
     lib.train_loop_3.train_loop(
         session=session,
         inputs=[total_iters, all_images],
