@@ -713,7 +713,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             ('kl1', kl_cost_1)
         ]
       
-   decayed_lr = tf.train.exponential_decay(
+    decayed_lr = tf.train.exponential_decay(
         LR,
         total_iters,
         LR_DECAY_AFTER,
