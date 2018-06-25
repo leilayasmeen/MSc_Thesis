@@ -897,13 +897,22 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         num_pairs = pairs.shape[0]
          
         # Find distances between the members of each pair
-        meandist = np.zeros((num_pairs, LATENT_DIM_2)).astype('float32')
+        meandist = np.zeros((num_pairs)).astype('float32')
         for m in range(num_pairs):
-             a.idx = np.where(np.equal(pairs[m,0],
-             b.idx = classmeans[pairs[m,0],:]
-             meandist[m,:] = np.linalg.norm(a-b)
+             a.idx = np.where(np.equal(pairs[m,0],classmeans[:,LATENT_DIM_2+1]))
+             a = classmeans[a.idx,:]
+             b.idx = np.where(np.equal(pairs[m,1],classmeans[:,LATENT_DIM_2+1]))
+             b = classmeans[b.idx,:]
+             a = np.delete(a, -1, axis=1)
+             b = np.delete(b, -1, axis=1)
+             meandist[m] = np.linalg.norm(a.temp-b.temp)
+            
+        closestidx = meandist.argmin()
+        secondclosestidx = meandist.index(sorted(meandist)[1])
+        closestpair = pairs[closestidx,;]
+        secondclosestpair = pairs[secondclosestidx,:]
          
-        classpairs = np.append(closestpairs)
+        classpairs = np.append(closestpair, secondclosestpair)
         
         # Generate samples by interpolating within these two sets of pairs
         def generate_and_save_samples(tag):
@@ -923,7 +932,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            num = 50
+            num = 1
 
             #print "Reading in image"
             #testimage = imread('samples_0.png')
