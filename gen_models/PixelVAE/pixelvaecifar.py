@@ -524,7 +524,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             def DecFull(latents, images):
                 output = tf.clip_by_value(latents, -50., 50.)
 
-                if WIDTH == 32: # 64:LEILAEDIT
+                if WIDTH == 32: # 64:LEILAEDIT. Also changed 4*4 to 2*2 and 4,4 to 2,2 in the two lines below
                     output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=2*2*DIM_4, initialization='glorot', inputs=output)
                     output = tf.reshape(output, [-1, DIM_4, 2, 2])
                     output = ResidualBlock('DecFull.Res2', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
@@ -562,7 +562,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     else:
                         masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
 
-                    # TODO: DEBUG
                     # Warning! Because of the masked convolutions it's very important that masked_images comes first in this concat
                     output = tf.concat([masked_images, output], axis=1)
 
