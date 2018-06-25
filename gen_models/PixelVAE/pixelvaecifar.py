@@ -734,5 +734,5 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         callback=generate_and_save_samples,
         callback_every=TIMES['callback_every'],
         test_every=TIMES['test_every'],
-        save_checkpoints=True
+        save_checkpoints=False
     )
