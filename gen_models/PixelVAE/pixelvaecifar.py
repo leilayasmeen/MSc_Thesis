@@ -501,8 +501,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     output = ResidualBlock('EncFull.Res11', input_dim=DIM_3, output_dim=DIM_4, filter_size=3, resample='down', inputs=output)
                     output = ResidualBlock('EncFull.Res12', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, inputs=output)
                     output = ResidualBlock('EncFull.Res13', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, inputs=output)
-                    output = tf.reshape(output, [-1, 4*4*DIM_4])
-                    output = lib.ops.linear.Linear('EncFull.Output', input_dim=4*4*DIM_4, output_dim=2*LATENT_DIM_2, initialization='glorot', inputs=output)
+                    output = tf.reshape(output, [-1, 2*2*DIM_4])
+                    output = lib.ops.linear.Linear('EncFull.Output', input_dim=2*2*DIM_4, output_dim=2*LATENT_DIM_2, initialization='glorot', inputs=output)
                 else:
                     if EMBED_INPUTS:
                         output = lib.ops.conv2d.Conv2D('EncFull.Input', input_dim=N_CHANNELS*DIM_EMBED, output_dim=DIM_1, filter_size=1, inputs=output, he_init=False)
