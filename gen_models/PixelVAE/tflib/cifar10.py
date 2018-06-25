@@ -34,16 +34,12 @@ def _make_stream(stream, bs):
     return new_stream
 
 def load(batch_size=128):
-    seed = 333
-    #full_training_data = H5PYDataset(PATH, which_sets=('train',))
-    
-    #tr_data, te_data = train_test_split(full_training_data, test_size=0.1, random_state=seed)
     
     tr_data = H5PYDataset(PATH, which_sets=('train',))
-    te_data = H5PYDataset(PATH, which_sets=('test',))
+    val_data = H5PYDataset(PATH, which_sets=('test',))
 
     ntrain = tr_data.num_examples
-    nval = te_data.num_examples
+    nval = val_data.num_examples
 
     print "ntrain {}, nval {}".format(ntrain, nval)
 
@@ -54,6 +50,6 @@ def load(batch_size=128):
     # te_stream = DataStream(te_data, iteration_scheme=te_scheme)
 
     val_scheme = SequentialScheme(examples=nval, batch_size=batch_size)
-    val_stream = DataStream(tr_data, iteration_scheme=val_scheme)
+    val_stream = DataStream(val_data, iteration_scheme=val_scheme)
 
     return _make_stream(tr_stream, batch_size), _make_stream(val_stream, batch_size)
