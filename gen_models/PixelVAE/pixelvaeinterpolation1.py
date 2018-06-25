@@ -988,7 +988,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      samples, 
                      1, 
                      1, 
-                     'encoded_reconsamples_{}_{}.png'.format(imagenum,p)
+                     'interpolation1_{}_{}_{}_{}.png'.format(classindices[0],classindices[1],p,imagenum)
                   )
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
