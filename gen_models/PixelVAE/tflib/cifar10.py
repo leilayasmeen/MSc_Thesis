@@ -33,7 +33,7 @@ def _make_stream(stream, bs):
         yield (result.transpose(0,3,1,2),)
     return new_stream
 
-def load(batch_size=128):
+def load(batch_size=128): #LEILAEDIT: took out downsampling, changed validation data to CIFAR test set, changed tr_data in line 53 to val_data
     
     tr_data = H5PYDataset(PATH, which_sets=('train',))
     val_data = H5PYDataset(PATH, which_sets=('test',))
