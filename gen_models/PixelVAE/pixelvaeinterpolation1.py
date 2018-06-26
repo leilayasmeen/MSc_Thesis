@@ -894,7 +894,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imwrite(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 50
-            pvals = np.linspace(0.0, 1.0, num=10)
+            pvals = np.linspace(0.0, 1.0, num=11)
 
             #print "Reading in image"
             #testimage = imread('samples_0.png', mode='P')
@@ -988,7 +988,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      samples, 
                      1, 
                      1, 
-                     'interpolation1_{}_{}_{}_{}.png'.format(classindices[0],classindices[1],p,imagenum)
+                     'interpolation1_{}and{}_{}_{}.png'.format(classindices[0],classindices[1],p,imagenum)
                   )
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
@@ -997,97 +997,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
             np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving                
                 
-                
-    elif MODE == 'two_level':
-
-        def dec2_fn(_latents, _targets):
-            return session.run([mu1_prior, logsig1_prior], feed_dict={latents2: _latents, latents1: _targets, total_iters: 99999, bn_is_training: False, bn_stats_iter: 0})
-
-        ch_sym = tf.placeholder(tf.int32, shape=None)
-        y_sym = tf.placeholder(tf.int32, shape=None)
-        x_sym = tf.placeholder(tf.int32, shape=None)
-        logits_sym = tf.reshape(tf.slice(full_outputs1_sample, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
-
-        def dec1_logits_fn(_latents, _targets, _ch, _y, _x):
-            return session.run(logits_sym,
-                               feed_dict={all_latents1: _latents,
-                                          all_images: _targets,
-                                          ch_sym: _ch,
-                                          y_sym: _y,
-                                          x_sym: _x,
-                                          total_iters: 99999,
-                                          bn_is_training: False, 
-                                          bn_stats_iter: 0})
-
-        N_SAMPLES = BATCH_SIZE
-        if N_SAMPLES % N_GPUS != 0:
-            raise Exception("N_SAMPLES must be divisible by N_GPUS")
-        HOLD_Z2_CONSTANT = False
-        HOLD_EPSILON_1_CONSTANT = False
-        HOLD_EPSILON_PIXELS_CONSTANT = False
-
-        # Draw z2 from N(0,I)
-        z2 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_2)).astype('float32')
-        if HOLD_Z2_CONSTANT:
-          z2[:] = z2[0][None]
-
-        # Draw epsilon_1 from N(0,I)
-        epsilon_1 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH)).astype('float32')
-        if HOLD_EPSILON_1_CONSTANT:
-          epsilon_1[:] = epsilon_1[0][None]
-
-        # Draw epsilon_pixels from U[0,1]
-        epsilon_pixels = np.random.uniform(size=(N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH))
-        if HOLD_EPSILON_PIXELS_CONSTANT:
-          epsilon_pixels[:] = epsilon_pixels[0][None]
-
-
-        def generate_and_save_samples(tag):
-            # Draw z1 autoregressively using z2 and epsilon1
-            print "Generating z1"
-            z1 = np.zeros((N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH), dtype='float32')
-            for y in xrange(LATENTS1_HEIGHT):
-              for x in xrange(LATENTS1_WIDTH):
-                z1_prior_mu, z1_prior_logsig = dec2_fn(z2, z1)
-                z1[:,:,y,x] = z1_prior_mu[:,:,y,x] + np.exp(z1_prior_logsig[:,:,y,x]) * epsilon_1[:,:,y,x]
-
-            # Draw pixels (the images) autoregressively using z1 and epsilon_x
-            print "Generating pixels"
-            pixels = np.zeros((N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH)).astype('int32')
-            for y in xrange(HEIGHT):
-                for x in xrange(WIDTH):
-                    for ch in xrange(N_CHANNELS):
-                        # start_time = time.time()
-                        logits = dec1_logits_fn(z1, pixels, ch, y, x)
-                        probs = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
-                        probs = probs / np.sum(probs, axis=-1, keepdims=True)
-                        cdf = np.cumsum(probs, axis=-1)
-                        pixels[:,ch,y,x] = np.argmax(cdf >= epsilon_pixels[:,ch,y,x,None], axis=-1)
-                        # print time.time() - start_time
-
-            # Save them
-            def color_grid_vis(X, nh, nw, save_path):
-                # from github.com/Newmu
-                X = X.transpose(0,2,3,1)
-                h, w = X[0].shape[:2]
-                img = np.zeros((h*nh, w*nw, 3))
-                for n, x in enumerate(X):
-                    j = n/nw
-                    i = n%nw
-                    img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(OUT_DIR + '/' + save_path, img)
-
-            print "Saving"
-            rows = int(np.sqrt(N_SAMPLES))
-            while N_SAMPLES % rows != 0:
-                rows -= 1
-            color_grid_vis(
-                pixels, rows, N_SAMPLES/rows, 
-                'samples_{}.png'.format(tag)
-            )
-
     # Run
 
     if MODE == 'one_level':
@@ -1095,15 +1006,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             ('alpha', alpha), 
             ('reconst', reconst_cost), 
             ('kl1', kl_cost_1)
-        ]
-      
-    elif MODE == 'two_level':
-        prints=[
-            ('alpha1', alpha1),
-            ('alpha2', alpha2),
-            ('reconst', reconst_cost), 
-            ('kl1', kl_cost_1),
-            ('kl2', kl_cost_2),
         ]
 
     decayed_lr = tf.train.exponential_decay(
