@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 N_GPUS = 2
 
 import tflib as lib
-import tflib.train_loop_3
+import tflib.train_loop_cifar
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -720,7 +720,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
    
-    lib.train_loop_3.train_loop(
+    lib.train_loop_cifar.train_loop(
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
