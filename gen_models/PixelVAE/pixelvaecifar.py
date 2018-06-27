@@ -392,8 +392,7 @@ elif DATASET == 'lsun_64':
 elif DATASET == 'imagenet_64':
     train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
 elif DATASET == 'cifar10':
-    #train_data, dev_data = lib.cifar10.load(BATCH_SIZE) #LEILAEDIT
-    train_data = lib.cifar10.load(BATCH_SIZE) #LEILAEDIT
+    train_data, dev_data = lib.cifar10.load(BATCH_SIZE) #LEILAEDIT
 
 lib.print_model_settings(locals().copy())
 
@@ -731,7 +730,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         prints=prints,
         optimizer=tf.train.AdamOptimizer(decayed_lr),
         train_data=train_data,
-        test_data=train_data,
+        test_data=dev_data,
         callback=generate_and_save_samples,
         callback_every=TIMES['callback_every'],
         test_every=TIMES['test_every'],
