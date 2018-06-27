@@ -2,6 +2,7 @@ import sys
 sys.modules['theano'] = None
 
 import numpy as np
+import pdb
 
 from fuel.datasets.hdf5 import H5PYDataset
 from fuel.schemes import ShuffledScheme, SequentialScheme
@@ -27,6 +28,7 @@ def color_grid_vis(X, nh, nw, save_path):
 def _make_stream(stream, bs):
     def new_stream():
       result = np.empty((bs, 32, 32, 3), dtype='int32')
+      pdb.set_trace()
       for (imb,) in stream.get_epoch_iterator():
         for i, img in enumerate(imb):
           result[i] =  img[:32, :32, :]                
