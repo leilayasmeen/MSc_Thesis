@@ -392,7 +392,7 @@ elif DATASET == 'lsun_64':
 elif DATASET == 'imagenet_64':
     train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
 elif DATASET == 'cifar10':
-    train_data, dev_data = lib.cifar_256.load(BATCH_SIZE) #LEILAEDIT
+    train_data, dev_data, test_data = lib.cifar_256.load(BATCH_SIZE) #LEILAEDIT
 
 lib.print_model_settings(locals().copy())
 
