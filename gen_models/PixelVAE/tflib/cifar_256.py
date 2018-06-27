@@ -25,7 +25,7 @@ def binarized_generator(generator, include_targets=False, n_labelled=None):
     return get_epoch
 
 def load(batch_size, include_targets=False, n_labelled=None):
-    train_gen, dev_gen, test_gen = tflib.cifar.load(batch_size, batch_size, n_labelled)
+    train_gen, dev_gen, test_gen = tflib.cifar.load(batch_size, n_labelled)
     return (
         binarized_generator(train_gen, include_targets=include_targets, n_labelled=n_labelled),
         binarized_generator(dev_gen, include_targets=include_targets, n_labelled=n_labelled),
