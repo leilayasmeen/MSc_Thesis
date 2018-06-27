@@ -36,13 +36,12 @@ def _make_stream(stream, bs):
 def load(batch_size=128): #LEILAEDIT: took out downsampling, changed validation data to CIFAR test set, changed tr_data in line 53 to val_data
     
     tr_data = H5PYDataset(PATH, which_sets=('train',))
-    #val_data = H5PYDataset(PATH, which_sets=('test',))
+    val_data = H5PYDataset(PATH, which_sets=('test',))
 
     ntrain = tr_data.num_examples
-    #nval = val_data.num_examples
+    nval = val_data.num_examples
 
-    #print "ntrain {}, nval {}".format(ntrain, nval)
-    print "ntrain {}".format(ntrain)
+    print "ntrain {}, nval {}".format(ntrain, nval)
 
     tr_scheme = ShuffledScheme(examples=ntrain, batch_size=batch_size)
     tr_stream = DataStream(tr_data, iteration_scheme=tr_scheme)
@@ -50,7 +49,7 @@ def load(batch_size=128): #LEILAEDIT: took out downsampling, changed validation 
     # te_scheme = SequentialScheme(examples=ntest, batch_size=batch_size)
     # te_stream = DataStream(te_data, iteration_scheme=te_scheme)
 
-    #val_scheme = SequentialScheme(examples=nval, batch_size=batch_size)
-    #val_stream = DataStream(val_data, iteration_scheme=val_scheme)
+    val_scheme = SequentialScheme(examples=nval, batch_size=batch_size)
+    val_stream = DataStream(val_data, iteration_scheme=val_scheme)
 
-    return _make_stream(tr_stream, batch_size)#, _make_stream(val_stream, batch_size)
+    return _make_stream(tr_stream, batch_size), _make_stream(val_stream, batch_size)
