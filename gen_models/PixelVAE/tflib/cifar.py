@@ -42,7 +42,7 @@ def cifar_generator(images, targets, batch_size, n_labelled): # LEILAEDIT: chang
 
     return get_epoch
 
-def load(batch_size, test_batch_size, n_labelled=None):
+def load(batch_size, n_labelled=None):
     #filepath = '/tmp/mnist.pkl.gz'
     #url = 'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
 
@@ -61,6 +61,6 @@ def load(batch_size, test_batch_size, n_labelled=None):
         #cifar_generator(dev_data, test_batch_size, n_labelled), 
         #cifar_generator(test_data, test_batch_size, n_labelled)
         cifar_generator(x_traincifar, y_traincifar, batch_size, n_labelled),
-        cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled),
-        cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled)
+        cifar_generator(x_testcifar, y_testcifar, batch_size, n_labelled),
+        cifar_generator(x_testcifar, y_testcifar, batch_size, n_labelled)
     )
