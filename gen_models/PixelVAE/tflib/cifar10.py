@@ -41,7 +41,8 @@ def load(batch_size=128): #LEILAEDIT: took out downsampling, changed validation 
     ntrain = tr_data.num_examples
     #nval = val_data.num_examples
 
-    print "ntrain {}, nval {}".format(ntrain, nval)
+    #print "ntrain {}, nval {}".format(ntrain, nval)
+    print "ntrain {}".format(ntrain)
 
     tr_scheme = ShuffledScheme(examples=ntrain, batch_size=batch_size)
     tr_stream = DataStream(tr_data, iteration_scheme=tr_scheme)
