@@ -21,6 +21,8 @@ import tflib.ops.embedding
 #import tflib.mnist_256
 #import tflib.lsun_bedrooms
 import tflib.cifar10
+import tflib.cifar
+import tflib.cifar_256
 
 import numpy as np
 import tensorflow as tf
