@@ -60,7 +60,7 @@ def load(batch_size, test_batch_size, n_labelled=None):
         #cifar_generator(train_data, batch_size, n_labelled), 
         #cifar_generator(dev_data, test_batch_size, n_labelled), 
         #cifar_generator(test_data, test_batch_size, n_labelled)
-        cifar_generator(x_traincifar, y_traincifar, batch_size, n_labelled)
-        cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled)
+        cifar_generator(x_traincifar, y_traincifar, batch_size, n_labelled),
+        cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled),
         cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled)
     )
