@@ -374,7 +374,7 @@ elif SETTINGS=='32px_cifar':
     LR_DECAY_AFTER = 180000
     LR_DECAY_FACTOR = 0.5
 
-    BATCH_SIZE = 48
+    BATCH_SIZE = 50 # 48
     N_CHANNELS = 3
     HEIGHT = 32 #64
     WIDTH = 32 #64
