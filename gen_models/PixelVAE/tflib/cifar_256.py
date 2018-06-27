@@ -3,7 +3,8 @@ import tflib.cifar
 import numpy as np
 
 def discretize(x):
-    return (x*(256-1e-8)).astype('int32')
+    #return (x*(256-1e-8)).astype('int32')
+    return (x).astype('int32')
 
 def binarized_generator(generator, include_targets=False, n_labelled=None):
     def get_epoch():
