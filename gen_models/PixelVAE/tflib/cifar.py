@@ -4,9 +4,11 @@ import os
 import urllib
 import gzip
 import cPickle as pickle
+import keras
+from keras.datasets import cifar10
 
-def cifar_generator(data, batch_size, n_labelled):
-    images, targets = data
+def cifar_generator(images, targets, batch_size, n_labelled): # LEILAEDIT: changed "data" to "images, targets"
+    #images, targets = data
 
     images = images.astype('float32')
     targets = targets.astype('int32')
@@ -41,18 +43,24 @@ def cifar_generator(data, batch_size, n_labelled):
     return get_epoch
 
 def load(batch_size, test_batch_size, n_labelled=None):
-    filepath = '/tmp/mnist.pkl.gz'
-    url = 'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
+    #filepath = '/tmp/mnist.pkl.gz'
+    #url = 'http://www.iro.umontreal.ca/~lisa/deep/data/mnist/mnist.pkl.gz'
 
-    if not os.path.isfile(filepath):
-        print "Couldn't find MNIST dataset in /tmp, downloading..."
-        urllib.urlretrieve(url, filepath)
+    #if not os.path.isfile(filepath):
+    #    print "Couldn't find MNIST dataset in /tmp, downloading..."
+    #    urllib.urlretrieve(url, filepath)
 
-    with gzip.open('/tmp/mnist.pkl.gz', 'rb') as f:
-        train_data, dev_data, test_data = pickle.load(f)
-
+    #with gzip.open('/tmp/mnist.pkl.gz', 'rb') as f:
+    #    train_data, dev_data, test_data = pickle.load(f)
+    (x_traincifar, y_traincifar), (x_testcifar, y_testcifar) = cifar10.load_data()
+    x_traincifar = x_traincifar.transpose(0,3,1,2)
+    x_testcifar = x_testcifar.transpose(0,3,1,2)
+    
     return (
-        cifar_generator(train_data, batch_size, n_labelled), 
-        cifar_generator(dev_data, test_batch_size, n_labelled), 
-        cifar_generator(test_data, test_batch_size, n_labelled)
+        #cifar_generator(train_data, batch_size, n_labelled), 
+        #cifar_generator(dev_data, test_batch_size, n_labelled), 
+        #cifar_generator(test_data, test_batch_size, n_labelled)
+        cifar_generator(x_traincifar, y_traincifar, batch_size, n_labelled)
+        cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled)
+        cifar_generator(x_testcifar, y_testcifar, test_batch_size, n_labelled)
     )
