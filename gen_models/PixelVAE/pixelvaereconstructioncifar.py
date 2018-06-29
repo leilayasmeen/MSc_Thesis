@@ -339,7 +339,7 @@ elif SETTINGS=='64px_big_onelevel':
 
 elif SETTINGS=='32px_cifar':
 
-    rom keras.datasets import cifar10
+    from keras.datasets import cifar10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
