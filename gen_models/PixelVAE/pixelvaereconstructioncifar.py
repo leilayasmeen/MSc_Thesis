@@ -17,7 +17,7 @@ N_GPUS = 2
 
 import random
 import tflib as lib
-import tflib.sampling_loop
+import tflib.sampling_loop_cifar
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
