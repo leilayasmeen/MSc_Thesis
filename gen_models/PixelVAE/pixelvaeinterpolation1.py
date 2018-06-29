@@ -894,7 +894,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imwrite(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 50
-            pvals = np.linspace(0.0, 1.0, num=11)
+            pvals = np.linspace(0.4, 0.6, num=3)
 
             #print "Reading in image"
             #testimage = imread('samples_0.png', mode='P')
