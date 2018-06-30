@@ -7,7 +7,7 @@ Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, 
 import os, sys
 sys.path.append(os.getcwd())
 
-N_GPUS = 4 # LEILAEDIT - was previously 2
+N_GPUS = 2
 
 import tflib as lib
 import tflib.train_loop_cifar_filter_2
