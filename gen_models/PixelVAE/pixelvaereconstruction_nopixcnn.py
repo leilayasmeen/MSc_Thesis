@@ -55,8 +55,8 @@ if SETTINGS == 'mnist_256':
     EMBED_INPUTS = True
 
     # Turn on/off the bottom-level PixelCNN in Dec1/DecFull
-    PIXEL_LEVEL_PIXCNN = True
-    HIGHER_LEVEL_PIXCNN = True
+    PIXEL_LEVEL_PIXCNN = False
+    HIGHER_LEVEL_PIXCNN = False
 
     DIM_EMBED    = 16
     DIM_PIX_1    = 32
