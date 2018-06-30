@@ -936,8 +936,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
         # Reshape image files
-        x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-        y_train = y_train.reshape(-1, 1)
+        x_train = x_train.transpose(0,3,1,2)
         print "Reshaped loaded images."
         
         def generate_and_save_samples(tag):
@@ -956,7 +955,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            num = 50
+            num = 5
 
             #print "Reading in image"
             #testimage = imread('samples_0.png', mode='P')
