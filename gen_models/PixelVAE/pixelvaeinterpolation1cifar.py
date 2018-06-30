@@ -35,6 +35,9 @@ import keras
 import time
 import functools
 
+import sklearn
+from sklearn.model_selection import train_test_split
+
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
@@ -342,6 +345,12 @@ elif SETTINGS=='32px_cifar':
 
     from keras.datasets import cifar10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+   
+    x_train = x_train.transpose(0,3,1,2)
+    x_test = x_test.transpose(0,3,1,2)
+    
+    seed = 333
+    x_train, x_dev, y_train, y_dev = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)
 
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
