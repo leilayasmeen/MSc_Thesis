@@ -977,7 +977,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image = x_train_array[idx,:]
 
                 # Reshape
-                #image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                   
                 # Encode the images
                 image_code = enc_fn(image)
