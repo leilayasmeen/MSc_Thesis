@@ -68,8 +68,13 @@ print("Finished compiling")
 print("Building model...")
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-x_train = np.load('x_augmentation_array.npy')
-y_train = np.load('y_augmentation_array.npy')
+(x_train_additions) = np.load('x_augmentation_array.npy')
+(y_train_additions) = np.load('y_augmentation_array.npy')
+    
+x_train_additions = x_train_additions.transpose(0, 2, 3, 1)
+    
+x_train = np.concatenate((x_train, x_train_additions),axis=0)
+y_train = np.concatenate((y_train, y_train_additions), axis=0)
 
 #For data preprocessing, we normalize the data using the channel means and standard deviations (https://arxiv.org/pdf/1608.06993v3.pdf)
 

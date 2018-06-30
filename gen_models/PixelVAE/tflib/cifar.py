@@ -6,6 +6,8 @@ import gzip
 import cPickle as pickle
 import keras
 from keras.datasets import cifar10
+import sklearn
+from sklearn.model_selection import train_test_split
 
 def cifar_generator(images, targets, batch_size, n_labelled): # LEILAEDIT: changed "data" to "images, targets"
     #images, targets = data
@@ -56,11 +58,14 @@ def load(batch_size, n_labelled=None):
     x_traincifar = x_traincifar.transpose(0,3,1,2)
     x_testcifar = x_testcifar.transpose(0,3,1,2)
     
+    seed = 333
+    x_traincifar, x_devcifar, y_traincifar, y_devcifar = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)
+    
     return (
         #cifar_generator(train_data, batch_size, n_labelled), 
         #cifar_generator(dev_data, test_batch_size, n_labelled), 
         #cifar_generator(test_data, test_batch_size, n_labelled)
         cifar_generator(x_traincifar, y_traincifar, batch_size, n_labelled),
-        cifar_generator(x_testcifar, y_testcifar, batch_size, n_labelled),
+        cifar_generator(x_devcifar, y_devcifar, batch_size, n_labelled),
         cifar_generator(x_testcifar, y_testcifar, batch_size, n_labelled)
     )
