@@ -59,7 +59,7 @@ def load(batch_size, n_labelled=None):
     x_testcifar = x_testcifar.transpose(0,3,1,2)
     
     seed = 333
-    x_traincifar, x_devcifar, y_traincifar, y_devcifar = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)
+    x_traincifar, x_devcifar, y_traincifar, y_devcifar = train_test_split(x_traincifar, y_traincifar, test_size=0.1, random_state=seed)
     
     return (
         #cifar_generator(train_data, batch_size, n_labelled), 
