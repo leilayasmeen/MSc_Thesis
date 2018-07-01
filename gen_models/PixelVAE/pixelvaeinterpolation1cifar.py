@@ -960,14 +960,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 2
-            pvals = np.linspace(0.1, 0.9, num=9)
+            numsamples = 1000
+            pvals = np.linspace(0.2, 0.8, num=4)
             p_set = np.zeros(1)
                 
             for imagenum in range(numsamples):
                 
                 # Sample two unique image indices from different classes
-                classindices = random.sample(range(0,NUM_CLASSES-1),2)
+                classindices = random.sample(range(0,NUM_CLASSES),2)
                 idx1 = np.where(np.equal(classindices[0],y_train_set))
                 idx2 = np.where(np.equal(classindices[1],y_train_set))
                 
