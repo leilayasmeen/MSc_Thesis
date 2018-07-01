@@ -958,7 +958,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     j = n/nw
                     i = n%nw
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imwrite(OUT_DIR + '/' + save_path, img)
+                imsave(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 50
             pvals = np.linspace(0.1, 0.9, num=9)
