@@ -944,10 +944,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
-        # Reshape image files
-        x_train = x_train.transpose(0,3,1,2)
-        print "Reshaped loaded images."
-        
         def generate_and_save_samples(tag):
             from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
