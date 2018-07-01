@@ -38,7 +38,7 @@ from sklearn.model_selection import train_test_split
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = 'linear_interpolations_' + DATASET
+OUT_DIR = 'linear_interpolations_' + DATASET + '_filter_3'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
@@ -395,6 +395,8 @@ elif SETTINGS=='32px_cifar':
     N_CHANNELS = 3
     HEIGHT = 32 #64
     WIDTH = 32 #64
+   
+    NUM_CLASSES = 10
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
@@ -751,9 +753,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 if PIXEL_LEVEL_PIXCNN:
 
                     if EMBED_INPUTS:
-                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
+                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
                     else:
-                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
+                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
 
                     # Warning! Because of the masked convolutions it's very important that masked_images comes first in this concat
                     output = tf.concat([masked_images, output], axis=1)
@@ -956,11 +958,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     j = n/nw
                     i = n%nw
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imwrite(OUT_DIR + '/' + save_path, img)
+                imsave(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 50
             pvals = np.linspace(0.1, 0.9, num=9)
-            p_set = np.zeros((1))
+            p_set = np.zeros(1)
                 
             for imagenum in range(numsamples):
                 
@@ -1040,7 +1042,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
-                  p_set = np.concatenate((p_set,p), axis=0)
+                  p_set = np.append(p_set,p)
                 
                   color_grid_vis(
                      samples, 
@@ -1051,7 +1053,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            p_set = np.delete(p_set, (0), axis=0))
+            p_set = np.delete(p_set, (0), axis=0)
             
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
