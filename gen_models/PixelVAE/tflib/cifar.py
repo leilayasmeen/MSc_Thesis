@@ -57,9 +57,11 @@ def load(batch_size, n_labelled=None):
     (x_traincifar, y_traincifar), (x_testcifar, y_testcifar) = cifar10.load_data()
     x_traincifar = x_traincifar.transpose(0,3,1,2)
     x_testcifar = x_testcifar.transpose(0,3,1,2)
+    x_devcifar = x_testcifar
+    y_devcifar = y_testcifar
     
-    seed = 333
-    x_traincifar, x_devcifar, y_traincifar, y_devcifar = train_test_split(x_traincifar, y_traincifar, test_size=0.1, random_state=seed)
+    #seed = 333
+    #x_traincifar, x_devcifar, y_traincifar, y_devcifar = train_test_split(x_traincifar, y_traincifar, test_size=0.1, random_state=seed)
     
     return (
         #cifar_generator(train_data, batch_size, n_labelled), 
