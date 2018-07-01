@@ -19,8 +19,6 @@ import tflib.ops.linear
 import tflib.ops.batchnorm
 import tflib.ops.embedding
 
-#import tflib.mnist_256
-
 import tflib.cifar10
 import tflib.cifar
 import tflib.cifar_256
@@ -51,7 +49,6 @@ if SETTINGS == 'mnist_256':
     
     from keras.datasets import mnist
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    # TODO: remember to split x_train and y_train using the same training and test split as in my CNNs!
     
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
@@ -344,13 +341,13 @@ elif SETTINGS=='64px_big_onelevel':
 elif SETTINGS=='32px_cifar':
 
     from keras.datasets import cifar10
-    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
    
-    x_train = x_train.transpose(0,3,1,2)
-    x_test = x_test.transpose(0,3,1,2)
+    x_train_set = x_train_set.transpose(0,3,1,2)
+    x_test_set = x_test_set.transpose(0,3,1,2)
     
     seed = 333
-    x_train, x_dev, y_train, y_dev = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)
+    x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
 
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
@@ -945,11 +942,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
-        # Reshape image files
-        x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-        y_train = y_train.reshape(-1, 1)
-        print "Reshaped loaded images."
-        
         def generate_and_save_samples(tag):
             from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
@@ -968,41 +960,23 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imwrite(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 50
-            pvals = np.linspace(0.4, 0.6, num=3)
-
-            #print "Reading in image"
-            #testimage = imread('samples_0.png', mode='P')
-            #testimage = testimage.reshape((-1, 1, 28, 28))
-            
-            #print "Sampling Random Image"
-            #imageindex1 = np.random.randint(0, x_train.shape[0]-1)
-            
-            #print "Encoding image"
-            #next_code = enc_fn(testimage)
+            pvals = np.linspace(0.1, 0.9, num=9)
+            p_set = np.zeros((1))
                 
             for imagenum in range(numsamples):
-
-                # Sample two unique image indices 
-                #imageindices = random.sample(range(0, x_train.shape[0]-1), 2)
-                
-                # Draw the corresponding images and labels from the training data
-                #image1 = x_train[imageindices[0],:]
-                #image2 = x_train[imageindices[1],:]   
-                #label1 = y_train[imageindices[0]]
-                #label2 = y_train[imageindices[1]]
                 
                 # Sample two unique image indices from different classes
                 classindices = random.sample(range(0,NUM_CLASSES-1),2)
-                idx1 = np.where(np.equal(classindices[0],y_train))
-                idx2 = np.where(np.equal(classindices[1],y_train))
+                idx1 = np.where(np.equal(classindices[0],y_train_set))
+                idx2 = np.where(np.equal(classindices[1],y_train_set))
                 
-                x_train_array = np.array(x_train)
-                y_train_array = np.array(y_train)
+                x_train_set_array = np.array(x_train_set)
+                y_train_set_array = np.array(y_train_set)
                 
-                x_trainsubset1 = x_train_array[idx1,:]
-                x_trainsubset2 = x_train_array[idx2,:]
-                y_trainsubset1 = y_train_array[idx1,:]
-                y_trainsubset2 = y_train_array[idx2,:]
+                x_trainsubset1 = x_train_set_array[idx1,:]
+                x_trainsubset2 = x_train_set_array[idx2,:]
+                y_trainsubset1 = y_train_set_array[idx1,:]
+                y_trainsubset2 = y_train_set_array[idx2,:]
                 
                 x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
                 x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
@@ -1054,9 +1028,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                               next_sample = dec1_fn(new_code, samples, ch, y, x) 
                               samples[:,ch,y,x] = next_sample
                             
-                  #LEILAEDIT for .npy saving
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
+                  p_set = np.concatenate((p_set,p), axis=0)
                 
                   color_grid_vis(
                      samples, 
@@ -1067,11 +1041,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+            p_set = np.delete(p_set, (0), axis=0))
             
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
             np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving                
+            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving   
+            np.save(OUT_DIR + '/' + 'p_set_array', p_set)
                 
     # Run
 
@@ -1090,7 +1066,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.sampling_loop_cifar.sampling_loop( #LEIlAEDIT : changed to sampling loop file. TODO: update to remove uncessary arguments
+    lib.sampling_loop_cifar.sampling_loop( #LEIlAEDIT. TODO: update to remove uncessary arguments
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
