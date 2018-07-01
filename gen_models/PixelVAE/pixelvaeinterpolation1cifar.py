@@ -19,7 +19,6 @@ import tflib.ops.linear
 import tflib.ops.batchnorm
 import tflib.ops.embedding
 
-import tflib.cifar10
 import tflib.cifar
 import tflib.cifar_256
 
