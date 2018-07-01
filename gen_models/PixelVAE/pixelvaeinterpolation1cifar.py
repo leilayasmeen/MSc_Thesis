@@ -1051,7 +1051,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            p_set = np.delete(p_set, (0), axis=0))
+            p_set = np.delete(p_set, (0), axis=0)
             
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
