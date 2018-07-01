@@ -997,6 +997,21 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                 label1 = label1.reshape(1, 1)
                 label2 = label2.reshape(1, 1)
+                 
+                # Save the original images
+                print "Saving original samples"
+                color_grid_vis(
+                    image1, 
+                    1, 
+                    1, 
+                    'original_1_{}.png'.format(imagenum)
+                )
+                color_grid_vis(
+                    image2, 
+                    1, 
+                    1, 
+                    'original_2_{}.png'.format(imagenum)
+                )
                   
                 # Encode the images
                 image_code1 = enc_fn(image1)
@@ -1005,10 +1020,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # Change labels to matrix form before performing interpolations
                 label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
                 label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
-                
-                # Average the latent codes and the targets
-                #new_code = np.mean([image_code1,image_code2], axis=0)
-                #new_label = np.mean([label1, label2], axis=0) 
                
                 # Combine the latent codes
                 for p in pvals:
