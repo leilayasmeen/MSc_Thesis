@@ -1042,7 +1042,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
-                  p_set = np.concatenate((p_set,p))
+                  p_set = np.concatenate((p_set,p), axis=1)
                 
                   color_grid_vis(
                      samples, 
