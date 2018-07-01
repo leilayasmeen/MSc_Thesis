@@ -894,7 +894,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imwrite(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 1000
-            pvals = np.linspace(0.2, 0.0.8, num=4)
+            pvals = np.linspace(0.2, 0.8, num=4)
             p_set = np.zeros((1,numsamples)) #LEILAEDIT
                 
             for imagenum in range(numsamples):
