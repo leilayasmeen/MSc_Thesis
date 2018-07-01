@@ -343,13 +343,13 @@ elif SETTINGS=='64px_big_onelevel':
 elif SETTINGS=='32px_cifar':
 
     from keras.datasets import cifar10
-    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
    
-    x_train = x_train.transpose(0,3,1,2)
-    x_test = x_test.transpose(0,3,1,2)
+    x_train_set = x_train_set.transpose(0,3,1,2)
+    x_test_set = x_test_set.transpose(0,3,1,2)
     
     seed = 333
-    x_train, x_dev, y_train, y_dev = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)
+    x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
 
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
@@ -961,25 +961,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(OUT_DIR + '/' + save_path, img)
                 
             num = 50
-
-            #print "Reading in image"
-            #testimage = imread('samples_0.png', mode='P')
-            #testimage = testimage.reshape((-1, 1, 28, 28))
-            
-            #print "Sampling Random Image"
-            #imageindex1 = np.random.randint(0, x_train.shape[0]-1)
-            
-            #print "Encoding image"
-            #next_code = enc_fn(testimage)
                 
             for imagenum in range(num):
 
                 print "Sampling Random Image Index"
-                idx = random.sample(range(0, x_train.shape[0]-1), 1)
+                idx = random.sample(range(0, x_train_set.shape[0]-1), 1)
                            
                 print "Drawing Corresponding Image and Label Out"            
-                x_train_array = np.array(x_train)
-                image = x_train_array[idx,:]
+                x_train_set_array = np.array(x_train_set)
+                image = x_train_set_array[idx,:]
 
                 # Reshape
                 image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
@@ -999,7 +989,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             next_sample = dec1_fn(image_code, samples, ch, y, x) 
                             samples[:,ch,y,x] = next_sample
                             
-                #LEILAEDIT for .npy saving
                 x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                 
                 print "Saving original sample"
@@ -1017,8 +1006,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     'reconstruction_{}.png'.format(imagenum)
                 )
 
-            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+            x_augmentation_set_array = np.delete(x_augmentation_set, (0), axis=0)
+            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_set_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
