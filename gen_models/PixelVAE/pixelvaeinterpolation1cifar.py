@@ -395,6 +395,8 @@ elif SETTINGS=='32px_cifar':
     N_CHANNELS = 3
     HEIGHT = 32 #64
     WIDTH = 32 #64
+   
+    NUM_CLASSES = 10
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
