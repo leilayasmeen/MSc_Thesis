@@ -962,7 +962,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 
             numsamples = 50
             pvals = np.linspace(0.1, 0.9, num=9)
-            p_set = np.zeros((1))
+            p_set = np.zeros(1)
                 
             for imagenum in range(numsamples):
                 
@@ -1042,7 +1042,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                             
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
-                  p_set = np.concatenate((p_set,p), axis=1)
+                  p_set = np.append(p_set,p)
                 
                   color_grid_vis(
                      samples, 
