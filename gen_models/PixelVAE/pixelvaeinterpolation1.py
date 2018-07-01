@@ -893,19 +893,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imwrite(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 5
-            pvals = np.linspace(0.1, 0.0.9, num=9)
+            numsamples = 1000
+            pvals = np.linspace(0.2, 0.0.8, num=4)
             p_set = np.zeros((1,numsamples)) #LEILAEDIT
-
-            #print "Reading in image"
-            #testimage = imread('samples_0.png', mode='P')
-            #testimage = testimage.reshape((-1, 1, 28, 28))
-            
-            #print "Sampling Random Image"
-            #imageindex1 = np.random.randint(0, x_train.shape[0]-1)
-            
-            #print "Encoding image"
-            #next_code = enc_fn(testimage)
                 
             for imagenum in range(numsamples):
 
@@ -919,7 +909,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 #label2 = y_train[imageindices[1]]
                 
                 # Sample two unique image indices from different classes
-                classindices = random.sample(range(0,NUM_CLASSES-1),2)
+                classindices = random.sample(range(0,NUM_CLASSES),2)
                 idx1 = np.where(np.equal(classindices[0],y_train))
                 idx2 = np.where(np.equal(classindices[1],y_train))
                 
