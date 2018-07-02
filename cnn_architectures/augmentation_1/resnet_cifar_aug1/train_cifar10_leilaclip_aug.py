@@ -98,10 +98,11 @@ if __name__ == '__main__':
 
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    (x_train_additions) = np.load('x_augmentation_array.npy')
-    (y_train_additions) = np.load('y_augmentation_array.npy')
+    (x_train_additions) = np.load('/Users/wildflowerlyi/Desktop/linear_interpolations_cifar/x_augmentation_array.npy')
+    (y_train_additions) = np.load('/Users/wildflowerlyi/Desktop/linear_interpolations_cifar/y_augmentation_array.npy')
     
-    x_train_additions = x_train_additions.transpose(0, 2, 3, 1)
+    x_train_additions = x_train_additions.transpose(0, 2, 3, 1) # reorder columns to match the keras order, CHANNELS last
+    y_train_additions = y_train_additions.reshape(-1, num_classes) # reshape to allow concatenation
     
     x_train = np.concatenate((x_train, x_train_additions),axis=0)
     y_train = np.concatenate((y_train, y_train_additions), axis=0)
