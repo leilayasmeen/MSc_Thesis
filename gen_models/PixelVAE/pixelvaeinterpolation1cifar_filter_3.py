@@ -753,9 +753,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 if PIXEL_LEVEL_PIXCNN:
 
                     if EMBED_INPUTS:
-                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
+                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
                     else:
-                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
+                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
 
                     # Warning! Because of the masked convolutions it's very important that masked_images comes first in this concat
                     output = tf.concat([masked_images, output], axis=1)
@@ -961,13 +961,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 50
-            pvals = np.linspace(0.1, 0.9, num=9)
+            pvals = np.linspace(0.2, 0.8, num=4)
             p_set = np.zeros(1)
                 
             for imagenum in range(numsamples):
                 
                 # Sample two unique image indices from different classes
-                classindices = random.sample(range(0,NUM_CLASSES-1),2)
+                classindices = random.sample(range(0,NUM_CLASSES),2)
                 idx1 = np.where(np.equal(classindices[0],y_train_set))
                 idx2 = np.where(np.equal(classindices[1],y_train_set))
                 
@@ -984,8 +984,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                 y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
                 
-                imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
-                imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
+                imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]),1)
+                imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]),1)
                 
                 # Draw the corresponding images and labels from the training data
                 image1 = x_trainsubset1[imageindex1,:]
