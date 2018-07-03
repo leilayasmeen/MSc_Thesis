@@ -67,22 +67,25 @@ model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=["accuracy
 print("Finished compiling")
 print("Building model...")
 
+# Load CIFAR-10
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-(x_train_additions) = np.load('x_augmentation_array.npy')
-(y_train_additions) = np.load('y_augmentation_array.npy')
-    
-x_train_additions = x_train_additions.transpose(0, 2, 3, 1)
-y_train_additions = y_train_additions.reshape(-1, num_classes) # reshape to allow concatenation
-    
-x_train = np.concatenate((x_train, x_train_additions),axis=0)
-y_train = np.concatenate((y_train, y_train_additions), axis=0)
 
-#For data preprocessing, we normalize the data using the channel means and standard deviations (https://arxiv.org/pdf/1608.06993v3.pdf)
+# Load the augmented data arrays
+x_train45_additions = np.load('x_augmentation_array.npy')
+x_train45_additions = x_train45_additions.transpose(0,2,3,1)   
 
-x_train, x_test = color_preprocessing(x_train, x_test)
+y_train45_additions = np.load('y_augmentation_array.npy')
+y_train45_additions = y_train45_additions.reshape(-1,num_classes)
+
+# For data preprocessing, we normalize the data using the channel means and standard deviations (https://arxiv.org/pdf/1608.06993v3.pdf)
 
 x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
 
+# Combine
+x_train45 = np.concatenate((x_train45, x_train45_additions),axis=0)
+y_train45 = np.concatenate((y_train45, y_train45_additions), axis=0)
+
+x_train45, x_val, x_test = color_preprocessing(x_train45, x_val, x_test)
 
 img_gen = ImageDataGenerator(
     horizontal_flip=True,
