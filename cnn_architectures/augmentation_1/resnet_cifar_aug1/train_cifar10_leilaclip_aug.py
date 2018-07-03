@@ -98,8 +98,9 @@ if __name__ == '__main__':
 
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    (x_train) = np.load('x_augmentation_array.npy')
-    (y_train) = np.load('y_augmentation_array.npy')
+    x_train = np.load('x_augmentation_array.npy')
+    x_train = x_train.transpose(0,3,1,2)
+    y_train = np.load('y_augmentation_array.npy')
     y_test = keras.utils.to_categorical(y_test, num_classes) # test set retains one-hot encoding
     
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
