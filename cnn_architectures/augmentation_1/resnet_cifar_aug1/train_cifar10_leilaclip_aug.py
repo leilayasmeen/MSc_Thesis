@@ -95,6 +95,20 @@ def residual_network(img_input,classes_num=10,stack_n=5):
 
 
 if __name__ == '__main__':
+    
+    # load data
+    #(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    #y_train = keras.utils.to_categorical(y_train, num_classes)
+    #y_test = keras.utils.to_categorical(y_test, num_classes)
+    
+    #x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
+    
+    # Normalize data with per-pixel mean
+    #img_mean = x_train45.mean(axis=0)  # per-pixel mean
+    #img_std = x_train45.std(axis=0)
+    #x_train45 = (x_train45-img_mean)/img_std
+    #x_val = (x_val-img_mean)/img_std
+    #x_test = (x_test-img_mean)/img_std
 
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -106,6 +120,7 @@ if __name__ == '__main__':
     x_train45 = np.load('x_augmentation_array.npy')
     x_train45 = x_train45.transpose(0,2,3,1)
     y_train45 = np.load('y_augmentation_array.npy')
+    y_train45 = y_train45.reshape(-1,num_classes)
     
     # Normalize data with per-pixel mean
     img_mean = x_train45.mean(axis=0)  # per-pixel mean
