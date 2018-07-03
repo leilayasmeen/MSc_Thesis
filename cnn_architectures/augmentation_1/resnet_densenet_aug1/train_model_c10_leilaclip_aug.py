@@ -44,16 +44,18 @@ def scheduler(epoch):
     
     
 # Preprocessing for DenseNet https://arxiv.org/pdf/1608.06993v3.pdf
-def color_preprocessing(x_train,x_test):
+def color_preprocessing(x_train,x_val,x_test):
     x_train = x_train.astype('float32')
+    x_val = x_val.astype('float32')
     x_test = x_test.astype('float32')
     mean = [125.307, 122.95, 113.865]
     std  = [62.9932, 62.0887, 66.7048]
     for i in range(3):
         x_train[:,:,:,i] = (x_train[:,:,:,i] - mean[i]) / std[i]
+        x_val[:,:,:,i] = (x_val[:,:,:,i] - mean[i]) / std[i]
         x_test[:,:,:,i] = (x_test[:,:,:,i] - mean[i]) / std[i]
 
-    return x_train, x_test
+    return x_train, x_val, x_test
 
 
 
