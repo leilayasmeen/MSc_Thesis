@@ -933,6 +933,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         ch_sym = tf.placeholder(tf.int32, shape=None)
         y_sym = tf.placeholder(tf.int32, shape=None)
         x_sym = tf.placeholder(tf.int32, shape=None)
+        placeholder = tf.placeholder(tf.int32, shape=None)
         logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
         dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
           
@@ -950,8 +951,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
          
         # Encode all images
         for j in range(x_train_set.shape[0]):
-            placeholder = x_train_set[j,:]
-            placeholder = placeholder.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+            placeholder = x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH)
             saverthing = enc_fn(placeholder)
             saverthing = saverthing.append(y_train_set[j,:])
             all_latents_and_class = np.concatenate((all_latents_and_class, saverthing), axis=0)
