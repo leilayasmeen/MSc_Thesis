@@ -967,7 +967,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
-            
+            NUM_CLASSES=3
             for imagenum in range(numsamples):
                 for class1 in range(NUM_CLASSES):
                   idx1 = np.where(np.equal(class1, y_train_set))
@@ -1004,13 +1004,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         image1, 
                         1, 
                         1, 
-                        'original_1_{}.png'.format(imagenum)
+                        'original_1_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
                     )
                     color_grid_vis(
                         image2, 
                         1, 
                         1, 
-                        'original_2_{}.png'.format(imagenum)
+                        'original_2_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
                     )
                     
                       
@@ -1048,7 +1048,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         samples, 
                         1, 
                         1, 
-                        'interpolation1_{}and{}_{}_{}.png'.format(class1,class2,p,imagenum)
+                        'interpolation1_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum)
                       )
                     
                 # Sample two unique image indices from different classes
