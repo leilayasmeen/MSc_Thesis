@@ -969,14 +969,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             y_train_set_array = np.array(y_train_set)  
 
             for imagenum in range(numsamples):
-                for class1 in range(5,NUM_CLASSES-2):
+                for class1 in range(5,NUM_CLASSES-1):
                   idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
                   x_trainsubset1 = x_train_set_array[idx1,:]
                   y_trainsubset1 = y_train_set_array[idx1,:]
                   x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
                   y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                   
-                  for class2 in range(class1+1, NUM_CLASSES-1):
+                  for class2 in range(class1+1, NUM_CLASSES):
                     idx2 = np.asarray(np.where(np.equal(class2, y_train_set))[0])
                     x_trainsubset2 = x_train_set_array[idx2,:]
                     y_trainsubset2 = y_train_set_array[idx2,:]
@@ -1012,7 +1012,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         1, 
                         'original_2_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
                     )
-                    
                       
                     # Encode the images
                     image_code1 = enc_fn(image1)
