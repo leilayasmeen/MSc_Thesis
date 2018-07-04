@@ -38,7 +38,7 @@ from sklearn.model_selection import train_test_split
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = DATASET + '_interpolation1'
+OUT_DIR = DATASET + '_interpolation1_final'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
@@ -961,15 +961,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 2
-            #pvals = np.linspace(0.2, 0.8, num=4)
-            pvals = np.linspace(0.2, 0.8, num=1)
+            pvals = np.linspace(0.2, 0.8, num=4)
+            #pvals = np.linspace(0.2, 0.8, num=1)
             p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
 
             for imagenum in range(numsamples):
-                for class1 in range(7,NUM_CLASSES-1): # goes up to class 8
+                for class1 in range(NUM_CLASSES-1): # goes up to class 8
                   idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
                   x_trainsubset1 = x_train_set_array[idx1,:]
                   y_trainsubset1 = y_train_set_array[idx1,:]
