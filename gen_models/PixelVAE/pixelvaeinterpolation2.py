@@ -7,17 +7,11 @@ Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, 
 import os, sys
 sys.path.append(os.getcwd())
 
-OUT_DIR = 'linear_interpolations_pairs_mnist'
-
-if not os.path.isdir(OUT_DIR):
-   os.makedirs(OUT_DIR)
-   print "Created directory {}".format(OUT_DIR)
-
 N_GPUS = 2
 
 import random
 import tflib as lib
-import tflib.sampling_loop
+import tflib.sampling_loop_cifar_filter_3
 import tflib.ops.kl_unit_gaussian
 import tflib.ops.kl_gaussian_gaussian
 import tflib.ops.conv2d
@@ -25,7 +19,8 @@ import tflib.ops.linear
 import tflib.ops.batchnorm
 import tflib.ops.embedding
 
-import tflib.mnist_256
+import tflib.cifar
+import tflib.cifar_256
 
 import numpy as np
 import tensorflow as tf
@@ -37,14 +32,22 @@ import keras
 import time
 import functools
 
-DATASET = 'mnist_256' # mnist_256
-SETTINGS = 'mnist_256' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
+import sklearn
+from sklearn.model_selection import train_test_split
+
+DATASET = 'cifar10' # mnist_256
+SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
+
+OUT_DIR = DATASET + '_interpolation1_final_filter_3'
+
+if not os.path.isdir(OUT_DIR):
+   os.makedirs(OUT_DIR)
+   print "Created directory {}".format(OUT_DIR)
 
 if SETTINGS == 'mnist_256':
     
     from keras.datasets import mnist
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    # TODO: remember to split x_train and y_train using the same training and test split as in my CNNs!
     
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
@@ -334,14 +337,83 @@ elif SETTINGS=='64px_big_onelevel':
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
 
+elif SETTINGS=='32px_cifar':
+
+    from keras.datasets import cifar10
+    (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
+   
+    x_train_set = x_train_set.transpose(0,3,1,2)
+    x_test_set = x_test_set.transpose(0,3,1,2)
+    
+    seed = 333
+    x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
+
+    # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
+    # one_level uses EncFull/DecFull for the bottom (and only) level
+    MODE = 'one_level'
+
+    # Whether to treat pixel inputs to the model as real-valued (as in the 
+    # original PixelCNN) or discrete (gets better likelihoods).
+    EMBED_INPUTS = True
+
+    # Turn on/off the bottom-level PixelCNN in Dec1/DecFull
+    PIXEL_LEVEL_PIXCNN = True
+    HIGHER_LEVEL_PIXCNN = True
+
+    DIM_EMBED    = 16
+    DIM_PIX_1    = 192 #LEILA EDIT: was previously 384
+    DIM_0        = 96 #LEILA EDIT: was previously 192
+    DIM_1        = 128 #LEILA EDIT: was previously 256
+    DIM_2        = 256 #LEILA EDIT: was previously 512
+    DIM_3        = 256 #LEILA EDIT: was previously 512
+    DIM_4        = 256 #LEILA EDIT: was previously 512
+    LATENT_DIM_2 = 256 #LEILA EDIT: was previously 512
+
+    ALPHA1_ITERS = 50000
+    ALPHA2_ITERS = 50000
+    KL_PENALTY = 1.0
+    BETA_ITERS = 1000
+
+    # In Dec2, we break each spatial location into N blocks (analogous to channels
+    # in the original PixelCNN) and model each spatial location autoregressively
+    # as P(x)=P(x0)*P(x1|x0)*P(x2|x0,x1)... In my experiments values of N > 1
+    # actually hurt performance. Unsure why; might be a bug.
+    PIX_2_N_BLOCKS = 1
+
+    TIMES = {
+        'test_every': 10000,
+        'stop_after': 400000,
+        'callback_every': 50000
+    }
+    
+    LR = 1e-3
+
+    LR_DECAY_AFTER = 180000
+    LR_DECAY_FACTOR = 0.5
+
+    BATCH_SIZE = 50 # 48
+    N_CHANNELS = 3
+    HEIGHT = 32 #64
+    WIDTH = 32 #64
+   
+    NUM_CLASSES = 10
+
+    # These aren't actually used for one-level models but some parts
+    # of the code still depend on them being defined.
+    LATENT_DIM_1 = 32 #LEILAEDIT: was previously 64
+    LATENTS1_HEIGHT = 7
+    LATENTS1_WIDTH = 7
+
 if DATASET == 'mnist_256':
-    train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE) 
+    train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE) # TODO: define new data-loader so I don't load batches
 elif DATASET == 'lsun_32':
     train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=True)
 elif DATASET == 'lsun_64':
     train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=False)
 elif DATASET == 'imagenet_64':
     train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
+elif DATASET == 'cifar10':
+    train_data, dev_data, test_data = lib.cifar_256.load(BATCH_SIZE) #LEILAEDIT
 
 lib.print_model_settings(locals().copy())
 
@@ -601,11 +673,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 return output
 
-            # Only for 64px_big_onelevel and MNIST. Needs modification for others.
+            # Only for 32px_cifar, 64px_big_onelevel, and MNIST. Needs modification for others.
             def EncFull(images):
                 output = images
 
-                if WIDTH == 64:
+                if WIDTH == 32: #64 
                     if EMBED_INPUTS:
                         output = lib.ops.conv2d.Conv2D('EncFull.Input', input_dim=N_CHANNELS*DIM_EMBED, output_dim=DIM_0, filter_size=1, inputs=output, he_init=False)
                     else:
@@ -624,8 +696,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     output = ResidualBlock('EncFull.Res11', input_dim=DIM_3, output_dim=DIM_4, filter_size=3, resample='down', inputs=output)
                     output = ResidualBlock('EncFull.Res12', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, inputs=output)
                     output = ResidualBlock('EncFull.Res13', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, inputs=output)
-                    output = tf.reshape(output, [-1, 4*4*DIM_4])
-                    output = lib.ops.linear.Linear('EncFull.Output', input_dim=4*4*DIM_4, output_dim=2*LATENT_DIM_2, initialization='glorot', inputs=output)
+                    output = tf.reshape(output, [-1, 2*2*DIM_4])
+                    output = lib.ops.linear.Linear('EncFull.Output', input_dim=2*2*DIM_4, output_dim=2*LATENT_DIM_2, initialization='glorot', inputs=output)
                 else:
                     if EMBED_INPUTS:
                         output = lib.ops.conv2d.Conv2D('EncFull.Input', input_dim=N_CHANNELS*DIM_EMBED, output_dim=DIM_1, filter_size=1, inputs=output, he_init=False)
@@ -643,13 +715,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 return output
 
-            # Only for 64px_big_onelevel and MNIST. Needs modification for others.
+            # Only for 32px_CIFAR, 64px_big_onelevel and MNIST. Needs modification for others.
             def DecFull(latents, images):
                 output = tf.clip_by_value(latents, -50., 50.)
 
-                if WIDTH == 64:
-                    output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=4*4*DIM_4, initialization='glorot', inputs=output)
-                    output = tf.reshape(output, [-1, DIM_4, 4, 4])
+                if WIDTH == 32: # 64:LEILAEDIT. Also changed 4*4 to 2*2 and 4,4 to 2,2 in the two lines below
+                    output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=2*2*DIM_4, initialization='glorot', inputs=output)
+                    output = tf.reshape(output, [-1, DIM_4, 2, 2])
                     output = ResidualBlock('DecFull.Res2', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res3', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res4', input_dim=DIM_4, output_dim=DIM_3, filter_size=3, resample='up', he_init=True, inputs=output)
@@ -673,7 +745,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     output = ResidualBlock('DecFull.Res6', input_dim=DIM_2, output_dim=DIM_1, filter_size=3, resample='up', he_init=True, inputs=output)
                     output = ResidualBlock('DecFull.Res7', input_dim=DIM_1, output_dim=DIM_1, filter_size=3, resample=None, he_init=True, inputs=output)
 
-                if WIDTH == 64:
+                if WIDTH == 32: #64:
                     dim = DIM_0
                 else:
                     dim = DIM_1
@@ -681,9 +753,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 if PIXEL_LEVEL_PIXCNN:
 
                     if EMBED_INPUTS:
-                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
+                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
                     else:
-                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=5, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
+                        masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
 
                     # Warning! Because of the masked convolutions it's very important that masked_images comes first in this concat
                     output = tf.concat([masked_images, output], axis=1)
@@ -691,11 +763,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     output = ResidualBlock('DecFull.Pix2Res', input_dim=2*dim,   output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
                     output = ResidualBlock('DecFull.Pix3Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
                     output = ResidualBlock('DecFull.Pix4Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
-                    if WIDTH != 64:
+                    if WIDTH != 32: #64: LEILAEDIT
                         output = ResidualBlock('DecFull.Pix5Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
-
+                  
                 else:
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=dim, output_dim=256*N_CHANNELS, filter_size=1, he_init=False, inputs=output)
@@ -842,7 +914,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 kl_cost_2 *= float(LATENT_DIM_2) / (N_CHANNELS * WIDTH * HEIGHT)
 
                 cost = reconst_cost + (alpha1 * kl_cost_1) + (alpha2 * kl_cost_2)
-                 
+                  
             tower_cost.append(cost)
             if MODE == 'two_level':
                 tower_outputs1_sample.append(outputs1_sample)
@@ -852,8 +924,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     )
    
     if MODE == 'two_level':
-        full_outputs1_sample = tf.concat(tower_outputs1_sample, axis=0)
-
+        full_outputs1_sample = tf.concat(tower_outputs1_sample, axis=0)    
+        
     # Sampling
 
     if MODE == 'one_level':
@@ -869,56 +941,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
+        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
-        # Reshape image files
-        x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-        y_train = y_train.reshape(-1, 1)
-        print "Reshaped loaded images."
-         
-        # Encode all images
-        for j in range(x_train.shape[0]):
-            saver = enc_fn(x_train[j,:])
-            saver = saver.append(y_train[j,:])
-            all_latents_and_class = np.concatenate((all_latents_and_class, saver), axis=0)
-        
-        all_latents_and_class = np.delete(all_latents_and_class, (0), axis=0)
-         
-        # Find means of latent vectors, by class
-        classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
-        for k in range(NUM_CLASSES):
-            idk = np.where(np.equal(y_train,k))
-            all_latents_groupk = all_latents_and_class[idk,:]
-            classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
-      
-        # Find the two pairs of classes that are closest to each other
-        # Find all pairs
-        pairs = np.array(list(itertools.combinations(range(NUM_CLASSES),2)))
-        num_pairs = pairs.shape[0]
-         
-        # Find distances between the members of each pair
-        meandist = np.zeros((num_pairs)).astype('float32')
-        for m in range(num_pairs):
-             a.idx = np.where(np.equal(pairs[m,0],classmeans[:,LATENT_DIM_2+1]))
-             a = classmeans[a.idx,:]
-             b.idx = np.where(np.equal(pairs[m,1],classmeans[:,LATENT_DIM_2+1]))
-             b = classmeans[b.idx,:]
-             a = np.delete(a, -1, axis=1)
-             b = np.delete(b, -1, axis=1)
-             meandist[m] = np.linalg.norm(a.temp-b.temp)
-            
-        closestidx = meandist.argmin()
-        secondclosestidx = meandist.index(sorted(meandist)[1])
-        closestpair = pairs[closestidx,;]
-        secondclosestpair = pairs[secondclosestidx,:]
-         
-        classpairs = np.append(closestpair, secondclosestpair)
-        
-        # Generate samples by interpolating within these two sets of pairs
         def generate_and_save_samples(tag):
-            from keras.utils import np_utils
+            from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving
+            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -932,246 +960,107 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            num = 1
+            numsamples = 2
+            #pvals = np.linspace(0.2, 0.8, num=4)
+            pvals = np.linspace(0.2, 0.8, num=1)
+            p_set = np.zeros(1)
+            
+            x_train_set_array = np.array(x_train_set)
+            y_train_set_array = np.array(y_train_set)  
 
-            #print "Reading in image"
-            #testimage = imread('samples_0.png')
-            #testimage = testimage.reshape((-1, 1, 28, 28))
-            
-            #print "Sampling Random Image"
-            #imageindex1 = np.random.randint(0, x_train.shape[0]-1)
-            
-            #print "Encoding image"
-            #next_code = enc_fn(testimage)
-                
-            for imagenum in range(num):
-                
-                # Sample unique image indices from classes 0, 3, 6, 8. Images will be interpolated in pairs. Pairs are listed in order.
-                #classindices = np.array([0,6,3,8])
-                classindices = classpairs
-                
-                # TODO: make this less manual using this structure
-                #classindices = np.array([[0,6],[3,8]])
-                #idx = np.zeros(classindices.shape[0])
-                #for classnums in xrange(classindices.shape[0]):
-                #  idxfirst[classnums] = np.where(np.equal(classindices[0][classnums],y_train))
-                #  idxsecond[classnums] = np.where(np.equal(classindices[1][classnums],y_train))
+            for imagenum in range(numsamples):
+                for class1 in range(NUM_CLASSES-1): # goes up to class 8
+                  idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
+                  x_trainsubset1 = x_train_set_array[idx1,:]
+                  y_trainsubset1 = y_train_set_array[idx1,:]
+                  x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
+                  y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                   
-                idx1 = np.where(np.equal(classindices[0],y_train))
-                idx2 = np.where(np.equal(classindices[1],y_train))
-                idx3 = np.where(np.equal(classindices[2],y_train))
-                idx4 = np.where(np.equal(classindices[3],y_train))
+                  for class2 in range(class1+1, NUM_CLASSES):
+                    idx2 = np.asarray(np.where(np.equal(class2, y_train_set))[0])
+                    x_trainsubset2 = x_train_set_array[idx2,:]
+                    y_trainsubset2 = y_train_set_array[idx2,:]
+                    x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
+                    y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
+                    
+                    imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
+                    imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
+                    
+                    # Draw the corresponding images and labels from the training data
+                    image1 = x_trainsubset1[imageindex1,:]
+                    image2 = x_trainsubset2[imageindex2,:]  
+                    label1 = y_trainsubset1[imageindex1,:]
+                    label2 = y_trainsubset2[imageindex2,:]
                 
-                x_train_array = np.array(x_train)
-                y_train_array = np.array(y_train)
-                
-                x_trainsubset1 = x_train_array[idx1,:]
-                x_trainsubset2 = x_train_array[idx2,:]
-                x_trainsubset3 = x_train_array[idx3,:]
-                x_trainsubset4 = x_train_array[idx4,:]
-                y_trainsubset1 = y_train_array[idx1,:]
-                y_trainsubset2 = y_train_array[idx2,:]
-                y_trainsubset3 = y_train_array[idx3,:]
-                y_trainsubset4 = y_train_array[idx4,:]
-                
-                x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                x_trainsubset3 = x_trainsubset3.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                x_trainsubset4 = x_trainsubset4.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
-                y_trainsubset3 = y_trainsubset3.reshape(-1, 1)
-                y_trainsubset4 = y_trainsubset4.reshape(-1, 1)
-                
-                imageindex1 = random.sample(range(0, x_trainsubset1.shape[0]-1),1)
-                imageindex2 = random.sample(range(0, x_trainsubset2.shape[0]-1),1)
-                imageindex3 = random.sample(range(0, x_trainsubset3.shape[0]-1),1)
-                imageindex4 = random.sample(range(0, x_trainsubset4.shape[0]-1),1)
-                
-                # Draw the corresponding images and labels from the training data
-                image1 = x_trainsubset1[imageindex1,:]
-                image2 = x_trainsubset2[imageindex2,:]  
-                image3 = x_trainsubset3[imageindex3,:]
-                image4 = x_trainsubset4[imageindex4,:]  
-                label1 = y_trainsubset1[imageindex1,:]
-                label2 = y_trainsubset2[imageindex2,:]
-                label3 = y_trainsubset3[imageindex3,:]
-                label4 = y_trainsubset4[imageindex4,:]
-                
-                # Reshape
-                image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                image3 = image3.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                image4 = image4.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                label1 = label1.reshape(1, 1)
-                label2 = label2.reshape(1, 1)
-                label3 = label3.reshape(1, 1)
-                label4 = label4.reshape(1, 1)  
-                
-                # Encode the images
-                image_code1 = enc_fn(image1)
-                image_code2 = enc_fn(image2)
-                image_code3 = enc_fn(image3)
-                image_code4 = enc_fn(image4)
-                  
-                # Change the labels to matrix form before performing interpolations
-                label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
-                label2 = np_utils.to_categorical(label2, NUM_CLASSES)
-                label3 = np_utils.to_categorical(label3, NUM_CLASSES) 
-                label4 = np_utils.to_categorical(label4, NUM_CLASSES)             
-                
-                # Average the latent codes and the targets
-                #new_code = np.mean([image_code1,image_code2], axis=0)
-                #new_label = np.mean([label1, label2], axis=0)
-                
-                # Combine the latent codes using p~Unif(0,1)
-                p1 = np.random.uniform(0,1)
-                p2 = np.random.uniform(0,1)
-                new_code12 = np.multiply(p1,image_code1) + np.multiply((1-p1),image_code2)
-                new_label12 = np.multiply(p1,label1) + np.multiply((1-p1),label2)
-                new_code34 = np.multiply(p2,image_code3) + np.multiply((1-p2),image_code4)
-                new_label34 = np.multiply(p2,label3) + np.multiply((1-p2),label4)
+                    # Reshape
+                    image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                    image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                    label1 = label1.reshape(1, 1)
+                    label2 = label2.reshape(1, 1)
+                    
+                    # Save the original images
+                    print "Saving original samples"
+                    color_grid_vis(
+                        image1, 
+                        1, 
+                        1, 
+                        'original_1_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
+                    )
+                    color_grid_vis(
+                        image2, 
+                        1, 
+                        1, 
+                        'original_2_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
+                    )
+                      
+                    # Encode the images
+                    image_code1 = enc_fn(image1)
+                    image_code2 = enc_fn(image2)
                
-                # Reshape the new labels to enable saving in the proper format for the neural networks later on
-                new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
-                new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
-                  
-                samples12 = np.zeros(
-                    (1, N_CHANNELS, HEIGHT, WIDTH), 
-                    dtype='int32'
-                )
-                
-                samples34 = np.zeros(
-                    (1, N_CHANNELS, HEIGHT, WIDTH), 
-                    dtype='int32'
-                )
+                    # Change labels to matrix form before performing interpolations
+                    label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
+                    label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
+               
+                    # Combine the latent codes
+                    for p in pvals:
+                      new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
+                      new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
+                      new_label = new_label.reshape(1,1,NUM_CLASSES)
 
-                print "Generating samples"
-                for y in xrange(HEIGHT):
-                    for x in xrange(WIDTH):
-                        for ch in xrange(N_CHANNELS):
-                            next_sample12 = dec1_fn(new_code12, samples12, ch, y, x) 
-                            samples12[:,ch,y,x] = next_sample12
+                      samples = np.zeros(
+                        (1, N_CHANNELS, HEIGHT, WIDTH), 
+                        dtype='int32'
+                      )
+
+                      print "Generating samples"
+                      for y in xrange(HEIGHT):
+                        for x in xrange(WIDTH):
+                              for ch in xrange(N_CHANNELS):
+                                  next_sample = dec1_fn(new_code, samples, ch, y, x) 
+                                  samples[:,ch,y,x] = next_sample
                             
-                for y in xrange(HEIGHT):
-                    for x in xrange(WIDTH):
-                        for ch in xrange(N_CHANNELS):
-                            next_sample34 = dec1_fn(new_code34, samples34, ch, y, x) 
-                            samples34[:,ch,y,x] = next_sample34
-                           
-                #LEILAEDIT for .npy saving
-                x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
-                x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
-                y_augmentation_set = np.concatenate((y_augmentation_set, new_label12), axis=0)#LEILAEDIT for .npy saving
-                y_augmentation_set = np.concatenate((y_augmentation_set, new_label34), axis=0)#LEILAEDIT for .npy saving
+                      x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
+                      y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
+                      p_set = np.append(p_set,p)
                 
-                print "Saving samples and their corresponding tags"
-                color_grid_vis(
-                    samples12, 
-                    1, 
-                    1, 
-                    'encoded_reconsamples__06_{}.png'.format(imagenum)
-                )
-                color_grid_vis(
-                    samples34, 
-                    1, 
-                    1, 
-                    'encoded_reconsamples_38_{}.png'.format(imagenum)
-                )
-
+                      color_grid_vis(
+                        samples, 
+                        1, 
+                        1, 
+                        'interpolation1_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum)
+                      )
+                    
+  
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+            p_set = np.delete(p_set, (0), axis=0)
+            
+            x_augmentation_array = x_augmentation_array.astype(np.uint8)
+
             np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving   
+            np.save(OUT_DIR + '/' + 'p_set_array', p_set)
                 
-    elif MODE == 'two_level':
-
-        def dec2_fn(_latents, _targets):
-            return session.run([mu1_prior, logsig1_prior], feed_dict={latents2: _latents, latents1: _targets, total_iters: 99999, bn_is_training: False, bn_stats_iter: 0})
-
-        ch_sym = tf.placeholder(tf.int32, shape=None)
-        y_sym = tf.placeholder(tf.int32, shape=None)
-        x_sym = tf.placeholder(tf.int32, shape=None)
-        logits_sym = tf.reshape(tf.slice(full_outputs1_sample, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
-
-        def dec1_logits_fn(_latents, _targets, _ch, _y, _x):
-            return session.run(logits_sym,
-                               feed_dict={all_latents1: _latents,
-                                          all_images: _targets,
-                                          ch_sym: _ch,
-                                          y_sym: _y,
-                                          x_sym: _x,
-                                          total_iters: 99999,
-                                          bn_is_training: False, 
-                                          bn_stats_iter: 0})
-
-        N_SAMPLES = BATCH_SIZE
-        if N_SAMPLES % N_GPUS != 0:
-            raise Exception("N_SAMPLES must be divisible by N_GPUS")
-        HOLD_Z2_CONSTANT = False
-        HOLD_EPSILON_1_CONSTANT = False
-        HOLD_EPSILON_PIXELS_CONSTANT = False
-
-        # Draw z2 from N(0,I)
-        z2 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_2)).astype('float32')
-        if HOLD_Z2_CONSTANT:
-          z2[:] = z2[0][None]
-
-        # Draw epsilon_1 from N(0,I)
-        epsilon_1 = np.random.normal(size=(N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH)).astype('float32')
-        if HOLD_EPSILON_1_CONSTANT:
-          epsilon_1[:] = epsilon_1[0][None]
-
-        # Draw epsilon_pixels from U[0,1]
-        epsilon_pixels = np.random.uniform(size=(N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH))
-        if HOLD_EPSILON_PIXELS_CONSTANT:
-          epsilon_pixels[:] = epsilon_pixels[0][None]
-
-
-        def generate_and_save_samples(tag):
-            # Draw z1 autoregressively using z2 and epsilon1
-            print "Generating z1"
-            z1 = np.zeros((N_SAMPLES, LATENT_DIM_1, LATENTS1_HEIGHT, LATENTS1_WIDTH), dtype='float32')
-            for y in xrange(LATENTS1_HEIGHT):
-              for x in xrange(LATENTS1_WIDTH):
-                z1_prior_mu, z1_prior_logsig = dec2_fn(z2, z1)
-                z1[:,:,y,x] = z1_prior_mu[:,:,y,x] + np.exp(z1_prior_logsig[:,:,y,x]) * epsilon_1[:,:,y,x]
-
-            # Draw pixels (the images) autoregressively using z1 and epsilon_x
-            print "Generating pixels"
-            pixels = np.zeros((N_SAMPLES, N_CHANNELS, HEIGHT, WIDTH)).astype('int32')
-            for y in xrange(HEIGHT):
-                for x in xrange(WIDTH):
-                    for ch in xrange(N_CHANNELS):
-                        # start_time = time.time()
-                        logits = dec1_logits_fn(z1, pixels, ch, y, x)
-                        probs = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
-                        probs = probs / np.sum(probs, axis=-1, keepdims=True)
-                        cdf = np.cumsum(probs, axis=-1)
-                        pixels[:,ch,y,x] = np.argmax(cdf >= epsilon_pixels[:,ch,y,x,None], axis=-1)
-                        # print time.time() - start_time
-
-            # Save them
-            def color_grid_vis(X, nh, nw, save_path):
-                # from github.com/Newmu
-                X = X.transpose(0,2,3,1)
-                h, w = X[0].shape[:2]
-                img = np.zeros((h*nh, w*nw, 3))
-                for n, x in enumerate(X):
-                    j = n/nw
-                    i = n%nw
-                    img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(OUT_DIR + '/' + save_path, img)
-
-            print "Saving"
-            rows = int(np.sqrt(N_SAMPLES))
-            while N_SAMPLES % rows != 0:
-                rows -= 1
-            color_grid_vis(
-                pixels, rows, N_SAMPLES/rows, 
-                'samples_{}.png'.format(tag)
-            )
-
     # Run
 
     if MODE == 'one_level':
@@ -1180,16 +1069,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             ('reconst', reconst_cost), 
             ('kl1', kl_cost_1)
         ]
-      
-    elif MODE == 'two_level':
-        prints=[
-            ('alpha1', alpha1),
-            ('alpha2', alpha2),
-            ('reconst', reconst_cost), 
-            ('kl1', kl_cost_1),
-            ('kl2', kl_cost_2),
-        ]
-         
+
     decayed_lr = tf.train.exponential_decay(
         LR,
         total_iters,
@@ -1198,7 +1078,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         staircase=True
     )
 
-    lib.sampling_loop.sampling_loop( #LEIlAEDIT : changed to sampling loop file. TODO: update to remove uncessary arguments
+    lib.sampling_loop_cifar_filter_3.sampling_loop( #LEIlAEDIT. TODO: update to remove uncessary arguments
         session=session,
         inputs=[total_iters, all_images],
         inject_iteration=True,
