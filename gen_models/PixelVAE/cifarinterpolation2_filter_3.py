@@ -981,7 +981,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
         closestidx = meandist.argmin()
         secondclosestidx = meandist.index(sorted(meandist)[1])
-        closestpair = pairs[closestidx,;]
+        closestpair = pairs[closestidx,:]
         secondclosestpair = pairs[secondclosestidx,:]
          
         classpairs = np.append(closestpair, secondclosestpair)
