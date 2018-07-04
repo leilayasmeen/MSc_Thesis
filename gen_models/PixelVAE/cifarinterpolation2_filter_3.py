@@ -950,7 +950,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
          
         # Encode all images
         for j in range(x_train_set.shape[0]):
-            saverthing = enc_fn(x_train_set[j,:])
+            placeholder = x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+            saverthing = enc_fn(placeholder)
             saverthing = saverthing.append(y_train_set[j,:])
             all_latents_and_class = np.concatenate((all_latents_and_class, saverthing), axis=0)
         
