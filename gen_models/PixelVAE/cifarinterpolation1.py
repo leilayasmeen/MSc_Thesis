@@ -961,7 +961,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 1
-            pvals = np.linspace(0.2, 0.8, num=4)
+            #pvals = np.linspace(0.2, 0.8, num=4)
+            pvals = np.linspace(0.2, 0.8, num=1)
             p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
