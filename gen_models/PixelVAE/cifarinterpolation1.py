@@ -970,14 +970,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
             for imagenum in range(numsamples):
                 for class1 in range(5,NUM_CLASSES-2):
-                  idx1 = np.where(np.equal(class1, y_train_set))
+                  idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
                   x_trainsubset1 = x_train_set_array[idx1,:]
                   y_trainsubset1 = y_train_set_array[idx1,:]
                   x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
                   y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                   
                   for class2 in range(class1+1, NUM_CLASSES-1):
-                    idx2 = np.where(np.equal(class2, y_train_set))
+                    idx2 = np.asarray(np.where(np.equal(class2, y_train_set))[0])
                     x_trainsubset2 = x_train_set_array[idx2,:]
                     y_trainsubset2 = y_train_set_array[idx2,:]
                     x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
