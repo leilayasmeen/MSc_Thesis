@@ -944,22 +944,22 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
         
         # Reshape image files
-        x_train = x_train.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-        y_train = y_train.reshape(-1, 1)
+        x_train_set = x_train_set.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+        y_train_set = y_train_set.reshape(-1, 1)
         print "Reshaped loaded images."
          
         # Encode all images
-        for j in range(x_train.shape[0]):
-            saver = enc_fn(x_train[j,:])
-            saver = saver.append(y_train[j,:])
-            all_latents_and_class = np.concatenate((all_latents_and_class, saver), axis=0)
+        for j in range(x_train_set.shape[0]):
+            saverthing = enc_fn(x_train_set[j,:])
+            saverthing = saverthing.append(y_train_set[j,:])
+            all_latents_and_class = np.concatenate((all_latents_and_class, saverthing), axis=0)
         
         all_latents_and_class = np.delete(all_latents_and_class, (0), axis=0)
          
         # Find means of latent vectors, by class
         classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
         for k in range(NUM_CLASSES):
-            idk = np.asarray(np.where(np.equal(y_train,k))[0])
+            idk = np.asarray(np.where(np.equal(y_train_set,k))[0])
             all_latents_groupk = all_latents_and_class[idk,:]
             classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
       
@@ -1015,13 +1015,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               # Sample unique image indices from class pairs. Images will be interpolated in pairs. Pairs are listed in order.
               classindices = classpairs
  
-              idx1 = np.asarray(np.where(np.equal(classindices[0],y_train))[0])
-              idx2 = np.asarray(np.where(np.equal(classindices[1],y_train))[0])
-              idx3 = np.asarray(np.where(np.equal(classindices[2],y_train))[0])
-              idx4 = np.asarray(np.where(np.equal(classindices[3],y_train))[0])
+              idx1 = np.asarray(np.where(np.equal(classindices[0],y_train_set))[0])
+              idx2 = np.asarray(np.where(np.equal(classindices[1],y_train_set))[0])
+              idx3 = np.asarray(np.where(np.equal(classindices[2],y_train_set))[0])
+              idx4 = np.asarray(np.where(np.equal(classindices[3],y_train_set))[0])
                 
-              x_train_array = np.array(x_train)
-              y_train_array = np.array(y_train)
+              x_train_array = np.array(x_train_set)
+              y_train_array = np.array(y_train_set)
                 
               x_trainsubset1 = x_train_array[idx1,:]
               x_trainsubset2 = x_train_array[idx2,:]
