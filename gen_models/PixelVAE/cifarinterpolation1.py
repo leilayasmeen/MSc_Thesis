@@ -38,7 +38,7 @@ from sklearn.model_selection import train_test_split
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = 'linear_interpolations_' + DATASET + '_wholistic'
+OUT_DIR = DATASET + '_interpolation1'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
