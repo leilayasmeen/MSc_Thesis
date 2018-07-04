@@ -967,16 +967,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
-            NUM_CLASSES=3
+
             for imagenum in range(numsamples):
-                for class1 in range(NUM_CLASSES):
+                for class1 in range(3):#NUM_CLASSES
                   idx1 = np.where(np.equal(class1, y_train_set))
                   x_trainsubset1 = x_train_set_array[idx1,:]
                   y_trainsubset1 = y_train_set_array[idx1,:]
                   x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
                   y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
                   
-                  for class2 in range(class1+1, NUM_CLASSES):
+                  for class2 in range(class1+1, 3):
                     idx2 = np.where(np.equal(class2, y_train_set))
                     x_trainsubset2 = x_train_set_array[idx2,:]
                     y_trainsubset2 = y_train_set_array[idx2,:]
