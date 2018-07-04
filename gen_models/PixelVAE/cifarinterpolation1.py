@@ -960,7 +960,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 1
+            numsamples = 2
             #pvals = np.linspace(0.2, 0.8, num=4)
             pvals = np.linspace(0.2, 0.8, num=1)
             p_set = np.zeros(1)
@@ -969,7 +969,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             y_train_set_array = np.array(y_train_set)  
 
             for imagenum in range(numsamples):
-                for class1 in range(5,NUM_CLASSES-1):
+                for class1 in range(7,NUM_CLASSES-1): # goes up to class 8
                   idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
                   x_trainsubset1 = x_train_set_array[idx1,:]
                   y_trainsubset1 = y_train_set_array[idx1,:]
