@@ -1013,7 +1013,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
          
-            classpairs = np.concatenate((closestpair, secondclosestpair), axis=0)
+            classpairs = np.concatenate((closestpair, secondclosestpair), axis=1)
             
             ##################################################################
             
@@ -1029,9 +1029,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 4
-            pvals = np.linspace(0.2, 0.8, num=4)
-            #pvals = np.linspace(0.2, 0.8, num=1)
+            numsamples = 1
+            #pvals = np.linspace(0.2, 0.8, num=4)
+            pvals = np.linspace(0.2, 0.8, num=1)
             #p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
@@ -1091,7 +1091,35 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               label2 = label2.reshape(1, 1)
               label3 = label3.reshape(1, 1)
               label4 = label4.reshape(1, 1)  
-                
+              
+              # Save original images
+              print "Saving original samples"
+              color_grid_vis(
+                 image1, 
+                 1, 
+                 1,
+                 'original_1_classes{}and{}_num{}.png'.format(classindices[0],classindices[1],imagenum)
+              )
+              color_grid_vis(
+                 image2,
+                 1,
+                 1,
+                 'original_2_classes{}and{}_num{}.png'.format(classindices[0],classindices[1],imagenum)
+              )
+              color_grid_vis(
+                 image3,
+                 1,
+                 1,
+                 'original_3_classes{}and{}_num{}.png'.format(classindices[2],classindices[3],imagenum)
+              ) 
+            
+              color_grid_vis(
+                 image4,
+                 1,
+                 1,
+                 'original_4_classes{}and{}_num{}.png'.format(classindices[2],classindices[3],imagenum)
+              ) 
+               
               # Encode the images
               image_code1 = enc_fn(image1)
               image_code2 = enc_fn(image2)
