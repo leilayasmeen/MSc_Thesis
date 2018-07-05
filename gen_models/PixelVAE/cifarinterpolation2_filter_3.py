@@ -967,6 +967,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             # Encode all images
             for j in range(x_train_set.shape[0]):
                latestlatents = enc_fn(x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
+               print "This is "latestlatents.shape
                latestlatents = np.concatenate((latestlatents,y_train_set[j]))
                all_latents_and_class = np.concatenate((all_latents_and_class, latestlatents), axis=0)
         
