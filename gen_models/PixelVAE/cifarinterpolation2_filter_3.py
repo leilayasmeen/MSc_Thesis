@@ -949,6 +949,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             ##################################################################
             
+            (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
+   
+            x_train_set = x_train_set.transpose(0,3,1,2)
+            x_test_set = x_test_set.transpose(0,3,1,2)
+    
+            seed = 333
+            x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
+            
             all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
         
             # Reshape image files
