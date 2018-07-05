@@ -961,18 +961,18 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             all_latents = np.zeros((1,LATENT_DIM_2)).astype('float32')
             
-            x_train_set = x_train_set[1:100,:]
-            y_train_set = y_train_set[1:100,:]
+            x_train_set_sub = x_train_set[1:100,:]
+            y_train_set_sub = y_train_set[1:100,:]
         
             # Reshape image files
-            x_train_set = x_train_set.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-            y_train_set = y_train_set.reshape(-1, 1)
+            x_train_set_sub = x_train_set_sub.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+            y_train_set_sub = y_train_set_sub.reshape(-1, 1)
             print "Reshaped loaded images."
          
             # Encode all images
             print "Encoding images"
-            for j in range(x_train_set.shape[0]):
-               latestlatents = enc_fn(x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
+            for j in range(x_train_set_sub.shape[0]):
+               latestlatents = enc_fn(x_train_set_sub[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
                all_latents = np.concatenate((all_latents, latestlatents), axis=0)
         
             all_latents = np.delete(all_latents, (0), axis=0)
@@ -981,7 +981,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             print "Finding class means"
             classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2)).astype('float32')
             for k in range(NUM_CLASSES):
-               idk = np.asarray(np.where(np.equal(y_train_set,k))[0])
+               idk = np.asarray(np.where(np.equal(y_train_set_sub,k))[0])
                all_latents_groupk = all_latents[idk,:]
                classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
       
@@ -1029,9 +1029,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 2
-            #pvals = np.linspace(0.2, 0.8, num=4)
-            pvals = np.linspace(0.2, 0.8, num=1)
+            numsamples = 4
+            pvals = np.linspace(0.2, 0.8, num=4)
+            #pvals = np.linspace(0.2, 0.8, num=1)
             #p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
@@ -1105,59 +1105,58 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               label4 = np_utils.to_categorical(label4, NUM_CLASSES)             
                 
               # Combine the latent codes using p
-              p1 = 0.5
-              p2 = 0.5
-              new_code12 = np.multiply(p1,image_code1) + np.multiply((1-p1),image_code2)
-              new_label12 = np.multiply(p1,label1) + np.multiply((1-p1),label2)
-              new_code34 = np.multiply(p2,image_code3) + np.multiply((1-p2),image_code4)
-              new_label34 = np.multiply(p2,label3) + np.multiply((1-p2),label4)
+              for p in pvals:
+                  new_code12 = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
+                  new_label12 = np.multiply(p,label1) + np.multiply((1-p),label2)
+                  new_code34 = np.multiply(p,image_code3) + np.multiply((1-p),image_code4)
+                  new_label34 = np.multiply(p,label3) + np.multiply((1-p),label4)
                
-              # Reshape the new labels to enable saving in the proper format for the neural networks later on
-              new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
-              new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
+                  # Reshape the new labels to enable saving in the proper format for the neural networks later on
+                  new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
+                  new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
                   
-              samples12 = np.zeros(
-                  (1, N_CHANNELS, HEIGHT, WIDTH), 
-                  dtype='int32'
-              )
+                  samples12 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
                 
-              samples34 = np.zeros(
-                  (1, N_CHANNELS, HEIGHT, WIDTH), 
-                  dtype='int32'
-              )
+                  samples34 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
 
-              print "Generating samples"
-              for y in xrange(HEIGHT):
-                  for x in xrange(WIDTH):
-                      for ch in xrange(N_CHANNELS):
-                          next_sample12 = dec1_fn(new_code12, samples12, ch, y, x) 
-                          samples12[:,ch,y,x] = next_sample12
+                  print "Generating samples"
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample12 = dec1_fn(new_code12, samples12, ch, y, x) 
+                           samples12[:,ch,y,x] = next_sample12
                             
-              for y in xrange(HEIGHT):
-                  for x in xrange(WIDTH):
-                      for ch in xrange(N_CHANNELS):
-                          next_sample34 = dec1_fn(new_code34, samples34, ch, y, x) 
-                          samples34[:,ch,y,x] = next_sample34
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample34 = dec1_fn(new_code34, samples34, ch, y, x) 
+                           samples34[:,ch,y,x] = next_sample34
                            
                 #LEILAEDIT for .npy saving
-              x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
-              x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
-              y_augmentation_set = np.concatenate((y_augmentation_set, new_label12), axis=0)#LEILAEDIT for .npy saving
-              y_augmentation_set = np.concatenate((y_augmentation_set, new_label34), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label12), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label34), axis=0)#LEILAEDIT for .npy saving
                 
-              print "Saving samples and their corresponding tags"
-              color_grid_vis(
-                  samples12, 
-                  1, 
-                  1, 
-                  'encoded_reconsamples__pair{}{}_{}.png'.format(classindices[0],classindices[1],imagenum)
-              )
-              color_grid_vis(
-                  samples34, 
-                  1, 
-                  1, 
-                  'encoded_reconsamples_pair{}{}_{}.png'.format(classindices[2],classindices[3],imagenum)
-              )
+                  print "Saving samples and their corresponding tags"
+                  color_grid_vis(
+                     samples12, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[0],classindices[1],p,imagenum)
+                  )
+                  color_grid_vis(
+                     samples34, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[2],classindices[3],p,imagenum)
+                  )
   
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
