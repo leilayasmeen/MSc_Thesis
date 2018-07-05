@@ -957,7 +957,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             seed = 333
             x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
             
-            all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
+            all_latents = np.zeros((1,LATENT_DIM_2)).astype('float32')
         
             # Reshape image files
             x_train_set = x_train_set.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
@@ -967,17 +967,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             # Encode all images
             for j in range(x_train_set.shape[0]):
                latestlatents = enc_fn(x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
-               print "This is "latestlatents.shape
-               latestlatents = np.concatenate((latestlatents,y_train_set[j]))
-               all_latents_and_class = np.concatenate((all_latents_and_class, latestlatents), axis=0)
+               all_latents = np.concatenate((all_latents, latestlatents), axis=0)
         
-            all_latents_and_class = np.delete(all_latents_and_class, (0), axis=0)
+            all_latents = np.delete(all_latents, (0), axis=0)
          
             # Find means of latent vectors, by class
-            classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
+            classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2)).astype('float32')
             for k in range(NUM_CLASSES):
                idk = np.asarray(np.where(np.equal(y_train_set,k))[0])
-               all_latents_groupk = all_latents_and_class[idk,:]
+               all_latents_groupk = all_latents[idk,:]
                classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
       
             # Find the two pairs of classes that are closest to each other
@@ -988,9 +986,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             # Find distances between the members of each pair
             meandist = np.zeros((num_pairs)).astype('float32')
             for m in range(num_pairs):
-                  a.idx = np.asarray(np.where(np.equal(pairs[m,0],classmeans[:,LATENT_DIM_2+1]))[0])
+                  a.idx = np.asarray(np.where(np.equal(y_train_set,pairs[m,0]))[0])
                   a = classmeans[a.idx,:]
-                  b.idx = np.asarray(np.where(np.equal(pairs[m,1],classmeans[:,LATENT_DIM_2+1]))[0])
+                  b.idx = np.asarray(np.where(np.equal(y_train_set,pairs[m,1]))[0])
                   b = classmeans[b.idx,:]
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
