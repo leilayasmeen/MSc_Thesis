@@ -1001,14 +1001,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   b = classmeans[bidx,:]
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
-                  meandist[m] = np.linalg.norm(a.temp-b.temp)
+                  meandist[m] = np.linalg.norm(a-b)
             
             closestidx = meandist.argmin()
             secondclosestidx = meandist.index(sorted(meandist)[1])
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
          
-            classpairs = np.append(closestpair, secondclosestpair)
+            classpairs = np.concatenate((closestpair, secondclosestpair), axis=1)
             
             ##################################################################
             
