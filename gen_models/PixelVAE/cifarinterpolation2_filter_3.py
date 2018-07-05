@@ -1013,7 +1013,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
          
-            classpairs = np.concatenate((closestpair, secondclosestpair), axis=1)
+            classpairs = np.concatenate((closestpair, secondclosestpair), axis=0)
             
             ##################################################################
             
