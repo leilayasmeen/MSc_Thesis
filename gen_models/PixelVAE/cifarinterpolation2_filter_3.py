@@ -995,9 +995,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             meandist = np.zeros((num_pairs)).astype('float32')
             classarray = np.arange(NUM_CLASSES)
             for m in range(num_pairs):
-                  aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0]))[0])
+                  aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0])))
                   a = classmeans[aidx,:]
-                  bidx = np.asarray(np.where(np.equal(classarray,pairs[m,1]))[0])
+                  bidx = np.asarray(np.where(np.equal(classarray,pairs[m,1])))
                   b = classmeans[bidx,:]
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
