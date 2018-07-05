@@ -943,7 +943,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
         
         def generate_and_save_samples(tag):
-            from keras.utils import np_utils           
+            from keras.utils import np_utils
+            import itertools
+            
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
             y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
             
