@@ -1013,7 +1013,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
          
-            classpairs = np.concatenate((closestpair, secondclosestpair), axis=1)
+            classpairs = np.concatenate((closestpair, secondclosestpair), axis=0)
             
             ##################################################################
             
@@ -1041,10 +1041,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               # Sample unique image indices from class pairs. Images will be interpolated in pairs. Pairs are listed in order.
               classindices = classpairs
  
-              idx1 = np.asarray(np.where(np.equal(classindices[0],y_train_set))[0])
-              idx2 = np.asarray(np.where(np.equal(classindices[1],y_train_set))[0])
-              idx3 = np.asarray(np.where(np.equal(classindices[2],y_train_set))[0])
-              idx4 = np.asarray(np.where(np.equal(classindices[3],y_train_set))[0])
+              idx1 = np.asarray(np.where(np.equal(classindices[0,0],y_train_set))[0])
+              idx2 = np.asarray(np.where(np.equal(classindices[0,1],y_train_set))[0])
+              idx3 = np.asarray(np.where(np.equal(classindices[1,0],y_train_set))[0])
+              idx4 = np.asarray(np.where(np.equal(classindices[1,1],y_train_set))[0])
                 
               x_train_array = np.array(x_train_set)
               y_train_array = np.array(y_train_set)
@@ -1098,26 +1098,26 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                  image1, 
                  1, 
                  1,
-                 'original_1_classes{}and{}_num{}.png'.format(classindices[0],classindices[1],imagenum)
+                 'original_{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,0],classindices[0,1],imagenum)
               )
               color_grid_vis(
                  image2,
                  1,
                  1,
-                 'original_2_classes{}and{}_num{}.png'.format(classindices[0],classindices[1],imagenum)
+                 'original_{}_classes{}and{}_num{}.png'.format(classindices[0,1],classindices[0,0],classindices[0,1],imagenum)
               )
               color_grid_vis(
                  image3,
                  1,
                  1,
-                 'original_3_classes{}and{}_num{}.png'.format(classindices[2],classindices[3],imagenum)
+                 'original_{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,0],classindices[1,1],imagenum)
               ) 
             
               color_grid_vis(
                  image4,
                  1,
                  1,
-                 'original_4_classes{}and{}_num{}.png'.format(classindices[2],classindices[3],imagenum)
+                 'original_{}_classes{}and{}_num{}.png'.format(classindices[1,1],classindices[1,0],classindices[1,1],imagenum)
               ) 
                
               # Encode the images
@@ -1177,13 +1177,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      samples12, 
                      1, 
                      1, 
-                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[0],classindices[1],p,imagenum)
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[0,0],classindices[0,1],p,imagenum)
                   )
                   color_grid_vis(
                      samples34, 
                      1, 
                      1, 
-                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[2],classindices[3],p,imagenum)
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[1,0],classindices[1,1],p,imagenum)
                   )
   
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
