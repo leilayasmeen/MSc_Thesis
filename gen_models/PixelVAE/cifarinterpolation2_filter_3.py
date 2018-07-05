@@ -1003,8 +1003,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   b = np.delete(b, -1, axis=1)
                   meandist[m] = np.linalg.norm(a-b)
             
-            closestidx = meandist.argmin()
-            secondclosestidx = meandist.index(sorted(meandist)[1])
+            sorteddistances = np.sort(meandist)
+            closestdistance = sorteddistances[0]
+            secondclosestdistance = sorteddistances[1]
+            #closestidx = meandist.argmin()
+            closestidx = np.asarray(np.where(np.equal(meandist, closestdistance))[0])
+            #secondclosestidx = np.asarray(np.where(np.equal(classarray,pairs[m,0]))[0])
+            secondclosestidx = np.asarray(np.where(np.equal(meandist, secondclosestdistance))[0])
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
          
