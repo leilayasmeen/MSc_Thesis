@@ -941,56 +941,60 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
-
-        all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
-        
-        # Reshape image files
-        x_train_set = x_train_set.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-        y_train_set = y_train_set.reshape(-1, 1)
-        print "Reshaped loaded images."
-         
-        # Encode all images
-        for j in range(x_train_set.shape[0]):
-            saverthing = enc_fn(x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
-            saverthing = saverthing.append(y_train_set[j,:])
-            all_latents_and_class = np.concatenate((all_latents_and_class, saverthing), axis=0)
-        
-        all_latents_and_class = np.delete(all_latents_and_class, (0), axis=0)
-         
-        # Find means of latent vectors, by class
-        classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
-        for k in range(NUM_CLASSES):
-            idk = np.asarray(np.where(np.equal(y_train_set,k))[0])
-            all_latents_groupk = all_latents_and_class[idk,:]
-            classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
-      
-        # Find the two pairs of classes that are closest to each other
-        # Find all pairs
-        pairs = np.array(list(itertools.combinations(range(NUM_CLASSES),2)))
-        num_pairs = pairs.shape[0]
-         
-        # Find distances between the members of each pair
-        meandist = np.zeros((num_pairs)).astype('float32')
-        for m in range(num_pairs):
-             a.idx = np.asarray(np.where(np.equal(pairs[m,0],classmeans[:,LATENT_DIM_2+1]))[0])
-             a = classmeans[a.idx,:]
-             b.idx = np.asarray(np.where(np.equal(pairs[m,1],classmeans[:,LATENT_DIM_2+1]))[0])
-             b = classmeans[b.idx,:]
-             a = np.delete(a, -1, axis=1)
-             b = np.delete(b, -1, axis=1)
-             meandist[m] = np.linalg.norm(a.temp-b.temp)
-            
-        closestidx = meandist.argmin()
-        secondclosestidx = meandist.index(sorted(meandist)[1])
-        closestpair = pairs[closestidx,:]
-        secondclosestpair = pairs[secondclosestidx,:]
-         
-        classpairs = np.append(closestpair, secondclosestpair)
         
         def generate_and_save_samples(tag):
             from keras.utils import np_utils           
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
             y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
+            
+            ##################################################################
+            
+            all_latents_and_class = np.zeros((1,LATENT_DIM_2+1)).astype('float32')
+        
+            # Reshape image files
+            x_train_set = x_train_set.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+            y_train_set = y_train_set.reshape(-1, 1)
+            print "Reshaped loaded images."
+         
+            # Encode all images
+            for j in range(x_train_set.shape[0]):
+               saverthing = enc_fn(x_train_set[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
+               saverthing = saverthing.append(y_train_set[j,:])
+               all_latents_and_class = np.concatenate((all_latents_and_class, saverthing), axis=0)
+        
+            all_latents_and_class = np.delete(all_latents_and_class, (0), axis=0)
+         
+            # Find means of latent vectors, by class
+            classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2+1)).astype('float32')
+            for k in range(NUM_CLASSES):
+               idk = np.asarray(np.where(np.equal(y_train_set,k))[0])
+               all_latents_groupk = all_latents_and_class[idk,:]
+               classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
+      
+            # Find the two pairs of classes that are closest to each other
+            # Find all pairs
+            pairs = np.array(list(itertools.combinations(range(NUM_CLASSES),2)))
+            num_pairs = pairs.shape[0]
+         
+            # Find distances between the members of each pair
+            meandist = np.zeros((num_pairs)).astype('float32')
+            for m in range(num_pairs):
+                  a.idx = np.asarray(np.where(np.equal(pairs[m,0],classmeans[:,LATENT_DIM_2+1]))[0])
+                  a = classmeans[a.idx,:]
+                  b.idx = np.asarray(np.where(np.equal(pairs[m,1],classmeans[:,LATENT_DIM_2+1]))[0])
+                  b = classmeans[b.idx,:]
+                  a = np.delete(a, -1, axis=1)
+                  b = np.delete(b, -1, axis=1)
+                  meandist[m] = np.linalg.norm(a.temp-b.temp)
+            
+            closestidx = meandist.argmin()
+            secondclosestidx = meandist.index(sorted(meandist)[1])
+            closestpair = pairs[closestidx,:]
+            secondclosestpair = pairs[secondclosestidx,:]
+         
+            classpairs = np.append(closestpair, secondclosestpair)
+            
+            ##################################################################
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
