@@ -1006,14 +1006,17 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             sorteddistances = np.sort(meandist)
             closestdistance = sorteddistances[0]
             secondclosestdistance = sorteddistances[1]
+            thirdclosestdistance = sorteddistances[2]
             #closestidx = meandist.argmin()
             closestidx = np.asarray(np.where(np.equal(meandist, closestdistance))[0])
             #secondclosestidx = np.asarray(np.where(np.equal(classarray,pairs[m,0]))[0])
             secondclosestidx = np.asarray(np.where(np.equal(meandist, secondclosestdistance))[0])
+            thirdclosestidx = np.asarray(np.where(np.equal(meandist, thirdclosestdistance))[0])
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
+            thirdclosestpair = pairs[thirdclosestidx,:]
          
-            classpairs = np.concatenate((closestpair, secondclosestpair), axis=0)
+            classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair), axis=0)
             
             ##################################################################
             
@@ -1029,9 +1032,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 1
-            #pvals = np.linspace(0.2, 0.8, num=4)
-            pvals = np.linspace(0.2, 0.8, num=1)
+            numsamples = 3
+            pvals = np.linspace(0.2, 0.8, num=4)
+            #pvals = np.linspace(0.2, 0.8, num=1)
             #p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
@@ -1045,6 +1048,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               idx2 = np.asarray(np.where(np.equal(classindices[0,1],y_train_set))[0])
               idx3 = np.asarray(np.where(np.equal(classindices[1,0],y_train_set))[0])
               idx4 = np.asarray(np.where(np.equal(classindices[1,1],y_train_set))[0])
+              idx5 = np.asarray(np.where(np.equal(classindices[2,0],y_train_set))[0])
+              idx6 = np.asarray(np.where(np.equal(classindices[2,1],y_train_set))[0])
                 
               x_train_array = np.array(x_train_set)
               y_train_array = np.array(y_train_set)
@@ -1053,44 +1058,62 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               x_trainsubset2 = x_train_array[idx2,:]
               x_trainsubset3 = x_train_array[idx3,:]
               x_trainsubset4 = x_train_array[idx4,:]
+              x_trainsubset5 = x_train_array[idx5,:]
+              x_trainsubset6 = x_train_array[idx6,:]
               y_trainsubset1 = y_train_array[idx1,:]
               y_trainsubset2 = y_train_array[idx2,:]
               y_trainsubset3 = y_train_array[idx3,:]
               y_trainsubset4 = y_train_array[idx4,:]
+              y_trainsubset5 = y_train_array[idx5,:]
+              y_trainsubset6 = y_train_array[idx6,:]
                 
               x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               x_trainsubset3 = x_trainsubset3.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               x_trainsubset4 = x_trainsubset4.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset5 = x_trainsubset5.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset6 = x_trainsubset6.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
               y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
               y_trainsubset3 = y_trainsubset3.reshape(-1, 1)
               y_trainsubset4 = y_trainsubset4.reshape(-1, 1)
+              y_trainsubset5 = y_trainsubset5.reshape(-1, 1)
+              y_trainsubset6 = y_trainsubset6.reshape(-1, 1)
                 
               imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
               imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
               imageindex3 = random.sample(range(x_trainsubset3.shape[0]),1)
               imageindex4 = random.sample(range(x_trainsubset4.shape[0]),1)
+              imageindex5 = random.sample(range(x_trainsubset5.shape[0]),1)
+              imageindex6 = random.sample(range(x_trainsubset6.shape[0]),1)
                 
               # Draw the corresponding images and labels from the training data
               image1 = x_trainsubset1[imageindex1,:]
               image2 = x_trainsubset2[imageindex2,:]  
               image3 = x_trainsubset3[imageindex3,:]
-              image4 = x_trainsubset4[imageindex4,:]  
+              image4 = x_trainsubset4[imageindex4,:]
+              image5 = x_trainsubset3[imageindex5,:]
+              image6 = x_trainsubset4[imageindex6,:]
               label1 = y_trainsubset1[imageindex1,:]
               label2 = y_trainsubset2[imageindex2,:]
               label3 = y_trainsubset3[imageindex3,:]
               label4 = y_trainsubset4[imageindex4,:]
+              label5 = y_trainsubset3[imageindex5,:]
+              label6 = y_trainsubset4[imageindex6,:]
                 
               # Reshape
               image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               image3 = image3.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               image4 = image4.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image5 = image5.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image6 = image6.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               label1 = label1.reshape(1, 1)
               label2 = label2.reshape(1, 1)
               label3 = label3.reshape(1, 1)
-              label4 = label4.reshape(1, 1)  
+              label4 = label4.reshape(1, 1)
+              label5 = label5.reshape(1, 1)
+              label6 = label6.reshape(1, 1) 
               
               # Save original images
               print "Saving original samples"
@@ -1098,39 +1121,55 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                  image1, 
                  1, 
                  1,
-                 'original_{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,0],classindices[0,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,0],classindices[0,1],imagenum)
               )
               color_grid_vis(
                  image2,
                  1,
                  1,
-                 'original_{}_classes{}and{}_num{}.png'.format(classindices[0,1],classindices[0,0],classindices[0,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,1],classindices[0,0],classindices[0,1],imagenum)
               )
               color_grid_vis(
                  image3,
                  1,
                  1,
-                 'original_{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,0],classindices[1,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,0],classindices[1,1],imagenum)
               ) 
             
               color_grid_vis(
                  image4,
                  1,
                  1,
-                 'original_{}_classes{}and{}_num{}.png'.format(classindices[1,1],classindices[1,0],classindices[1,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,1],classindices[1,0],classindices[1,1],imagenum)
               ) 
-               
+              color_grid_vis(
+                 image5,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,0],classindices[2,1],imagenum)
+              ) 
+            
+              color_grid_vis(
+                 image6,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,1],classindices[2,0],classindices[2,1],imagenum)
+              )               
               # Encode the images
               image_code1 = enc_fn(image1)
               image_code2 = enc_fn(image2)
               image_code3 = enc_fn(image3)
               image_code4 = enc_fn(image4)
+              image_code5 = enc_fn(image5)
+              image_code6 = enc_fn(image6)
                   
               # Change the labels to matrix form before performing interpolations
               label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
               label2 = np_utils.to_categorical(label2, NUM_CLASSES)
               label3 = np_utils.to_categorical(label3, NUM_CLASSES) 
-              label4 = np_utils.to_categorical(label4, NUM_CLASSES)             
+              label4 = np_utils.to_categorical(label4, NUM_CLASSES)
+              label5 = np_utils.to_categorical(label5, NUM_CLASSES) 
+              label6 = np_utils.to_categorical(label6, NUM_CLASSES)
                 
               # Combine the latent codes using p
               for p in pvals:
@@ -1138,10 +1177,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   new_label12 = np.multiply(p,label1) + np.multiply((1-p),label2)
                   new_code34 = np.multiply(p,image_code3) + np.multiply((1-p),image_code4)
                   new_label34 = np.multiply(p,label3) + np.multiply((1-p),label4)
-               
+                  new_code56 = np.multiply(p,image_code5) + np.multiply((1-p),image_code6)
+                  new_label56 = np.multiply(p,label5) + np.multiply((1-p),label6)
+                  
                   # Reshape the new labels to enable saving in the proper format for the neural networks later on
                   new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
                   new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
+                  new_label56 = new_label56.reshape(1,1,NUM_CLASSES)
                   
                   samples12 = np.zeros(
                      (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -1152,7 +1194,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      (1, N_CHANNELS, HEIGHT, WIDTH), 
                      dtype='int32'
                   )
-
+                  
+                  samples56 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
+                  
                   print "Generating samples"
                   for y in xrange(HEIGHT):
                      for x in xrange(WIDTH):
@@ -1166,11 +1213,19 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                            next_sample34 = dec1_fn(new_code34, samples34, ch, y, x) 
                            samples34[:,ch,y,x] = next_sample34
                            
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample56 = dec1_fn(new_code56, samples56, ch, y, x) 
+                           samples56[:,ch,y,x] = next_sample56
+                 
                 #LEILAEDIT for .npy saving
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples56), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label12), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label34), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label56), axis=0)#LEILAEDIT for .npy saving
                 
                   print "Saving samples and their corresponding tags"
                   color_grid_vis(
@@ -1185,7 +1240,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      1, 
                      'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[1,0],classindices[1,1],p,imagenum)
                   )
-  
+                  color_grid_vis(
+                     samples56, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[2,0],classindices[2,1],p,imagenum)
+                  ) 
+                  
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
             #p_set = np.delete(p_set, (0), axis=0)
