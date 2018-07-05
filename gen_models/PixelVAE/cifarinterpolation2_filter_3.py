@@ -1037,7 +1037,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
 
-            for imagenum in range(num):
+            for imagenum in range(numsamples):
               # Sample unique image indices from class pairs. Images will be interpolated in pairs. Pairs are listed in order.
               classindices = classpairs
  
