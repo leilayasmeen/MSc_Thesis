@@ -60,8 +60,8 @@ if __name__ == '__main__':
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    x_train_additions = np.load('x_augmentation_array.npy')
-    y_train_additions = np.load('y_augmentation_array.npy')
+    x_train_additions = np.load('Augmentation_Sets/x_augmentation_array.npy')
+    y_train_additions = np.load('Augmentation_Sets/y_augmentation_array.npy')
     
     x_train_additions = x_train_additions.transpose(0, 2, 3, 1)
     y_train_additions = y_train_additions.reshape(-1, num_classes)
