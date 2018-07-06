@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     # set callback
     change_lr = LearningRateScheduler(scheduler)
-    checkpointer = ModelCheckpoint('model_wide_28_10_c10_best_clip_aug.hdf5', verbose=1, save_best_only=True)
+    checkpointer = ModelCheckpoint('model_wide_28_10_c10_best_clip_aug_2250.hdf5', verbose=1, save_best_only=True)
     cbks = [change_lr, checkpointer]
 
     # set data augmentation
