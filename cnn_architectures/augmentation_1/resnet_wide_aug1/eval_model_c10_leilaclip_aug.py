@@ -31,7 +31,7 @@ img_rows, img_cols = 32, 32
 img_channels       = 3
 batch_size         = 128
 epochs             = 200
-iterations         = 45000 // batch_size
+iterations         = 49000 // batch_size #LEILAEDIT
 weight_decay       = 0.0005
 seed = 333
 weights_file_10 = "resnet_wide_28_10_c10clip_aug.h5"  # Weight file path
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    x_train = np.load('x_augmentation_array.npy')
-    y_train = np.load('y_augmentation_array.npy')
+    x_train = np.load('Augmentation_Sets/x_augmentation_array.npy')
+    y_train = np.load('Augmentation_Sets/y_augmentation_array.npy')
     
     # color preprocessing
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
