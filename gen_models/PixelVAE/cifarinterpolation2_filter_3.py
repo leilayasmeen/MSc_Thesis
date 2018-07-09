@@ -961,8 +961,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             all_latents = np.zeros((1,LATENT_DIM_2)).astype('float32')
             
-            x_train_set_sub = x_train_set[1:100,:]
-            y_train_set_sub = y_train_set[1:100,:]
+            x_train_set_sub = x_train_set[1:10000,:]
+            y_train_set_sub = y_train_set[1:10000,:]
         
             # Reshape image files
             x_train_set_sub = x_train_set_sub.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
@@ -1003,20 +1003,27 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   b = np.delete(b, -1, axis=1)
                   meandist[m] = np.linalg.norm(a-b)
             
+            # Sort distances between pairs and find the five smallest
             sorteddistances = np.sort(meandist)
             closestdistance = sorteddistances[0]
             secondclosestdistance = sorteddistances[1]
             thirdclosestdistance = sorteddistances[2]
-            #closestidx = meandist.argmin()
+            fourthclosestdistance = sorteddistances[3]
+            fifthclosestdistance = sorteddistances[4]
+      
+            # Draw out the pairs corresponding to these distances
             closestidx = np.asarray(np.where(np.equal(meandist, closestdistance))[0])
-            #secondclosestidx = np.asarray(np.where(np.equal(classarray,pairs[m,0]))[0])
             secondclosestidx = np.asarray(np.where(np.equal(meandist, secondclosestdistance))[0])
             thirdclosestidx = np.asarray(np.where(np.equal(meandist, thirdclosestdistance))[0])
+            fourthclosestidx = np.asarray(np.where(np.equal(meandist, fourthclosestdistance))[0])
+            fifthclosestidx = np.asarray(np.where(np.equal(meandist, fifthclosestdistance))[0])
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
             thirdclosestpair = pairs[thirdclosestidx,:]
+            fourthclosestpair = pairs[fourthclosestidx,:]
+            fifthclosestpair = pairs[fifthclosestidx,:]
          
-            classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair), axis=0)
+            classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair, fourthclosestpair, fifthclosestpair), axis=0)
             
             ##################################################################
             
@@ -1035,7 +1042,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             numsamples = 3
             pvals = np.linspace(0.2, 0.8, num=4)
             #pvals = np.linspace(0.2, 0.8, num=1)
-            #p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
@@ -1050,6 +1056,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               idx4 = np.asarray(np.where(np.equal(classindices[1,1],y_train_set))[0])
               idx5 = np.asarray(np.where(np.equal(classindices[2,0],y_train_set))[0])
               idx6 = np.asarray(np.where(np.equal(classindices[2,1],y_train_set))[0])
+              idx7 = np.asarray(np.where(np.equal(classindices[3,0],y_train_set))[0])
+              idx8 = np.asarray(np.where(np.equal(classindices[3,1],y_train_set))[0])
+              idx9 = np.asarray(np.where(np.equal(classindices[4,0],y_train_set))[0])
+              idx10 = np.asarray(np.where(np.equal(classindices[4,1],y_train_set))[0])
                 
               x_train_array = np.array(x_train_set)
               y_train_array = np.array(y_train_set)
@@ -1060,12 +1070,21 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               x_trainsubset4 = x_train_array[idx4,:]
               x_trainsubset5 = x_train_array[idx5,:]
               x_trainsubset6 = x_train_array[idx6,:]
+              x_trainsubset7 = x_train_array[idx7,:]
+              x_trainsubset8 = x_train_array[idx8,:]
+              x_trainsubset9 = x_train_array[idx9,:]
+              x_trainsubset10 = x_train_array[idx10,:] 
+               
               y_trainsubset1 = y_train_array[idx1,:]
               y_trainsubset2 = y_train_array[idx2,:]
               y_trainsubset3 = y_train_array[idx3,:]
               y_trainsubset4 = y_train_array[idx4,:]
               y_trainsubset5 = y_train_array[idx5,:]
               y_trainsubset6 = y_train_array[idx6,:]
+              y_trainsubset7 = y_train_array[idx7,:]
+              y_trainsubset8 = y_train_array[idx8,:]
+              y_trainsubset9 = y_train_array[idx9,:]
+              y_trainsubset10 = y_train_array[idx10,:]
                 
               x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
@@ -1073,34 +1092,56 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               x_trainsubset4 = x_trainsubset4.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               x_trainsubset5 = x_trainsubset5.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
               x_trainsubset6 = x_trainsubset6.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset7 = x_trainsubset7.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset8 = x_trainsubset8.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset9 = x_trainsubset9.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset10 = x_trainsubset10.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)              
+               
               y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
               y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
               y_trainsubset3 = y_trainsubset3.reshape(-1, 1)
               y_trainsubset4 = y_trainsubset4.reshape(-1, 1)
               y_trainsubset5 = y_trainsubset5.reshape(-1, 1)
               y_trainsubset6 = y_trainsubset6.reshape(-1, 1)
-                
+              y_trainsubset7 = y_trainsubset7.reshape(-1, 1)
+              y_trainsubset8 = y_trainsubset8.reshape(-1, 1)
+              y_trainsubset9 = y_trainsubset9.reshape(-1, 1)
+              y_trainsubset10 = y_trainsubset10.reshape(-1, 1) 
+
               imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
               imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
               imageindex3 = random.sample(range(x_trainsubset3.shape[0]),1)
               imageindex4 = random.sample(range(x_trainsubset4.shape[0]),1)
               imageindex5 = random.sample(range(x_trainsubset5.shape[0]),1)
               imageindex6 = random.sample(range(x_trainsubset6.shape[0]),1)
-                
+              imageindex7 = random.sample(range(x_trainsubset7.shape[0]),1)
+              imageindex8 = random.sample(range(x_trainsubset8.shape[0]),1)
+              imageindex9 = random.sample(range(x_trainsubset9.shape[0]),1)
+              imageindex10 = random.sample(range(x_trainsubset10.shape[0]),1) 
+
               # Draw the corresponding images and labels from the training data
               image1 = x_trainsubset1[imageindex1,:]
               image2 = x_trainsubset2[imageindex2,:]  
               image3 = x_trainsubset3[imageindex3,:]
               image4 = x_trainsubset4[imageindex4,:]
-              image5 = x_trainsubset3[imageindex5,:]
-              image6 = x_trainsubset4[imageindex6,:]
+              image5 = x_trainsubset5[imageindex5,:]
+              image6 = x_trainsubset6[imageindex6,:]
+              image7 = x_trainsubset7[imageindex7,:]
+              image8 = x_trainsubset8[imageindex8,:]
+              image9 = x_trainsubset9[imageindex9,:]
+              image10 = x_trainsubset10[imageindex10,:]            
+            
               label1 = y_trainsubset1[imageindex1,:]
               label2 = y_trainsubset2[imageindex2,:]
               label3 = y_trainsubset3[imageindex3,:]
               label4 = y_trainsubset4[imageindex4,:]
-              label5 = y_trainsubset3[imageindex5,:]
-              label6 = y_trainsubset4[imageindex6,:]
-                
+              label5 = y_trainsubset5[imageindex5,:]
+              label6 = y_trainsubset6[imageindex6,:]
+              label7 = y_trainsubset7[imageindex7,:]
+              label8 = y_trainsubset8[imageindex8,:]
+              label9 = y_trainsubset9[imageindex9,:]
+              label10 = y_trainsubset10[imageindex10,:]
+            
               # Reshape
               image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
@@ -1108,53 +1149,89 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               image4 = image4.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               image5 = image5.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
               image6 = image6.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image7 = image7.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image8 = image8.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image9 = image9.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image10 = image10.reshape(1, N_CHANNELS, HEIGHT, WIDTH)               
+               
               label1 = label1.reshape(1, 1)
               label2 = label2.reshape(1, 1)
               label3 = label3.reshape(1, 1)
               label4 = label4.reshape(1, 1)
               label5 = label5.reshape(1, 1)
               label6 = label6.reshape(1, 1) 
-              
+              label7 = label7.reshape(1, 1)
+              label8 = label8.reshape(1, 1)
+              label9 = label9.reshape(1, 1)
+              label10 = label10.reshape(1, 1)  
+
               # Save original images
               print "Saving original samples"
               color_grid_vis(
                  image1, 
                  1, 
                  1,
-                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,0],classindices[0,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,1],classindices[0,0],imagenum)
               )
               color_grid_vis(
                  image2,
                  1,
                  1,
-                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,1],classindices[0,0],classindices[0,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,1],classindices[0,1],imagenum)
               )
               color_grid_vis(
                  image3,
                  1,
                  1,
-                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,0],classindices[1,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,1],classindices[1,0],imagenum)
               ) 
             
               color_grid_vis(
                  image4,
                  1,
                  1,
-                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,1],classindices[1,0],classindices[1,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,1],classindices[1,1],imagenum)
               ) 
               color_grid_vis(
                  image5,
                  1,
                  1,
-                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,0],classindices[2,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,1],classindices[2,0],imagenum)
               ) 
             
               color_grid_vis(
                  image6,
                  1,
                  1,
-                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,1],classindices[2,0],classindices[2,1],imagenum)
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,1],classindices[2,1],imagenum)
+              )   
+               color_grid_vis(
+                 image7,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[3,0],classindices[3,1],classindices[3,0],imagenum)
+              ) 
+            
+              color_grid_vis(
+                 image8,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[3,0],classindices[3,1],classindices[3,1],imagenum)
+              ) 
+              color_grid_vis(
+                 image9,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[4,0],classindices[4,1],classindices[4,0],imagenum)
+              ) 
+            
+              color_grid_vis(
+                 image10,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[4,0],classindices[4,1],classindices[4,1],imagenum)
               )               
+               
               # Encode the images
               image_code1 = enc_fn(image1)
               image_code2 = enc_fn(image2)
@@ -1162,6 +1239,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               image_code4 = enc_fn(image4)
               image_code5 = enc_fn(image5)
               image_code6 = enc_fn(image6)
+              image_code7 = enc_fn(image7)
+              image_code8 = enc_fn(image8)
+              image_code9 = enc_fn(image9)
+              image_code10 = enc_fn(image10)           
                   
               # Change the labels to matrix form before performing interpolations
               label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
@@ -1170,7 +1251,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
               label4 = np_utils.to_categorical(label4, NUM_CLASSES)
               label5 = np_utils.to_categorical(label5, NUM_CLASSES) 
               label6 = np_utils.to_categorical(label6, NUM_CLASSES)
-                
+              label7 = np_utils.to_categorical(label7, NUM_CLASSES) 
+              label8 = np_utils.to_categorical(label8, NUM_CLASSES)
+              label9 = np_utils.to_categorical(label9, NUM_CLASSES) 
+              label10 = np_utils.to_categorical(label10, NUM_CLASSES)
+            
               # Combine the latent codes using p
               for p in pvals:
                   new_code12 = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
@@ -1179,11 +1264,17 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   new_label34 = np.multiply(p,label3) + np.multiply((1-p),label4)
                   new_code56 = np.multiply(p,image_code5) + np.multiply((1-p),image_code6)
                   new_label56 = np.multiply(p,label5) + np.multiply((1-p),label6)
-                  
+                  new_code78 = np.multiply(p,image_code7) + np.multiply((1-p),image_code8)
+                  new_label78 = np.multiply(p,label7) + np.multiply((1-p),label8)
+                  new_code910 = np.multiply(p,image_code9) + np.multiply((1-p),image_code10)
+                  new_label910 = np.multiply(p,label9) + np.multiply((1-p),label10) 
+
                   # Reshape the new labels to enable saving in the proper format for the neural networks later on
                   new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
                   new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
                   new_label56 = new_label56.reshape(1,1,NUM_CLASSES)
+                  new_label78 = new_label78.reshape(1,1,NUM_CLASSES)
+                  new_label910 = new_label910.reshape(1,1,NUM_CLASSES)
                   
                   samples12 = np.zeros(
                      (1, N_CHANNELS, HEIGHT, WIDTH), 
@@ -1196,6 +1287,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   )
                   
                   samples56 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
+                  
+                  samples78 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
+                  
+                  samples910 = np.zeros(
                      (1, N_CHANNELS, HEIGHT, WIDTH), 
                      dtype='int32'
                   )
@@ -1218,14 +1319,31 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                         for ch in xrange(N_CHANNELS):
                            next_sample56 = dec1_fn(new_code56, samples56, ch, y, x) 
                            samples56[:,ch,y,x] = next_sample56
-                 
+  
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample78 = dec1_fn(new_code78, samples78, ch, y, x) 
+                           samples78[:,ch,y,x] = next_sample78
+                           
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample910 = dec1_fn(new_code910, samples910, ch, y, x) 
+                           samples910[:,ch,y,x] = next_sample910
+                           
                 #LEILAEDIT for .npy saving
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
                   x_augmentation_set = np.concatenate((x_augmentation_set, samples56), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples78), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples910), axis=0)#LEILAEDIT for .npy saving
+                  
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label12), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label34), axis=0)#LEILAEDIT for .npy saving
                   y_augmentation_set = np.concatenate((y_augmentation_set, new_label56), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label78), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label910), axis=0)#LEILAEDIT for .npy saving
                 
                   print "Saving samples and their corresponding tags"
                   color_grid_vis(
@@ -1246,16 +1364,26 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      1, 
                      'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[2,0],classindices[2,1],p,imagenum)
                   ) 
-                  
+                  color_grid_vis(
+                     samples78, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[3,0],classindices[3,1],p,imagenum)
+                  )
+                  color_grid_vis(
+                     samples910, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[4,0],classindices[4,1],p,imagenum)
+                  )  
+
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            #p_set = np.delete(p_set, (0), axis=0)
             
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
             np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
             np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array) #LEILAEDIT for .npy saving   
-            #np.save(OUT_DIR + '/' + 'p_set_array', p_set)
                 
     # Run
 
