@@ -1205,7 +1205,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                  1,
                  'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,1],classindices[2,1],imagenum)
               )   
-               color_grid_vis(
+              color_grid_vis(
                  image7,
                  1,
                  1,
