@@ -34,7 +34,7 @@ epochs             = 200
 iterations         = 49500 // batch_size #LEILAEDIT
 weight_decay       = 0.0005
 seed = 333
-weights_file_10 = "resnet_wide_28_10_c10clip_aug.h5"  # Weight file path
+weights_file_10 = "resnet_wide_28_10_c10clip_aug_onehot.h5"  # Weight file path
 
     
 # Preprocessing based on the paper http://arxiv.org/abs/1605.07146
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    x_train = np.load('Augmentation_Sets/x_augmentation_array.npy')
-    y_train = np.load('Augmentation_Sets/y_augmentation_array.npy')
+    x_train = np.load('Augmentation_Sets/x_augmentation_array_onehot.npy')
+    y_train = np.load('Augmentation_Sets/y_augmentation_array_onehot.npy')
     
     # color preprocessing
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
@@ -76,5 +76,5 @@ if __name__ == '__main__':
     model = wrn.create_wide_residual_network(img_input, nb_classes=num_classes, N=n, k=growth_rate, dropout=0.0)
     # set optimizer
     evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet_wide32_c10clip_aug", x_val = x_val, y_val = y_val)
+                   pickle_file = "probs_resnet_wide32_c10clip_aug_onehot", x_val = x_val, y_val = y_val)
 

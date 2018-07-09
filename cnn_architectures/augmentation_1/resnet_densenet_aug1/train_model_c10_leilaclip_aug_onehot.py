@@ -73,10 +73,10 @@ print("Building model...")
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
 # Load the augmented data arrays
-x_train45_additions = np.load('x_augmentation_array.npy')
+x_train45_additions = np.load('x_augmentation_array_onehot.npy')
 x_train45_additions = x_train45_additions.transpose(0,2,3,1)   
 
-y_train45_additions = np.load('y_augmentation_array.npy')
+y_train45_additions = np.load('y_augmentation_array_onehot.npy')
 y_train45_additions = y_train45_additions.reshape(-1,num_classes)
 
 # For data preprocessing, we normalize the data using the channel means and standard deviations (https://arxiv.org/pdf/1608.06993v3.pdf)
@@ -111,12 +111,12 @@ hist = model.fit_generator(img_gen.flow(x_train45, y_train45, batch_size=batch_s
                     validation_steps=x_val.shape[0] // batch_size, verbose=1)
                     
 
-model.save('weights_densenet_16_8clip_aug.h5')
+model.save('weights_densenet_16_8clip_aug_onehot.h5')
 
 print("Get test accuracy:")
 loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
 print("Test: accuracy1 = %f  ;  loss1 = %f" % (accuracy, loss))
 
 print("Pickle models history")
-with open('hist_densenet_16_8clip_aug.p', 'wb') as f:
+with open('hist_densenet_16_8clip_aug_onehot.p', 'wb') as f:
     pickle.dump(hist.history, f)

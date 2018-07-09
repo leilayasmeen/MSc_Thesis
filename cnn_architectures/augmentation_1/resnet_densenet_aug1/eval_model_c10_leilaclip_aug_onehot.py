@@ -41,7 +41,7 @@ seed = 333
 weight_decay = 0.0001
 learning_rate = 0.1
 
-weights_file_10 =  "weights_densenet_16_8clip_aug.h5"
+weights_file_10 =  "weights_densenet_16_8clip_aug_onehot.h5"
 
 
 # Preprocessing for DenseNet https://arxiv.org/pdf/1608.06993v3.pdf
@@ -68,8 +68,8 @@ if __name__ == '__main__':
 
                               
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    x_train = np.load('x_augmentation_array.npy')
-    y_train = np.load('y_augmentation_array.npy')
+    x_train = np.load('x_augmentation_array_onehot.npy')
+    y_train = np.load('y_augmentation_array_onehot.npy')
 
     #For data preprocessing, we normalize the data using the channel means and standard deviations (https://arxiv.org/pdf/1608.06993v3.pdf)
     x_train, x_test = color_preprocessing(x_train, x_test)
@@ -79,4 +79,4 @@ if __name__ == '__main__':
 
     y_test = np_utils.to_categorical(y_test, nb_classes10)
     evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_densenet40_c10clip_aug", x_val = x_val, y_val = y_val)
+                   pickle_file = "probs_densenet40_c10clip_aug_onehot", x_val = x_val, y_val = y_val)

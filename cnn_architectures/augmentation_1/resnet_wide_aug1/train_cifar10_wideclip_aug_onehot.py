@@ -23,7 +23,7 @@ img_rows, img_cols = 32, 32
 img_channels       = 3
 batch_size         = 128
 epochs             = 200
-iterations         = 47250 // batch_size #LEILAEDIT from 45000
+iterations         = 90000 // batch_size #LEILAEDIT from 45000
 weight_decay       = 0.0005
 seed = 333
 
@@ -60,8 +60,8 @@ if __name__ == '__main__':
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    x_train_additions = np.load('Augmentation_Sets/x_augmentation_array_2250.npy')
-    y_train_additions = np.load('Augmentation_Sets/y_augmentation_array_2250.npy')
+    x_train_additions = np.load('Augmentation_Sets/x_augmentation_array_onehot.npy')
+    y_train_additions = np.load('Augmentation_Sets/y_augmentation_array_onehot.npy')
     
     x_train_additions = x_train_additions.transpose(0, 2, 3, 1)
     y_train_additions = y_train_additions.reshape(-1, num_classes)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     # set callback
     change_lr = LearningRateScheduler(scheduler)
-    checkpointer = ModelCheckpoint('model_wide_28_10_c10_best_clip_aug_2250.hdf5', verbose=1, save_best_only=True)
+    checkpointer = ModelCheckpoint('model_wide_28_10_c10_best_clip_aug_onehot.hdf5', verbose=1, save_best_only=True)
     cbks = [change_lr, checkpointer]
 
     # set data augmentation
@@ -102,12 +102,12 @@ if __name__ == '__main__':
                         epochs=epochs,
                         callbacks=cbks,
                         validation_data=(x_val, y_val))
-    model.save('resnet_wide_28_10_c10_clip_aug_2250.h5')
+    model.save('resnet_wide_28_10_c10_clip_aug_onehot.h5')
     
     print("Get test accuracy:")
     loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
     print("Test: accuracy1 = %f  ;  loss1 = %f" % (accuracy, loss))
     
     print("Pickle models history")
-    with open('hist_wide_28_10_cifar10_clip_aug_2250.p', 'wb') as f:
+    with open('hist_wide_28_10_cifar10_clip_aug_onehot.p', 'wb') as f:
         pickle.dump(hist.history, f)
