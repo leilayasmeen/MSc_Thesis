@@ -118,6 +118,7 @@ if __name__ == '__main__':
     
     x_train_additions = x_train_additions.transpose(0,2,3,1)
     y_train45 = keras.utils.to_categorical(y_train45, num_classes10)
+    y_train_additions = y_train_additions.reshape(-1, num_classes10)
     x_train45 = np.concatenate((x_train45, x_train_additions),axis=0)
     y_train45 = np.concatenate((y_train45, y_train_additions),axis=0)
     
