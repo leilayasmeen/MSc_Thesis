@@ -1022,17 +1022,27 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
                     
                     # Define slert function
-                    def slerp(val, low, high):
-                      omega = np.arccos(np.clip(np.dot(low/np.linalg.norm(low), high/np.linalg.norm(high)), -1, 1))
-                      so = np.sin(omega)
-                      if so == 0:
-                        return (1.0-val) * low + val * high # L'Hopital's rule/LERP
-                    return np.sin((1.0-val)*omega) / so * low + np.sin(val*omega) / so * high
+                    #def slerp(val, low, high):
+                    #  omega = np.arccos(np.clip(np.dot(low/np.linalg.norm(low), high/np.linalg.norm(high)), -1, 1))
+                    #  so = np.sin(omega)
+                    #  if so == 0:
+                    #    return (1.0-val) * low + val * high # L'Hopital's rule/LERP
+                    #return np.sin((1.0-val)*omega) / so * low + np.sin(val*omega) / so * high
+                    # From https://github.com/soumith/dcgan.torch/issues/14
                
+                    # Find angle between the two latent codes
+                    omega = np.arccos(np.clip(np.dot(image_code1/np.linalg.norm(image_code1), image_code2/np.linalg.norm(image_code2)), -1, 1))
+                    so = np.sin(omega) 
+                     
                     # Combine the latent codes
                     for p in pvals:
-                      new_code = slerp(p, image_code1, image_code2)
+                      if so == 0:
+                        new_code = (1.0-p) * image_code1 + p * image_code2
+                      else:
+                        new_code = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
+                        
                       new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
+                     
                       new_label = new_label.reshape(1,1,NUM_CLASSES)
 
                       samples = np.zeros(
