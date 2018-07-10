@@ -1033,7 +1033,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     # Find angle between the two latent codes
                     vec1 = image_code1/np.linalg.norm(image_code1)
                     vec2 = image_code2/np.linalg.norm(image_code2)
-                    vec2 = vec2.transpose(vec2)
+                    vec2 = np.transpose(vec2)
                     omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
                     so = np.sin(omega) 
                      
