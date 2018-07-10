@@ -1031,7 +1031,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     # From https://github.com/soumith/dcgan.torch/issues/14
                
                     # Find angle between the two latent codes
-                    omega = np.arccos(np.clip(np.dot(image_code1/np.linalg.norm(image_code1), image_code2/np.linalg.norm(image_code2)), -1, 1))
+                    vec1 = image_code1/np.linalg.norm(image_code1)
+                    vec2 = image_code2/np.linalg.norm(image_code2)
+                    vec2 = vec2.transpose(vec2)
+                    omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
                     so = np.sin(omega) 
                      
                     # Combine the latent codes
