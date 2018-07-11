@@ -1040,7 +1040,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 63
+            numsamples = 62
             pvals = np.linspace(0.2, 0.8, num=4)
             #pvals = np.linspace(0.2, 0.8, num=1)
             
