@@ -119,9 +119,9 @@ if __name__ == '__main__':
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
     
     # load augmentation sets
-    x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_2250.npy')
+    x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_interpol2_2250.npy')
     x_train45_additions = x_train45_additions.transpose(0,2,3,1)
-    y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_2250.npy')
+    y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_interpol2_2250.npy')
     y_train45_additions = y_train45_additions.reshape(-1,num_classes)
     
     # concatenate with initial training set
@@ -163,12 +163,12 @@ if __name__ == '__main__':
                          epochs=epochs,
                          callbacks=cbks,
                          validation_data=(x_val, y_val))
-    resnet.save('resnet_110_45kclip_aug_2250.h5')
+    resnet.save('resnet_110_45kclip_aug_interpol2_2250.h5')
     
     print("Get test accuracy:")
     loss, accuracy = resnet.evaluate(x_test, y_test, verbose=0)
     print("Test: accuracy1 = %f  ;  loss1 = %f" % (accuracy, loss))
     
     print("Pickle models history")
-    with open('hist_110_cifar10_v2_45kclip_aug_2250.p', 'wb') as f:
+    with open('hist_110_cifar10_v2_45kclip_aug_interpol2_2250.p', 'wb') as f:
         pickle.dump(hist.history, f)
