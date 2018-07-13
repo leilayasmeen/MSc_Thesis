@@ -999,23 +999,23 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for m in range(num_pairs):
                   aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0])))
                   a = np.asarray(classmeans[aidx,:])
-                  print "first pair is"
-                  print pairs[m,:]
-                  print "first mean is "
-                  print a
+                  #print "first pair is"
+                  #print pairs[m,:]
+                  #print "first mean is "
+                  #print a
                   bidx = np.asarray(np.where(np.equal(classarray,pairs[m,1])))
                   b = np.asarray(classmeans[bidx,:])
-                  print "second mean is"
-                  print b
-                  print b.shape
+                  #print "second mean is"
+                  #print b
+                  #print b.shape
                   #a = np.delete(a, -1, axis=1)
                   #b = np.delete(b, -1, axis=1)
                   a = a.reshape(1, LATENT_DIM_2)
                   b = b.reshape(1, LATENT_DIM_2)
-                  c = np.subtract(a,b)
-                  print c
-                  #meandist[m] = np.linalg.norm(a-b)
-                  meandist[m] = np.sqrt(np.dot(c, np.transpose(c)))
+                  #c = np.subtract(a,b)
+                  #print c
+                  meandist[m] = np.linalg.norm(a-b)
+                  #meandist[m] = np.sqrt(np.dot(c, np.transpose(c)))
             print "mean distances are"
             print meandist
             
@@ -1026,10 +1026,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             thirdclosestdistance = sorteddistances[2]
             fourthclosestdistance = sorteddistances[3]
             fifthclosestdistance = sorteddistances[4]
-            print "closest distances"
-            print closestdistance
-            print secondclosestdistance
-            print thirdclosestdistance
+            #print "closest distances"
+            #print closestdistance
+            #print secondclosestdistance
+            #print thirdclosestdistance
       
             # Draw out the pairs corresponding to these distances
             closestidx = np.asarray(np.where(np.equal(meandist, closestdistance))[0])
@@ -1037,19 +1037,19 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             thirdclosestidx = np.asarray(np.where(np.equal(meandist, thirdclosestdistance))[0])
             fourthclosestidx = np.asarray(np.where(np.equal(meandist, fourthclosestdistance))[0])
             fifthclosestidx = np.asarray(np.where(np.equal(meandist, fifthclosestdistance))[0])
-            print "closest ids"
-            print closestidx
-            print secondclosestidx
-            print thirdclosestidx
-            print "now for the pairs themselves"
+            #print "closest ids"
+            #print closestidx
+            #print secondclosestidx
+            #print thirdclosestidx
+            #print "now for the pairs themselves"
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
             thirdclosestpair = pairs[thirdclosestidx,:]
             fourthclosestpair = pairs[fourthclosestidx,:]
             fifthclosestpair = pairs[fifthclosestidx,:]
-            print closestpair
-            print secondclosestpair
-            print thirdclosestpair
+            #print closestpair
+            #print secondclosestpair
+            #print thirdclosestpair
          
             classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair, fourthclosestpair, fifthclosestpair), axis=0)
             
@@ -1068,8 +1068,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 imsave(OUT_DIR + '/' + save_path, img)
                 
             numsamples = 1
-            #pvals = np.linspace(0.2, 0.8, num=4)
-            pvals = np.linspace(0.2, 0.8, num=1)
+            pvals = np.linspace(0.2, 0.8, num=4)
+            #pvals = np.linspace(0.2, 0.8, num=1)
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
