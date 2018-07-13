@@ -962,8 +962,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             all_latents = np.zeros((1,LATENT_DIM_2)).astype('float32')
             
-            x_train_set_sub = x_train_set
-            y_train_set_sub = y_train_set
+            x_train_set_sub = x_train_set[1:100,:]
+            y_train_set_sub = y_train_set[1:100,:]
         
             # Reshape image files
             x_train_set_sub = x_train_set_sub.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
@@ -1024,6 +1024,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             thirdclosestpair = pairs[thirdclosestidx,:]
             fourthclosestpair = pairs[fourthclosestidx,:]
             fifthclosestpair = pairs[fifthclosestidx,:]
+            print closestpair
+            print secondclosestpair
+            print thirdclosestpair
          
             classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair, fourthclosestpair, fifthclosestpair), axis=0)
             
