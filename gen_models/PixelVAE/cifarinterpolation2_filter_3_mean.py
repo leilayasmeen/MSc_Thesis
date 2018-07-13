@@ -974,6 +974,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             print "Encoding images"
             for j in range(x_train_set_sub.shape[0]):
                latestlatents = enc_fn(x_train_set_sub[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
+               latestlatents = latestlatents.reshape(-1,LATENT_DIM_2)
                all_latents = np.concatenate((all_latents, latestlatents), axis=0)
         
             all_latents = np.delete(all_latents, (0), axis=0)
@@ -1040,9 +1041,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 50
-            pvals = np.linspace(0.2, 0.8, num=4)
-            #pvals = np.linspace(0.2, 0.8, num=1)
+            numsamples = 1
+            #pvals = np.linspace(0.2, 0.8, num=4)
+            pvals = np.linspace(0.2, 0.8, num=1)
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
