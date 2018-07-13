@@ -1007,8 +1007,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   b = np.asarray(classmeans[bidx,:])
                   print "second mean is"
                   print b
-                  a = np.delete(a, -1, axis=1)
-                  b = np.delete(b, -1, axis=1)
+                  print b.shape
+                  #a = np.delete(a, -1, axis=1)
+                  #b = np.delete(b, -1, axis=1)
                   a = a.reshape(1, LATENT_DIM_2)
                   b = b.reshape(1, LATENT_DIM_2)
                   c = np.subtract(a,b)
