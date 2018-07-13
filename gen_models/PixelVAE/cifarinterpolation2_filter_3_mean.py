@@ -999,11 +999,18 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for m in range(num_pairs):
                   aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0])))
                   a = classmeans[aidx,:]
+                  print "first pair is"
+                  print pairs[m,:]
+                  print "first mean is "
+                  print a
                   bidx = np.asarray(np.where(np.equal(classarray,pairs[m,1])))
                   b = classmeans[bidx,:]
+                  print "second mean is"
+                  print b
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
                   meandist[m] = np.linalg.norm(a-b)
+            print "mean distances are"
             print meandist
             
             # Sort distances between pairs and find the five smallest
