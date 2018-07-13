@@ -962,8 +962,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             all_latents = np.zeros((1,LATENT_DIM_2)).astype('float32')
             
-            x_train_set_sub = x_train_set[1:100,:]
-            y_train_set_sub = y_train_set[1:100,:]
+            x_train_set_sub = x_train_set
+            y_train_set_sub = y_train_set
         
             # Reshape image files
             x_train_set_sub = x_train_set_sub.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
