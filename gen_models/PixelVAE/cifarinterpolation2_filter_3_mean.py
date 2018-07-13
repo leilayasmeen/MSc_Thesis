@@ -998,18 +998,19 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             classarray = np.arange(NUM_CLASSES)
             for m in range(num_pairs):
                   aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0])))
-                  a = classmeans[aidx,:]
+                  a = np.asarray(classmeans[aidx,:])
                   print "first pair is"
                   print pairs[m,:]
                   print "first mean is "
                   print a
                   bidx = np.asarray(np.where(np.equal(classarray,pairs[m,1])))
-                  b = classmeans[bidx,:]
+                  b = np.asarray(classmeans[bidx,:])
                   print "second mean is"
                   print b
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
-                  meandist[m] = np.linalg.norm(a-b)
+                  #meandist[m] = np.linalg.norm(a-b)
+                  meandist[m] = np.sqrt((a-b)*(a-b))
             print "mean distances are"
             print meandist
             
