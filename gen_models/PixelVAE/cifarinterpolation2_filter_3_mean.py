@@ -1010,7 +1010,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
                   #meandist[m] = np.linalg.norm(a-b)
-                  meandist[m] = np.sqrt((a-b)*(a-b))
+                  meandist[m] = np.sqrt(np.dot(a-b))
             print "mean distances are"
             print meandist
             
