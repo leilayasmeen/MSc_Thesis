@@ -1012,6 +1012,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             thirdclosestdistance = sorteddistances[2]
             fourthclosestdistance = sorteddistances[3]
             fifthclosestdistance = sorteddistances[4]
+            print "closest distances"
+            print closestdistance
+            print secondclosestdistance
+            print thirdclosestdistance
       
             # Draw out the pairs corresponding to these distances
             closestidx = np.asarray(np.where(np.equal(meandist, closestdistance))[0])
@@ -1019,6 +1023,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             thirdclosestidx = np.asarray(np.where(np.equal(meandist, thirdclosestdistance))[0])
             fourthclosestidx = np.asarray(np.where(np.equal(meandist, fourthclosestdistance))[0])
             fifthclosestidx = np.asarray(np.where(np.equal(meandist, fifthclosestdistance))[0])
+            print "closest ids"
+            print closestidx
+            print secondclosestidx
+            print thirdclosestidx
+            print "now for the pairs themselves"
             closestpair = pairs[closestidx,:]
             secondclosestpair = pairs[secondclosestidx,:]
             thirdclosestpair = pairs[thirdclosestidx,:]
