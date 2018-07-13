@@ -994,7 +994,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             num_pairs = pairs.shape[0]
          
             # Find distances between the members of each pair
-            meandist = np.zeros((num_pairs)).astype('float32')
+            meandist = np.zeros((num_pairs)).astype('float64')
             classarray = np.arange(NUM_CLASSES)
             for m in range(num_pairs):
                   aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0])))
@@ -1004,6 +1004,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                   a = np.delete(a, -1, axis=1)
                   b = np.delete(b, -1, axis=1)
                   meandist[m] = np.linalg.norm(a-b)
+            print "distances are " meandist
             
             # Sort distances between pairs and find the five smallest
             sorteddistances = np.sort(meandist)
