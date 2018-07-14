@@ -32,7 +32,7 @@ weight_decay       = 0.0001
 mean = [125.307, 122.95, 113.865]  # Mean (per-pixel mean?) 
 std  = [62.9932, 62.0887, 66.7048]
 seed = 333
-weights_file_10 = "resnet_110_45kclip_aug.h5"
+weights_file_10 = "resnet_110_45kclip_mixup.h5"
 
 def scheduler(epoch):
     if epoch < 80:
@@ -111,8 +111,6 @@ if __name__ == '__main__':
         
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     y_test = keras.utils.to_categorical(y_test, num_classes10)
-    x_train = np.load('x_augmentation_array.npy')
-    y_train = np.load('y_augmentation_array.npy')
     
     # color preprocessing - using precalculated means and std-s
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
@@ -128,5 +126,5 @@ if __name__ == '__main__':
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
     evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet110_c10clip_aug", x_val = x_val, y_val = y_val)
+                   pickle_file = "probs_resnet110_c10clip_mixup", x_val = x_val, y_val = y_val)
     

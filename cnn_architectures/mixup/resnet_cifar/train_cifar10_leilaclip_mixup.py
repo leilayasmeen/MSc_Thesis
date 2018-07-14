@@ -98,8 +98,6 @@ if __name__ == '__main__':
 
     # load data
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    (x_train) = np.load('x_augmentation_array.npy')
-    (y_train) = np.load('y_augmentation_array.npy')
     y_test = keras.utils.to_categorical(y_test, num_classes) # test set retains one-hot encoding
     
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
@@ -125,26 +123,29 @@ if __name__ == '__main__':
     cbks = [LearningRateScheduler(scheduler)]
 
     # set data augmentation
+    from mixup_generator import MixupGenerator
+
     print('Using real-time data augmentation.')
     datagen = ImageDataGenerator(horizontal_flip=True,
                                  width_shift_range=0.125,
                                  height_shift_range=0.125,
                                  fill_mode='constant',cval=0.)
+    training_generator = MixupGenerator(x_train45, y_train45, batch_size=batch_size, alpha=0.2, datagen=datagen)() # LEILAEDIT
 
     datagen.fit(x_train45)
 
     # start training
-    hist = resnet.fit_generator(datagen.flow(x_train45, y_train45,batch_size=batch_size),
+    hist = resnet.fit_generator(generator=training_generator, #datagen.flow(x_train45, y_train45,batch_size=batch_size),
                          steps_per_epoch=iterations,
                          epochs=epochs,
                          callbacks=cbks,
                          validation_data=(x_val, y_val))
-    resnet.save('resnet_110_45kclip_aug.h5')
+    resnet.save('resnet_110_45kclip_mixup.h5')
     
     print("Get test accuracy:")
     loss, accuracy = resnet.evaluate(x_test, y_test, verbose=0)
     print("Test: accuracy1 = %f  ;  loss1 = %f" % (accuracy, loss))
     
     print("Pickle models history")
-    with open('hist_110_cifar10_v2_45kclip_aug.p', 'wb') as f:
+    with open('hist_110_cifar10_v2_45kclip_mixup.p', 'wb') as f:
         pickle.dump(hist.history, f)
