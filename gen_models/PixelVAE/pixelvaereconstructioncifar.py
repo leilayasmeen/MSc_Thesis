@@ -806,7 +806,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 mu1, logsig1, sig1 = split(mu_and_logsig1)
 
                 eps = tf.random_normal(tf.shape(mu1))
-                latents1 = mu1 + (eps * sig1)
+                #latents1 = mu1 + (eps * sig1)
+                latents1 = mu1 # LEILAEDIT
 
                 if EMBED_INPUTS:
                     outputs1 = DecFull(latents1, embedded_images)
