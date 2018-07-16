@@ -38,7 +38,7 @@ from sklearn.model_selection import train_test_split
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = DATASET + '_interpolation3_final_filter_3_mean'
+OUT_DIR = DATASET + '_interpolation4_final_filter_3_2'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
@@ -807,8 +807,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 mu1, logsig1, sig1 = split(mu_and_logsig1)
 
                 eps = tf.random_normal(tf.shape(mu1))
-                #latents1 = mu1 + (eps * sig1)
-                latents1 = mu1 # LEILAEDIT
+                latents1 = mu1 + (eps * sig1)
+                #latents1 = mu1 #LEILAEDIT
 
                 if EMBED_INPUTS:
                     outputs1 = DecFull(latents1, embedded_images)
@@ -934,6 +934,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         ch_sym = tf.placeholder(tf.int32, shape=None)
         y_sym = tf.placeholder(tf.int32, shape=None)
         x_sym = tf.placeholder(tf.int32, shape=None)
+
         logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
         dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
           
@@ -941,13 +942,118 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
-
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32')
         
         def generate_and_save_samples(tag):
-            from keras.utils import np_utils           
+            from keras.utils import np_utils
+            import itertools
+            
             x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
             y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
+            
+            ##################################################################
+            
+            (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
+   
+            x_train_set = x_train_set.transpose(0,3,1,2)
+            x_test_set = x_test_set.transpose(0,3,1,2)
+    
+            seed = 333
+            x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
+            
+            all_latents = np.zeros((1,LATENT_DIM_2)).astype('float32')
+            
+            x_train_set_sub = x_train_set
+            y_train_set_sub = y_train_set
+        
+            # Reshape image files
+            x_train_set_sub = x_train_set_sub.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+            y_train_set_sub = y_train_set_sub.reshape(-1, 1)
+            print "Reshaped loaded images."
+         
+            # Encode all images
+            print "Encoding images"
+            for j in range(x_train_set_sub.shape[0]):
+               latestlatents = enc_fn(x_train_set_sub[j,:].reshape(1, N_CHANNELS, HEIGHT, WIDTH))
+               latestlatents = latestlatents.reshape(-1,LATENT_DIM_2)
+               all_latents = np.concatenate((all_latents, latestlatents), axis=0)
+        
+            all_latents = np.delete(all_latents, (0), axis=0)
+         
+            # Find means of latent vectors, by class
+            print "Finding class means"
+            classmeans = np.zeros((NUM_CLASSES, LATENT_DIM_2)).astype('float32')
+            for k in range(NUM_CLASSES):
+               idk = np.asarray(np.where(np.equal(y_train_set_sub,k))[0])
+               all_latents_groupk = all_latents[idk,:]
+               classmeans[k,:] = np.mean(all_latents_groupk, axis=0)
+      
+            # Find the two pairs of classes that are closest to each other
+            # Find all pairs
+            print "Finding pairs"
+            pairs = np.array(list(itertools.combinations(range(NUM_CLASSES),2)))
+            num_pairs = pairs.shape[0]
+         
+            # Find distances between the members of each pair
+            meandist = np.zeros((num_pairs)).astype('float64')
+            classarray = np.arange(NUM_CLASSES)
+            for m in range(num_pairs):
+                  aidx = np.asarray(np.where(np.equal(classarray,pairs[m,0])))
+                  a = np.asarray(classmeans[aidx,:])
+                  #print "first pair is"
+                  #print pairs[m,:]
+                  #print "first mean is "
+                  #print a
+                  bidx = np.asarray(np.where(np.equal(classarray,pairs[m,1])))
+                  b = np.asarray(classmeans[bidx,:])
+                  #print "second mean is"
+                  #print b
+                  #print b.shape
+                  #a = np.delete(a, -1, axis=1)
+                  #b = np.delete(b, -1, axis=1)
+                  a = a.reshape(1, LATENT_DIM_2)
+                  b = b.reshape(1, LATENT_DIM_2)
+                  #c = np.subtract(a,b)
+                  #print c
+                  meandist[m] = np.linalg.norm(a-b)
+                  #meandist[m] = np.sqrt(np.dot(c, np.transpose(c)))
+            #print "mean distances are"
+            #print meandist
+            
+            # Sort distances between pairs and find the five smallest
+            sorteddistances = np.sort(meandist)
+            closestdistance = sorteddistances[0]
+            secondclosestdistance = sorteddistances[1]
+            thirdclosestdistance = sorteddistances[2]
+            #fourthclosestdistance = sorteddistances[3]
+            #fifthclosestdistance = sorteddistances[4]
+            #print "closest distances"
+            #print closestdistance
+            #print secondclosestdistance
+            #print thirdclosestdistance
+      
+            # Draw out the pairs corresponding to these distances
+            closestidx = np.asarray(np.where(np.equal(meandist, closestdistance))[0])
+            secondclosestidx = np.asarray(np.where(np.equal(meandist, secondclosestdistance))[0])
+            thirdclosestidx = np.asarray(np.where(np.equal(meandist, thirdclosestdistance))[0])
+            #fourthclosestidx = np.asarray(np.where(np.equal(meandist, fourthclosestdistance))[0])
+            #fifthclosestidx = np.asarray(np.where(np.equal(meandist, fifthclosestdistance))[0])
+            #print "closest ids"
+            #print closestidx
+            #print secondclosestidx
+            #print thirdclosestidx
+            #print "now for the pairs themselves"
+            closestpair = pairs[closestidx,:]
+            secondclosestpair = pairs[secondclosestidx,:]
+            thirdclosestpair = pairs[thirdclosestidx,:]
+            #fourthclosestpair = pairs[fourthclosestidx,:]
+            #fifthclosestpair = pairs[fifthclosestidx,:]
+            #print closestpair
+            #print secondclosestpair
+            #print thirdclosestpair
+         
+            #classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair, fourthclosestpair, fifthclosestpair), axis=0)
+            classpairs = np.concatenate((closestpair, secondclosestpair, thirdclosestpair), axis=0)
+            ##################################################################
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -961,159 +1067,373 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 7
+            numsamples = 100
             pvals = np.linspace(0.2, 0.8, num=4)
             #pvals = np.linspace(0.2, 0.8, num=1)
-            p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
 
             for imagenum in range(numsamples):
-                for class1 in range(NUM_CLASSES-1): # goes up to class 8
-                  idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
-                  x_trainsubset1 = x_train_set_array[idx1,:]
-                  y_trainsubset1 = y_train_set_array[idx1,:]
-                  x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                  y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
+              # Sample unique image indices from class pairs. Images will be interpolated in pairs. Pairs are listed in order.
+              classindices = classpairs
+ 
+              idx1 = np.asarray(np.where(np.equal(classindices[0,0],y_train_set))[0])
+              idx2 = np.asarray(np.where(np.equal(classindices[0,1],y_train_set))[0])
+              idx3 = np.asarray(np.where(np.equal(classindices[1,0],y_train_set))[0])
+              idx4 = np.asarray(np.where(np.equal(classindices[1,1],y_train_set))[0])
+              idx5 = np.asarray(np.where(np.equal(classindices[2,0],y_train_set))[0])
+              idx6 = np.asarray(np.where(np.equal(classindices[2,1],y_train_set))[0])
+              #idx7 = np.asarray(np.where(np.equal(classindices[3,0],y_train_set))[0])
+              #idx8 = np.asarray(np.where(np.equal(classindices[3,1],y_train_set))[0])
+              #idx9 = np.asarray(np.where(np.equal(classindices[4,0],y_train_set))[0])
+              #idx10 = np.asarray(np.where(np.equal(classindices[4,1],y_train_set))[0])
+                
+              x_train_array = np.array(x_train_set)
+              y_train_array = np.array(y_train_set)
+                
+              x_trainsubset1 = x_train_array[idx1,:]
+              x_trainsubset2 = x_train_array[idx2,:]
+              x_trainsubset3 = x_train_array[idx3,:]
+              x_trainsubset4 = x_train_array[idx4,:]
+              x_trainsubset5 = x_train_array[idx5,:]
+              x_trainsubset6 = x_train_array[idx6,:]
+              #x_trainsubset7 = x_train_array[idx7,:]
+              #x_trainsubset8 = x_train_array[idx8,:]
+              #x_trainsubset9 = x_train_array[idx9,:]
+              #x_trainsubset10 = x_train_array[idx10,:] 
+               
+              y_trainsubset1 = y_train_array[idx1,:]
+              y_trainsubset2 = y_train_array[idx2,:]
+              y_trainsubset3 = y_train_array[idx3,:]
+              y_trainsubset4 = y_train_array[idx4,:]
+              y_trainsubset5 = y_train_array[idx5,:]
+              y_trainsubset6 = y_train_array[idx6,:]
+              #y_trainsubset7 = y_train_array[idx7,:]
+              #y_trainsubset8 = y_train_array[idx8,:]
+              #y_trainsubset9 = y_train_array[idx9,:]
+              #y_trainsubset10 = y_train_array[idx10,:]
+                
+              x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset3 = x_trainsubset3.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset4 = x_trainsubset4.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset5 = x_trainsubset5.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              x_trainsubset6 = x_trainsubset6.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              #x_trainsubset7 = x_trainsubset7.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              #x_trainsubset8 = x_trainsubset8.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              #x_trainsubset9 = x_trainsubset9.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
+              #x_trainsubset10 = x_trainsubset10.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)              
+               
+              y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
+              y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
+              y_trainsubset3 = y_trainsubset3.reshape(-1, 1)
+              y_trainsubset4 = y_trainsubset4.reshape(-1, 1)
+              y_trainsubset5 = y_trainsubset5.reshape(-1, 1)
+              y_trainsubset6 = y_trainsubset6.reshape(-1, 1)
+              #y_trainsubset7 = y_trainsubset7.reshape(-1, 1)
+              #y_trainsubset8 = y_trainsubset8.reshape(-1, 1)
+              #y_trainsubset9 = y_trainsubset9.reshape(-1, 1)
+              #y_trainsubset10 = y_trainsubset10.reshape(-1, 1) 
+
+              imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
+              imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
+              imageindex3 = random.sample(range(x_trainsubset3.shape[0]),1)
+              imageindex4 = random.sample(range(x_trainsubset4.shape[0]),1)
+              imageindex5 = random.sample(range(x_trainsubset5.shape[0]),1)
+              imageindex6 = random.sample(range(x_trainsubset6.shape[0]),1)
+              #imageindex7 = random.sample(range(x_trainsubset7.shape[0]),1)
+              #imageindex8 = random.sample(range(x_trainsubset8.shape[0]),1)
+              #imageindex9 = random.sample(range(x_trainsubset9.shape[0]),1)
+              #imageindex10 = random.sample(range(x_trainsubset10.shape[0]),1) 
+
+              # Draw the corresponding images and labels from the training data
+              image1 = x_trainsubset1[imageindex1,:]
+              image2 = x_trainsubset2[imageindex2,:]  
+              image3 = x_trainsubset3[imageindex3,:]
+              image4 = x_trainsubset4[imageindex4,:]
+              image5 = x_trainsubset5[imageindex5,:]
+              image6 = x_trainsubset6[imageindex6,:]
+              #image7 = x_trainsubset7[imageindex7,:]
+              #image8 = x_trainsubset8[imageindex8,:]
+              #image9 = x_trainsubset9[imageindex9,:]
+              #image10 = x_trainsubset10[imageindex10,:]            
+            
+              label1 = y_trainsubset1[imageindex1,:]
+              label2 = y_trainsubset2[imageindex2,:]
+              label3 = y_trainsubset3[imageindex3,:]
+              label4 = y_trainsubset4[imageindex4,:]
+              label5 = y_trainsubset5[imageindex5,:]
+              label6 = y_trainsubset6[imageindex6,:]
+              #label7 = y_trainsubset7[imageindex7,:]
+              #label8 = y_trainsubset8[imageindex8,:]
+              #label9 = y_trainsubset9[imageindex9,:]
+              #label10 = y_trainsubset10[imageindex10,:]
+            
+              # Reshape
+              image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image3 = image3.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image4 = image4.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image5 = image5.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              image6 = image6.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              #image7 = image7.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              #image8 = image8.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              #image9 = image9.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+              #image10 = image10.reshape(1, N_CHANNELS, HEIGHT, WIDTH)               
+               
+              label1 = label1.reshape(1, 1)
+              label2 = label2.reshape(1, 1)
+              label3 = label3.reshape(1, 1)
+              label4 = label4.reshape(1, 1)
+              label5 = label5.reshape(1, 1)
+              label6 = label6.reshape(1, 1) 
+              #label7 = label7.reshape(1, 1)
+              #label8 = label8.reshape(1, 1)
+              #label9 = label9.reshape(1, 1)
+              #label10 = label10.reshape(1, 1)  
+
+              # Save original images
+              print "Saving original samples"
+              color_grid_vis(
+                 image1, 
+                 1, 
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,1],classindices[0,0],imagenum)
+              )
+              color_grid_vis(
+                 image2,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[0,0],classindices[0,1],classindices[0,1],imagenum)
+              )
+              color_grid_vis(
+                 image3,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,1],classindices[1,0],imagenum)
+              ) 
+            
+              color_grid_vis(
+                 image4,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[1,0],classindices[1,1],classindices[1,1],imagenum)
+              ) 
+              color_grid_vis(
+                 image5,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,1],classindices[2,0],imagenum)
+              ) 
+            
+              color_grid_vis(
+                 image6,
+                 1,
+                 1,
+                 'originalclass{}_classes{}and{}_num{}.png'.format(classindices[2,0],classindices[2,1],classindices[2,1],imagenum)
+              )   
+              #color_grid_vis(
+              #   image7,
+              #   1,
+              #   1,
+              #   'originalclass{}_classes{}and{}_num{}.png'.format(classindices[3,0],classindices[3,1],classindices[3,0],imagenum)
+              #) 
+            
+              #color_grid_vis(
+              #   image8,
+              #   1,
+              #   1,
+              #   'originalclass{}_classes{}and{}_num{}.png'.format(classindices[3,0],classindices[3,1],classindices[3,1],imagenum)
+              #) 
+              #color_grid_vis(
+              #   image9,
+              #   1,
+              #   1,
+              #   'originalclass{}_classes{}and{}_num{}.png'.format(classindices[4,0],classindices[4,1],classindices[4,0],imagenum)
+              #) 
+            
+              #color_grid_vis(
+              #   image10,
+              #   1,
+              #   1,
+              #   'originalclass{}_classes{}and{}_num{}.png'.format(classindices[4,0],classindices[4,1],classindices[4,1],imagenum)
+              #)               
+               
+              # Encode the images
+              image_code1 = enc_fn(image1)
+              image_code2 = enc_fn(image2)
+              image_code3 = enc_fn(image3)
+              image_code4 = enc_fn(image4)
+              image_code5 = enc_fn(image5)
+              image_code6 = enc_fn(image6)
+              #image_code7 = enc_fn(image7)
+              #image_code8 = enc_fn(image8)
+              #image_code9 = enc_fn(image9)
+              #image_code10 = enc_fn(image10)           
                   
-                  for class2 in range(class1+1, NUM_CLASSES):
-                    idx2 = np.asarray(np.where(np.equal(class2, y_train_set))[0])
-                    x_trainsubset2 = x_train_set_array[idx2,:]
-                    y_trainsubset2 = y_train_set_array[idx2,:]
-                    x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                    y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
-                    
-                    imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
-                    imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
-                    
-                    # Draw the corresponding images and labels from the training data
-                    image1 = x_trainsubset1[imageindex1,:]
-                    image2 = x_trainsubset2[imageindex2,:]  
-                    label1 = y_trainsubset1[imageindex1,:]
-                    label2 = y_trainsubset2[imageindex2,:]
+              # Change the labels to matrix form before performing interpolations
+              label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
+              label2 = np_utils.to_categorical(label2, NUM_CLASSES)
+              label3 = np_utils.to_categorical(label3, NUM_CLASSES) 
+              label4 = np_utils.to_categorical(label4, NUM_CLASSES)
+              label5 = np_utils.to_categorical(label5, NUM_CLASSES) 
+              label6 = np_utils.to_categorical(label6, NUM_CLASSES)
+              #label7 = np_utils.to_categorical(label7, NUM_CLASSES) 
+              #label8 = np_utils.to_categorical(label8, NUM_CLASSES)
+              #label9 = np_utils.to_categorical(label9, NUM_CLASSES) 
+              #label10 = np_utils.to_categorical(label10, NUM_CLASSES)
+
+              # Define slerp function
+              #def slerp(val, low, high):
+              #  omega = np.arccos(np.clip(np.dot(low/np.linalg.norm(low), high/np.linalg.norm(high)), -1, 1))
+              #  so = np.sin(omega)
+              #  if so == 0:
+              #    return (1.0-val) * low + val * high # L'Hopital's rule/LERP
+              #return np.sin((1.0-val)*omega) / so * low + np.sin(val*omega) / so * high
+              # From https://github.com/soumith/dcgan.torch/issues/14
+               
+              # Find angle between the two latent codes
+              vec1 = image_code1/np.linalg.norm(image_code1)
+              vec2 = image_code2/np.linalg.norm(image_code2)
+              vec2 = np.transpose(vec2)
+              omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
+              so = np.sin(omega) 
+
+              # Combine the latent codes using p
+              for p in pvals:
+                  if so == 0:
+                      new_code12 = (1.0-p) * image_code1 + p * image_code2
+                      new_code34 = (1.0-p) * image_code3 + p * image_code4
+                      new_code56 = (1.0-p) * image_code5 + p * image_code6
+                  else:
+                      new_code12 = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
+                      new_code34 = np.sin((1.0-p)*omega) / so * image_code3 + np.sin(p*omega) / so * image_code4
+                      new_code56 = np.sin((1.0-p)*omega) / so * image_code5 + np.sin(p*omega) / so * image_code6
+
+                  new_label12 = np.multiply(p,label1) + np.multiply((1-p),label2)
+                  new_label34 = np.multiply(p,label3) + np.multiply((1-p),label4)
+                  new_label56 = np.multiply(p,label5) + np.multiply((1-p),label6)
+                  #new_code78 = np.multiply(p,image_code7) + np.multiply((1-p),image_code8)
+                  #new_label78 = np.multiply(p,label7) + np.multiply((1-p),label8)
+                  #new_code910 = np.multiply(p,image_code9) + np.multiply((1-p),image_code10)
+                  #new_label910 = np.multiply(p,label9) + np.multiply((1-p),label10) 
+
+                  # Reshape the new labels to enable saving in the proper format for the neural networks later on
+                  new_label12 = new_label12.reshape(1,1,NUM_CLASSES)
+                  new_label34 = new_label34.reshape(1,1,NUM_CLASSES)
+                  new_label56 = new_label56.reshape(1,1,NUM_CLASSES)
+                  #new_label78 = new_label78.reshape(1,1,NUM_CLASSES)
+                  #new_label910 = new_label910.reshape(1,1,NUM_CLASSES)
+                  
+                  samples12 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
                 
-                    # Reshape
-                    image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                    image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                    label1 = label1.reshape(1, 1)
-                    label2 = label2.reshape(1, 1)
-                    
-                    # Save the original images
-                    print "Saving original samples"
-                    color_grid_vis(
-                        image1, 
-                        1, 
-                        1, 
-                        'original_1_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
-                    )
-                    color_grid_vis(
-                        image2, 
-                        1, 
-                        1, 
-                        'original_2_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
-                    )
-                      
-                    # Encode the images
-                    image_code1 = enc_fn(image1)
-                    image_code2 = enc_fn(image2)
-               
-                    # Change labels to matrix form before performing interpolations
-                    label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
-                    label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
-                    
-                    # Define slerp function
-                    #def slerp(val, low, high):
-                    #  omega = np.arccos(np.clip(np.dot(low/np.linalg.norm(low), high/np.linalg.norm(high)), -1, 1))
-                    #  so = np.sin(omega)
-                    #  if so == 0:
-                    #    return (1.0-val) * low + val * high # L'Hopital's rule/LERP
-                    #return np.sin((1.0-val)*omega) / so * low + np.sin(val*omega) / so * high
-                    # From https://github.com/soumith/dcgan.torch/issues/14
-               
-                    # Find angle between the two latent codes
-                    vec1 = image_code1/np.linalg.norm(image_code1)
-                    vec2 = image_code2/np.linalg.norm(image_code2)
-                    vec2 = np.transpose(vec2)
-                    omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
-                    so = np.sin(omega) 
-                     
-                    # Combine the latent codes
-                    for p in pvals:
-                      if so == 0:
-                        new_code = (1.0-p) * image_code1 + p * image_code2
-                      else:
-                        new_code = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
-                        
-                      new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                     
-                      new_label = new_label.reshape(1,1,NUM_CLASSES)
-
-                      samples = np.zeros(
-                        (1, N_CHANNELS, HEIGHT, WIDTH), 
-                        dtype='int32'
-                      )
-
-                      print "Generating samples"
-                      for y in xrange(HEIGHT):
-                        for x in xrange(WIDTH):
-                              for ch in xrange(N_CHANNELS):
-                                  next_sample = dec1_fn(new_code, samples, ch, y, x) 
-                                  samples[:,ch,y,x] = next_sample
+                  samples34 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
+                  
+                  samples56 = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
+                  
+                  #samples78 = np.zeros(
+                  #   (1, N_CHANNELS, HEIGHT, WIDTH), 
+                  #   dtype='int32'
+                  #)
+                  
+                  #samples910 = np.zeros(
+                  #   (1, N_CHANNELS, HEIGHT, WIDTH), 
+                  #   dtype='int32'
+                  #)
+                  
+                  print "Generating samples"
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample12 = dec1_fn(new_code12, samples12, ch, y, x) 
+                           samples12[:,ch,y,x] = next_sample12
                             
-                      x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
-                      y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
-                      p_set = np.append(p_set,p)
-                
-                      color_grid_vis(
-                        samples, 
-                        1, 
-                        1, 
-                        'interpolation1_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum)
-                      )
-                    
-                # Sample two unique image indices from different classes
-                #classindices = random.sample(range(0,NUM_CLASSES),2)
-                #idx1 = np.where(np.equal(classindices[0],y_train_set))
-                #idx2 = np.where(np.equal(classindices[1],y_train_set))
-                
-                #x_train_set_array = np.array(x_train_set)
-                #y_train_set_array = np.array(y_train_set)
-                
-                #x_trainsubset1 = x_train_set_array[idx1,:]
-                #x_trainsubset2 = x_train_set_array[idx2,:]
-                #y_trainsubset1 = y_train_set_array[idx1,:]
-                #y_trainsubset2 = y_train_set_array[idx2,:]
-                
-                #x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                #x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                #y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                #y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
-                
-                #imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
-                #imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
-                
-                # Draw the corresponding images and labels from the training data
-                #image1 = x_trainsubset1[imageindex1,:]
-                #image2 = x_trainsubset2[imageindex2,:]  
-                #label1 = y_trainsubset1[imageindex1,:]
-                #label2 = y_trainsubset2[imageindex2,:]
-                
-                # Reshape
-                #image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                #image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                #label1 = label1.reshape(1, 1)
-                #label2 = label2.reshape(1, 1)
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample34 = dec1_fn(new_code34, samples34, ch, y, x) 
+                           samples34[:,ch,y,x] = next_sample34
+                           
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                        for ch in xrange(N_CHANNELS):
+                           next_sample56 = dec1_fn(new_code56, samples56, ch, y, x) 
+                           samples56[:,ch,y,x] = next_sample56
   
+                  #for y in xrange(HEIGHT):
+                  #   for x in xrange(WIDTH):
+                  #      for ch in xrange(N_CHANNELS):
+                  #         next_sample78 = dec1_fn(new_code78, samples78, ch, y, x) 
+                  #         samples78[:,ch,y,x] = next_sample78
+                           
+                  #for y in xrange(HEIGHT):
+                  #   for x in xrange(WIDTH):
+                  #      for ch in xrange(N_CHANNELS):
+                  #         next_sample910 = dec1_fn(new_code910, samples910, ch, y, x) 
+                  #         samples910[:,ch,y,x] = next_sample910
+                           
+                #LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples12), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples34), axis=0)#LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples56), axis=0)#LEILAEDIT for .npy saving
+                  #x_augmentation_set = np.concatenate((x_augmentation_set, samples78), axis=0)#LEILAEDIT for .npy saving
+                  #x_augmentation_set = np.concatenate((x_augmentation_set, samples910), axis=0)#LEILAEDIT for .npy saving
+                  
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label12), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label34), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label56), axis=0)#LEILAEDIT for .npy saving
+                  #y_augmentation_set = np.concatenate((y_augmentation_set, new_label78), axis=0)#LEILAEDIT for .npy saving
+                  #y_augmentation_set = np.concatenate((y_augmentation_set, new_label910), axis=0)#LEILAEDIT for .npy saving
+                
+                  print "Saving samples and their corresponding tags"
+                  color_grid_vis(
+                     samples12, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[0,0],classindices[0,1],p,imagenum)
+                  )
+                  color_grid_vis(
+                     samples34, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[1,0],classindices[1,1],p,imagenum)
+                  )
+                  color_grid_vis(
+                     samples56, 
+                     1, 
+                     1, 
+                     'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[2,0],classindices[2,1],p,imagenum)
+                  ) 
+                  #color_grid_vis(
+                  #   samples78, 
+                  #   1, 
+                  #   1, 
+                  #   'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[3,0],classindices[3,1],p,imagenum)
+                  #)
+                  #color_grid_vis(
+                  #   samples910, 
+                  #   1, 
+                  #   1, 
+                  #   'interpolation2_classes{}and{}_pval{}_num{}.png'.format(classindices[4,0],classindices[4,1],p,imagenum)
+                  #)  
+
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
-            p_set = np.delete(p_set, (0), axis=0)
             
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
-            np.save(OUT_DIR + '/' + 'x_augmentation_array_mean', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array_mean', y_augmentation_array) #LEILAEDIT for .npy saving   
-            np.save(OUT_DIR + '/' + 'p_set_array', p_set)
+            np.save(OUT_DIR + '/' + 'x_augmentation_array_2', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array_2', y_augmentation_array) #LEILAEDIT for .npy saving   
                 
     # Run
 
