@@ -959,9 +959,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            num = 50
+            numsamples = 50
                 
-            for imagenum in range(num):
+            for imagenum in range(numsamples):
 
                 print "Sampling Random Image Index"
                 idx = random.sample(range(0, x_train_set.shape[0]), 1)
