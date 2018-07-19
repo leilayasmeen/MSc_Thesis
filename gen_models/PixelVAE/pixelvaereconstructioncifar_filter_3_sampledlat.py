@@ -958,55 +958,61 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 50
+            numsamples = 5
                 
             for imagenum in range(numsamples):
 
-                print "Sampling Random Image Index"
-                idx = random.sample(range(0, x_train_set.shape[0]), 1)
+                print "Sampling Random Image Index from Each Class"
+                for k in range(NUM_CLASSES):
+                  idk = np.asarray(np.where(np.equal(y_train_set,k))[0])
+                  x_classk = np.asarray(x_train_set[idk,:])
+                  #idx = random.sample(range(0, x_classk.shape[0]), 1)
+                  idx = imagenum
                            
-                print "Drawing Corresponding Image and Label Out"            
-                x_train_set_array = np.array(x_train_set)
-                image = x_train_set_array[idx,:]
+                  print "Drawing Corresponding Image and Label Out"            
+                  #x_train_set_array = np.array(x_train_set)
+                  #image = x_train_set_array[idx,:]
+                  x_classk_array = np.array(x_classk)
+                  image = x_classk[idx,:]
 
-                # Reshape
-                image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                  # Reshape
+                  image = image.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
                   
-                # Encode the images
-                image_code = enc_fn(image)
+                  # Encode the images
+                  image_code = enc_fn(image)
                
-                samples = np.zeros(
-                    (1, N_CHANNELS, HEIGHT, WIDTH), 
-                    dtype='int32'
-                )
+                  samples = np.zeros(
+                     (1, N_CHANNELS, HEIGHT, WIDTH), 
+                     dtype='int32'
+                  )
 
-                print "Generating samples"
-                for y in xrange(HEIGHT):
-                    for x in xrange(WIDTH):
-                        for ch in xrange(N_CHANNELS):
-                            next_sample = dec1_fn(image_code, samples, ch, y, x) 
-                            samples[:,ch,y,x] = next_sample
+                  print "Generating samples"
+                  for y in xrange(HEIGHT):
+                     for x in xrange(WIDTH):
+                           for ch in xrange(N_CHANNELS):
+                              next_sample = dec1_fn(image_code, samples, ch, y, x) 
+                              samples[:,ch,y,x] = next_sample
                             
-                #LEILAEDIT for .npy saving
-                x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
+                  #LEILAEDIT for .npy saving
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
                 
-                print "Saving original sample"
-                color_grid_vis(
-                    image, 
-                    1, 
-                    1, 
-                    'original_{}.png'.format(imagenum)
-                )
-                print "Saving reconstructed sample"
-                color_grid_vis(
-                    samples, 
-                    1, 
-                    1, 
-                    'reconstruction_{}.png'.format(imagenum)
-                )
+                  print "Saving original sample"
+                  color_grid_vis(
+                     image, 
+                     1, 
+                     1, 
+                     'original_{}.png'.format(imagenum)
+                  )
+                  print "Saving reconstructed sample"
+                  color_grid_vis(
+                     samples, 
+                     1, 
+                     1, 
+                     'reconstruction_{}.png'.format(imagenum)
+                  )
 
-            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
+               #x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
+               #np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array) #LEILAEDIT for .npy saving
                 
     elif MODE == 'two_level':
 
