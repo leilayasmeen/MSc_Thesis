@@ -340,6 +340,8 @@ elif SETTINGS=='64px_big_onelevel':
 
 elif SETTINGS=='32px_cifar':
 
+    NUM_CLASSES = 10
+      
     from keras.datasets import cifar10
     (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
    
