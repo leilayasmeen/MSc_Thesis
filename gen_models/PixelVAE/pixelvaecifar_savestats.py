@@ -32,7 +32,7 @@ import functools
 DATASET = 'cifar10'#'lsun_64'
 SETTINGS =  '32px_cifar' #64px_big' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = DATASET + '_results'
+OUT_DIR = DATASET + '_results_savestats'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
