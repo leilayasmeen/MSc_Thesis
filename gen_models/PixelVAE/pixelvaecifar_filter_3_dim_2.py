@@ -664,43 +664,57 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
-
+        #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+        alpha_values = np.zeros((1))
+        reconstruction_cost_values = np.zeros((1))
+        kl_cost_values = np.zeros((1))
+         
         def generate_and_save_samples(tag):
-            def color_grid_vis(X, nh, nw, save_path):
-                # from github.com/Newmu
-                X = X.transpose(0,2,3,1)
-                h, w = X[0].shape[:2]
-                img = np.zeros((h*nh, w*nw, 3))
-                for n, x in enumerate(X):
-                    j = n/nw
-                    i = n%nw
-                    img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(save_path, img)
+            #def color_grid_vis(X, nh, nw, save_path):
+            #    # from github.com/Newmu
+            #    X = X.transpose(0,2,3,1)
+            #    h, w = X[0].shape[:2]
+            #    img = np.zeros((h*nh, w*nw, 3))
+            #    for n, x in enumerate(X):
+            #        j = n/nw
+            #        i = n%nw
+            #        img[j*h:j*h+h, i*w:i*w+w, :] = x
+            #    imsave(save_path, img)
 
-            latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
-            for i in xrange(1): # changed 8 to 1
-                latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
+            #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
+            #for i in xrange(1): # changed 8 to 1
+            #    latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
 
-            samples = np.zeros(
-                (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
-                dtype='int32'
-            )
+            #samples = np.zeros(
+            #    (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
+            #    dtype='int32'
+            #)
 
-            print "Generating samples"
-            for y in xrange(HEIGHT):
-                for x in xrange(WIDTH):
-                    for ch in xrange(N_CHANNELS):
-                        next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
-                        samples[:,ch,y,x] = next_sample
+            #print "Generating samples"
+            #for y in xrange(HEIGHT):
+            #    for x in xrange(WIDTH):
+            #        for ch in xrange(N_CHANNELS):
+            #            next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
+            #            samples[:,ch,y,x] = next_sample
 
-            print "Saving samples"
-            color_grid_vis(
-                samples, 
-                1, 
-                1, 
-                'samples_filter_3_dim_2{}.png'.format(tag) # changed to 1 and 1
-            )
+            #print "Saving samples"
+            #color_grid_vis(
+            #    samples, 
+            #    1, 
+            #    1, 
+            #    'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
+            #)
+            alpha_values = np.concatenate((alpha_values, alpha), axis=0)#LEILAEDIT for .npy saving
+            reconstruction_cost_values = np.concatenate((reconstruction_cost_values, reconst_cost), axis=0)#LEILAEDIT for .npy saving
+            kl_cost_values = np.concatenate((akl_cost_values, kl_cost_1), axis=0)#LEILAEDIT for .npy saving
+        
+        alpha_values = np.delete(alpha_values, (0), axis=0)
+        reconstruction_cost_values = np.delete(reconstruction_cost_values, (0), axis=0)
+        kl_cost_values = np.delete(kl_cost_values, (0), axis=0)
+
+        np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
+        np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
+        np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values) #LEILAEDIT for .npy saving  
 
     # Train!
 
