@@ -1004,14 +1004,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      image, 
                      1, 
                      1, 
-                     'original_{}.png'.format(imagenum)
+                     'original_class{}_{}.png'.format(k,imagenum)
                   )
                   print "Saving reconstructed sample"
                   color_grid_vis(
                      samples, 
                      1, 
                      1, 
-                     'reconstruction_filter_5_sampledlat{}.png'.format(imagenum)
+                     'reconstruction_filter_5_class{}_sampledlat{}.png'.format(k,imagenum)
                   )
 
                #x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
