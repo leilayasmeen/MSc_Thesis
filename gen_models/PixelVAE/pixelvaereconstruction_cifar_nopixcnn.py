@@ -1011,7 +1011,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                      samples, 
                      1, 
                      1, 
-                     'reconstruction_{}.png'.format(imagenum)
+                     'reconstruction_filter_nopixcnn_{}.png'.format(imagenum)
                   )
 
                #x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
