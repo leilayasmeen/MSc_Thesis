@@ -371,7 +371,7 @@ elif SETTINGS=='32px_cifar':
     TIMES = {
         'test_every': 10000,
         'stop_after': 400000,
-        'callback_every': 50000
+        'callback_every': 50 #50000
     }
     
     LR = 1e-3
@@ -679,9 +679,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             reconstruction_cost_values = reconst_cost
             kl_cost_values = kl_cost_1
             
-            alpha_values_file = np.load(OUT_DIR + '/' + 'alpha_values')
-            reconstruction_cost_values_file = np.load(OUT_DIR + '/' + 'reconstruction_costs')
-            kl_cost_values_file = np.load(OUT_DIR + '/' + 'kl_costs')
+            alpha_values_file = np.load(OUT_DIR + '/' + 'alpha_values.npy')
+            reconstruction_cost_values_file = np.load(OUT_DIR + '/' + 'reconstruction_costs.npy')
+            kl_cost_values_file = np.load(OUT_DIR + '/' + 'kl_costs.npy')
             
             alpha_values_file = np.concatenate((alpha_values_file, alpha_values), axis=0)
             reconstruction_cost_values_file = np.concatenate((reconstruction_cost_values_file, reconstruction_cost_values), axis=0)
