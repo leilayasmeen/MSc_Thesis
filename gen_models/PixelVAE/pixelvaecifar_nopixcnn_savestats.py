@@ -699,7 +699,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 samples, 
                 1, 
                 1, 
-                'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
+                'samples_nopixcnn_{}.png'.format(tag) # changed to 1 and 1
             )
 
     # Train!
