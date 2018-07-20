@@ -671,9 +671,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
          
         def generate_and_save_samples(tag):
-            alpha_values = np.concatenate((alpha_values, alpha), axis=0)#LEILAEDIT for .npy saving
-            reconstruction_cost_values = np.concatenate((reconstruction_cost_values, reconst_cost), axis=0)#LEILAEDIT for .npy saving
-            kl_cost_values = np.concatenate((akl_cost_values, kl_cost_1), axis=0)#LEILAEDIT for .npy saving
+            alpha_values = alpha
+            reconstruction_cost_values = reconst_cost
+            kl_cost_values = kl_cost_1
         
             #def color_grid_vis(X, nh, nw, save_path):
             #    # from github.com/Newmu
@@ -709,10 +709,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             #    1, 
             #    'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
             #)
-
-        alpha_values = np.delete(alpha_values, (0), axis=0)
-        reconstruction_cost_values = np.delete(reconstruction_cost_values, (0), axis=0)
-        kl_cost_values = np.delete(kl_cost_values, (0), axis=0)
 
         np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
         np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
