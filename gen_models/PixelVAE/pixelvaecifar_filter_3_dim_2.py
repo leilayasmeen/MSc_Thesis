@@ -678,7 +678,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             #        img[j*h:j*h+h, i*w:i*w+w, :] = x
             #    imsave(save_path, img)
 
-            #latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
+            latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
             #for i in xrange(1): # changed 8 to 1
             #    latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
 
