@@ -44,7 +44,7 @@ kl_cost_values = np.zeros((1))
 
 np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
 np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
-np.save(OUT_DIR + '/' + 'kl_costs' + tag, kl_cost_values) #LEILAEDIT for .npy saving  
+np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values) #LEILAEDIT for .npy saving  
 
 if SETTINGS == 'mnist_256':
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
@@ -689,7 +689,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             
             np.save(OUT_DIR + '/' + 'alpha_values', alpha_values_file) #LEILAEDIT for .npy saving
             np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values_file) #LEILAEDIT for .npy saving  
-            np.save(OUT_DIR + '/' + 'kl_costs' + tag, kl_cost_values_file) #LEILAEDIT for .npy saving  
+            np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values_file) #LEILAEDIT for .npy saving  
         
             #def color_grid_vis(X, nh, nw, save_path):
             #    # from github.com/Newmu
