@@ -971,15 +971,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             for imagenum in range(numsamples):
                 pvals = np.random.beta(0.2, 0.2, 4)
                     
-                imageindices = random.sample(range(x_train.shape[0]),2)
+                imageindices = random.sample(range(x_train_set.shape[0]),2)
                 imageindex1 = imageindices[0]
                 imageindex2 = imageindices[1]
                     
                 # Draw the corresponding images and labels from the training data
-                image1 = x_train[imageindex1,:]
-                image2 = x_train[imageindex2,:]  
-                label1 = y_train[imageindex1,:]
-                label2 = y_train[imageindex2,:]
+                image1 = x_train_set[imageindex1,:]
+                image2 = x_train_set[imageindex2,:]  
+                label1 = y_train_set[imageindex1,:]
+                label2 = y_train_set[imageindex2,:]
                 
                 # Reshape
                 image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
