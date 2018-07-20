@@ -42,7 +42,7 @@ def color_grid_vis(X, nh, nw, save_path):
   for n, x in enumerate(X):
       j = n/nw
       i = n%nw
-      mg[j*h:j*h+h, i*w:i*w+w, :] = x
+      img[j*h:j*h+h, i*w:i*w+w, :] = x
   imsave(OUT_DIR + '/' + save_path, img)
                 
 numsamples = 1
