@@ -674,6 +674,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             alpha_values = alpha
             reconstruction_cost_values = reconst_cost
             kl_cost_values = kl_cost_1
+            np.save(OUT_DIR + '/' + 'alpha_values_' + tag, alpha_values) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'reconstruction_costs_' + tag, reconstruction_cost_values) #LEILAEDIT for .npy saving  
+            np.save(OUT_DIR + '/' + 'kl_costs_' + tag, kl_cost_values) #LEILAEDIT for .npy saving  
         
             #def color_grid_vis(X, nh, nw, save_path):
             #    # from github.com/Newmu
@@ -709,10 +712,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             #    1, 
             #    'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
             #)
-
-        np.save(OUT_DIR + '/' + 'alpha_values_' + tag, alpha_values) #LEILAEDIT for .npy saving
-        np.save(OUT_DIR + '/' + 'reconstruction_costs_' + tag, reconstruction_cost_values) #LEILAEDIT for .npy saving  
-        np.save(OUT_DIR + '/' + 'kl_costs_' + tag, kl_cost_values) #LEILAEDIT for .npy saving  
          
     # Train!
 
