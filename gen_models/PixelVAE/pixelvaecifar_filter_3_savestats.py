@@ -683,9 +683,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             reconstruction_cost_values_file = np.load(OUT_DIR + '/' + 'reconstruction_costs')
             kl_cost_values_file = np.load(OUT_DIR + '/' + 'kl_costs')
             
-            alpha_values_file = np.concatenate((alpha_values_file, alpha_values)), axis=0)
-            reconstruction_cost_values_file = np.concatenate((reconstruction_cost_values_file, reconstruction_cost_values)), axis=0)
-            kl_cost_values_file = p.concatenate((kl_cost_values_file, kl_cost_values)), axis=0)
+            alpha_values_file = np.concatenate((alpha_values_file, alpha_values), axis=0)
+            reconstruction_cost_values_file = np.concatenate((reconstruction_cost_values_file, reconstruction_cost_values), axis=0)
+            kl_cost_values_file = p.concatenate((kl_cost_values_file, kl_cost_values), axis=0)
             
             np.save(OUT_DIR + '/' + 'alpha_values', alpha_values_file) #LEILAEDIT for .npy saving
             np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values_file) #LEILAEDIT for .npy saving  
