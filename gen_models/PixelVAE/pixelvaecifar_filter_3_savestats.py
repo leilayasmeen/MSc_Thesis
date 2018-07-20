@@ -710,9 +710,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             #    'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
             #)
 
-        np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
-        np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
-        np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values) #LEILAEDIT for .npy saving  
+        np.save(OUT_DIR + '/' + 'alpha_values_' + tag, alpha_values) #LEILAEDIT for .npy saving
+        np.save(OUT_DIR + '/' + 'reconstruction_costs_' + tag, reconstruction_cost_values) #LEILAEDIT for .npy saving  
+        np.save(OUT_DIR + '/' + 'kl_costs_' + tag, kl_cost_values) #LEILAEDIT for .npy saving  
          
     # Train!
 
