@@ -18,6 +18,9 @@ import sklearn
 from sklearn.model_selection import train_test_split
 
 NUM_CLASSES = 10
+N_CHANNELS = 3
+HEIGHT = 32
+WIDTH = 32
       
 from keras.datasets import cifar10
 (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
