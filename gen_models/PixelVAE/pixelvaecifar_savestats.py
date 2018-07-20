@@ -665,9 +665,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
         #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
-        alpha_values = np.zeros((1))
-        reconstruction_cost_values = np.zeros((1))
-        kl_cost_values = np.zeros((1))
          
         def generate_and_save_samples(tag):
             #def color_grid_vis(X, nh, nw, save_path):
@@ -704,17 +701,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             #    1, 
             #    'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
             #)
-            alpha_values = np.concatenate((alpha_values, alpha), axis=0)#LEILAEDIT for .npy saving
-            reconstruction_cost_values = np.concatenate((reconstruction_cost_values, reconst_cost), axis=0)#LEILAEDIT for .npy saving
-            kl_cost_values = np.concatenate((akl_cost_values, kl_cost_1), axis=0)#LEILAEDIT for .npy saving
-        
-        alpha_values = np.delete(alpha_values, (0), axis=0)
-        reconstruction_cost_values = np.delete(reconstruction_cost_values, (0), axis=0)
-        kl_cost_values = np.delete(kl_cost_values, (0), axis=0)
-
-        np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
-        np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
-        np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values) #LEILAEDIT for .npy saving  
 
     # Train!
 
