@@ -37,14 +37,6 @@ OUT_DIR = DATASET + '_results' + '_filter_3_savestats'
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
    print "Created directory {}".format(OUT_DIR)
-   
-alpha_values = np.zeros((1))
-reconstruction_cost_values = np.zeros((1))
-kl_cost_values = np.zeros((1))
-
-np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
-np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
-np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values) #LEILAEDIT for .npy saving  
 
 if SETTINGS == 'mnist_256':
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
@@ -675,25 +667,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
          
         def generate_and_save_samples(tag):
-            print alpha.shape
-            print reconst_cost.shape
-            print kl_cost_1.shape
-            alpha_values = alpha
-            reconstruction_cost_values = reconst_cost
-            kl_cost_values = kl_cost_1
-            
-            alpha_values_file = np.load(OUT_DIR + '/' + 'alpha_values.npy')
-            reconstruction_cost_values_file = np.load(OUT_DIR + '/' + 'reconstruction_costs.npy')
-            kl_cost_values_file = np.load(OUT_DIR + '/' + 'kl_costs.npy')
-            
-            #alpha_values_file = np.concatenate((alpha_values_file, alpha_values), axis=0)
-            #reconstruction_cost_values_file = np.concatenate((reconstruction_cost_values_file, reconstruction_cost_values), axis=0)
-            #kl_cost_values_file = p.concatenate((kl_cost_values_file, kl_cost_values), axis=0)
-            
-            #np.save(OUT_DIR + '/' + 'alpha_values', alpha_values_file) #LEILAEDIT for .npy saving
-            #np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values_file) #LEILAEDIT for .npy saving  
-            #np.save(OUT_DIR + '/' + 'kl_costs', kl_cost_values_file) #LEILAEDIT for .npy saving  
-        
+
             #def color_grid_vis(X, nh, nw, save_path):
             #    # from github.com/Newmu
             #    X = X.transpose(0,2,3,1)
