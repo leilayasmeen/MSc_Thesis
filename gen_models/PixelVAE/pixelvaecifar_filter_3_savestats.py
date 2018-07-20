@@ -42,6 +42,10 @@ alpha_values = np.zeros((1))
 reconstruction_cost_values = np.zeros((1))
 kl_cost_values = np.zeros((1))
 
+np.save(OUT_DIR + '/' + 'alpha_values', alpha_values) #LEILAEDIT for .npy saving
+np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values) #LEILAEDIT for .npy saving  
+np.save(OUT_DIR + '/' + 'kl_costs' + tag, kl_cost_values) #LEILAEDIT for .npy saving  
+
 if SETTINGS == 'mnist_256':
     # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
     # one_level uses EncFull/DecFull for the bottom (and only) level
@@ -367,7 +371,7 @@ elif SETTINGS=='32px_cifar':
     TIMES = {
         'test_every': 10000,
         'stop_after': 400000,
-        'callback_every': 50000
+        'callback_every': 50 #50000
     }
     
     LR = 1e-3
@@ -674,9 +678,18 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             alpha_values = alpha
             reconstruction_cost_values = reconst_cost
             kl_cost_values = kl_cost_1
-            np.save(OUT_DIR + '/' + 'alpha_values_' + tag, alpha_values) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'reconstruction_costs_' + tag, reconstruction_cost_values) #LEILAEDIT for .npy saving  
-            np.save(OUT_DIR + '/' + 'kl_costs_' + tag, kl_cost_values) #LEILAEDIT for .npy saving  
+            
+            alpha_values_file = np.load(OUT_DIR + '/' + 'alpha_values')
+            reconstruction_cost_values_file = np.load(OUT_DIR + '/' + 'reconstruction_costs')
+            kl_cost_values_file = np.load(OUT_DIR + '/' + 'kl_costs')
+            
+            alpha_values_file = np.concatenate((alpha_values_file, alpha_values)), axis=0)
+            reconstruction_cost_values_file = np.concatenate((reconstruction_cost_values_file, reconstruction_cost_values)), axis=0)
+            kl_cost_values_file = p.concatenate((kl_cost_values_file, kl_cost_values)), axis=0)
+            
+            np.save(OUT_DIR + '/' + 'alpha_values', alpha_values_file) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'reconstruction_costs', reconstruction_cost_values_file) #LEILAEDIT for .npy saving  
+            np.save(OUT_DIR + '/' + 'kl_costs' + tag, kl_cost_values_file) #LEILAEDIT for .npy saving  
         
             #def color_grid_vis(X, nh, nw, save_path):
             #    # from github.com/Newmu
