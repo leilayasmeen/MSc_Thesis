@@ -371,7 +371,7 @@ elif SETTINGS=='32px_cifar':
     TIMES = {
         'test_every': 10000,
         'stop_after': 400000,
-        'callback_every': 50000
+        'callback_every': 50 #50000
     }
     
     LR = 1e-3
@@ -675,6 +675,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
          
         def generate_and_save_samples(tag):
+            print alpha.shape
+            print reconst_cost.shape
+            print kl_cost_1.shape
             alpha_values = alpha
             reconstruction_cost_values = reconst_cost
             kl_cost_values = kl_cost_1
