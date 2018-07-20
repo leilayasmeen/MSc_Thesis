@@ -961,151 +961,94 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 7
+            numsamples = 7*45 #7
             #pvals = np.linspace(0.2, 0.8, num=4)
             #pvals = np.linspace(0.2, 0.8, num=1)
-            p_set = np.zeros(1)
             
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
 
             for imagenum in range(numsamples):
                 pvals = np.random.beta(0.2, 0.2, 4)
-                for class1 in range(NUM_CLASSES-1): # goes up to class 8
-                  idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
-                  x_trainsubset1 = x_train_set_array[idx1,:]
-                  y_trainsubset1 = y_train_set_array[idx1,:]
-                  x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                  y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                  
-                  for class2 in range(class1+1, NUM_CLASSES):
-                    idx2 = np.asarray(np.where(np.equal(class2, y_train_set))[0])
-                    x_trainsubset2 = x_train_set_array[idx2,:]
-                    y_trainsubset2 = y_train_set_array[idx2,:]
-                    x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                    y_trainsubset2 = y_trainsubset2.reshape(-1, 1)
                     
-                    imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
-                    imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
+                imageindices = random.sample(range(x_train.shape[0]),2)
+                imageindex1 = imageindices[0]
+                imageindex2 = imageindices[1]
                     
-                    # Draw the corresponding images and labels from the training data
-                    image1 = x_trainsubset1[imageindex1,:]
-                    image2 = x_trainsubset2[imageindex2,:]  
-                    label1 = y_trainsubset1[imageindex1,:]
-                    label2 = y_trainsubset2[imageindex2,:]
-                
-                    # Reshape
-                    image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                    image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                    label1 = label1.reshape(1, 1)
-                    label2 = label2.reshape(1, 1)
-                    
-                    # Save the original images
-                    print "Saving original samples"
-                    color_grid_vis(
-                        image1, 
-                        1, 
-                        1, 
-                        'original_1_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
-                    )
-                    color_grid_vis(
-                        image2, 
-                        1, 
-                        1, 
-                        'original_2_classes{}and{}_num{}.png'.format(class1,class2,imagenum)
-                    )
-                      
-                    # Encode the images
-                    image_code1 = enc_fn(image1)
-                    image_code2 = enc_fn(image2)
-               
-                    # Change labels to matrix form before performing interpolations
-                    label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
-                    label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
-                    
-                    # Define slerp function
-                    #def slerp(val, low, high):
-                    #  omega = np.arccos(np.clip(np.dot(low/np.linalg.norm(low), high/np.linalg.norm(high)), -1, 1))
-                    #  so = np.sin(omega)
-                    #  if so == 0:
-                    #    return (1.0-val) * low + val * high # L'Hopital's rule/LERP
-                    #return np.sin((1.0-val)*omega) / so * low + np.sin(val*omega) / so * high
-                    # From https://github.com/soumith/dcgan.torch/issues/14
-               
-                    # Find angle between the two latent codes
-                    vec1 = image_code1/np.linalg.norm(image_code1)
-                    vec2 = image_code2/np.linalg.norm(image_code2)
-                    vec2 = np.transpose(vec2)
-                    omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
-                    so = np.sin(omega) 
-                     
-                    # Combine the latent codes
-                    for p in pvals:
-                      if so == 0:
-                        new_code = (1.0-p) * image_code1 + p * image_code2
-                      else:
-                        new_code = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
-                        
-                      new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                     
-                      new_label = new_label.reshape(1,1,NUM_CLASSES)
-
-                      samples = np.zeros(
-                        (1, N_CHANNELS, HEIGHT, WIDTH), 
-                        dtype='int32'
-                      )
-
-                      print "Generating samples"
-                      for y in xrange(HEIGHT):
-                        for x in xrange(WIDTH):
-                              for ch in xrange(N_CHANNELS):
-                                  next_sample = dec1_fn(new_code, samples, ch, y, x) 
-                                  samples[:,ch,y,x] = next_sample
-                            
-                      x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
-                      y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
-                      p_set = np.append(p_set,p)
-                
-                      color_grid_vis(
-                        samples, 
-                        1, 
-                        1, 
-                        'interpolation3_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum)
-                      )
-                    
-                # Sample two unique image indices from different classes
-                #classindices = random.sample(range(0,NUM_CLASSES),2)
-                #idx1 = np.where(np.equal(classindices[0],y_train_set))
-                #idx2 = np.where(np.equal(classindices[1],y_train_set))
-                
-                #x_train_set_array = np.array(x_train_set)
-                #y_train_set_array = np.array(y_train_set)
-                
-                #x_trainsubset1 = x_train_set_array[idx1,:]
-                #x_trainsubset2 = x_train_set_array[idx2,:]
-                #y_trainsubset1 = y_train_set_array[idx1,:]
-                #y_trainsubset2 = y_train_set_array[idx2,:]
-                
-                #x_trainsubset1 = x_trainsubset1.reshape(-1, N_CHANNELS, HEIGHT, WIDTH) 
-                #x_trainsubset2 = x_trainsubset2.reshape(-1, N_CHANNELS, HEIGHT, WIDTH)
-                #y_trainsubset1 = y_trainsubset1.reshape(-1, 1)
-                #y_trainsubset2 = y_trainsubset2.reshape(-1, 1) 
-                
-                #imageindex1 = random.sample(range(x_trainsubset1.shape[0]),1)
-                #imageindex2 = random.sample(range(x_trainsubset2.shape[0]),1)
-                
                 # Draw the corresponding images and labels from the training data
-                #image1 = x_trainsubset1[imageindex1,:]
-                #image2 = x_trainsubset2[imageindex2,:]  
-                #label1 = y_trainsubset1[imageindex1,:]
-                #label2 = y_trainsubset2[imageindex2,:]
+                image1 = x_train[imageindex1,:]
+                image2 = x_train[imageindex2,:]  
+                label1 = y_train[imageindex1,:]
+                label2 = y_train[imageindex2,:]
                 
                 # Reshape
-                #image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                #image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-                #label1 = label1.reshape(1, 1)
-                #label2 = label2.reshape(1, 1)
-  
+                image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+                label1 = label1.reshape(1, 1)
+                label2 = label2.reshape(1, 1)
+                    
+                # Save the original images
+                print "Saving original samples"
+                color_grid_vis(
+                    image1, 
+                    1, 
+                    1, 
+                    'original_1_classes{}and{}_num{}.png'.format(label1,label2,imagenum)
+                )
+                color_grid_vis(
+                    image2, 
+                    1, 
+                    1, 
+                    'original_2_classes{}and{}_num{}.png'.format(label1,label2,imagenum)
+                )
+                      
+                # Encode the images
+                image_code1 = enc_fn(image1)
+                image_code2 = enc_fn(image2)
+               
+                # Change labels to matrix form before performing interpolations
+                label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
+                label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
+
+                # Find angle between the two latent codes
+                vec1 = image_code1/np.linalg.norm(image_code1)
+                vec2 = image_code2/np.linalg.norm(image_code2)
+                vec2 = np.transpose(vec2)
+                omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
+                so = np.sin(omega) 
+                     
+                # Combine the latent codes
+                for p in pvals:
+                  if so == 0:
+                    new_code = (1.0-p) * image_code1 + p * image_code2
+                  else:
+                    new_code = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
+                        
+                  new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
+                     
+                  new_label = new_label.reshape(1,1,NUM_CLASSES)
+
+                  samples = np.zeros(
+                    (1, N_CHANNELS, HEIGHT, WIDTH), 
+                    dtype='int32')
+
+                  print "Generating samples"
+                  for y in xrange(HEIGHT):
+                    for x in xrange(WIDTH):
+                          for ch in xrange(N_CHANNELS):
+                              next_sample = dec1_fn(new_code, samples, ch, y, x) 
+                              samples[:,ch,y,x] = next_sample
+                            
+                  x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)#LEILAEDIT for .npy saving
+                  y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
+                
+                  color_grid_vis(
+                    samples, 
+                    1, 
+                    1, 
+                    'interpolation3_classes{}and{}_pval{}_num{}.png'.format(label1,label2,p,imagenum)
+                  )
+
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
             
