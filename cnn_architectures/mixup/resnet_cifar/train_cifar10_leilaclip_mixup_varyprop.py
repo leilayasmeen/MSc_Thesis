@@ -141,12 +141,12 @@ if __name__ == '__main__':
                          epochs=epochs,
                          callbacks=cbks,
                          validation_data=(x_val, y_val))
-    resnet.save('resnet_110_45kclip_mixup.h5')
+    resnet.save('resnet_110_45kclip_mixup_varyprop.h5')
     
     print("Get test accuracy:")
     loss, accuracy = resnet.evaluate(x_test, y_test, verbose=0)
     print("Test: accuracy1 = %f  ;  loss1 = %f" % (accuracy, loss))
     
     print("Pickle models history")
-    with open('hist_110_cifar10_v2_45kclip_mixup.p', 'wb') as f:
+    with open('hist_110_cifar10_v2_45kclip_mixup_varyprop.p', 'wb') as f:
         pickle.dump(hist.history, f)
