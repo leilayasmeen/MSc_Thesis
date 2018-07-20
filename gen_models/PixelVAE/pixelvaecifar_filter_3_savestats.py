@@ -371,7 +371,7 @@ elif SETTINGS=='32px_cifar':
     TIMES = {
         'test_every': 10000,
         'stop_after': 400000,
-        'callback_every': 50 #50000
+        'callback_every': 50000
     }
     
     LR = 1e-3
