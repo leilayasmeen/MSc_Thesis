@@ -664,7 +664,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         def enc_fn(_images):
             return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        #sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
          
         def generate_and_save_samples(tag):
             def color_grid_vis(X, nh, nw, save_path):
