@@ -21,6 +21,10 @@ NUM_CLASSES = 10
 N_CHANNELS = 3
 HEIGHT = 32
 WIDTH = 32
+
+if not os.path.isdir(OUT_DIR):
+   os.makedirs(OUT_DIR)
+   print "Created directory {}".format(OUT_DIR)
       
 from keras.datasets import cifar10
 (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
