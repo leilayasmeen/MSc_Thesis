@@ -38,7 +38,7 @@ from sklearn.model_selection import train_test_split
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = DATASET + '_interpolation3_final_filter_3_mean_beta_3'
+OUT_DIR = DATASET + '_interpolation1_final_filter_3_mean_beta_5'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
@@ -807,7 +807,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 mu1, logsig1, sig1 = split(mu_and_logsig1)
 
                 eps = tf.random_normal(tf.shape(mu1))
-                #latents1 = mu1 + (eps * sig1)
                 latents1 = mu1 # LEILAEDIT
 
                 if EMBED_INPUTS:
@@ -961,7 +960,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     img[j*h:j*h+h, i*w:i*w+w, :] = x
                 imsave(OUT_DIR + '/' + save_path, img)
                 
-            numsamples = 8*45 #7
+            numsamples = 45
             #pvals = np.linspace(0.2, 0.8, num=4)
             #pvals = np.linspace(0.2, 0.8, num=1)
             
@@ -1009,23 +1008,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # Change labels to matrix form before performing interpolations
                 label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
                 label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
-
-                # Find angle between the two latent codes
-                vec1 = image_code1/np.linalg.norm(image_code1)
-                vec2 = image_code2/np.linalg.norm(image_code2)
-                vec2 = np.transpose(vec2)
-                omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
-                so = np.sin(omega) 
                      
                 # Combine the latent codes
                 for p in pvals:
-                  if so == 0:
-                    new_code = (1.0-p) * image_code1 + p * image_code2
-                  else:
-                    new_code = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
-                        
+                  new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
                   new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                     
                   new_label = new_label.reshape(1,1,NUM_CLASSES)
 
                   samples = np.zeros(
@@ -1048,14 +1035,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     1, 
                     'interpolation3_classes{}and{}_pval{}_num{}.png'.format(label1,label2,p,imagenum)
                   )
-
+  
             x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
             y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
             
             x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
-            np.save(OUT_DIR + '/' + 'x_augmentation_array_interpol3_mean_beta_3', x_augmentation_array) #LEILAEDIT for .npy saving
-            np.save(OUT_DIR + '/' + 'y_augmentation_array_interpol3_mean_beta_3', y_augmentation_array) #LEILAEDIT for .npy saving   
+            np.save(OUT_DIR + '/' + 'x_augmentation_array_mean_beta_5', x_augmentation_array) #LEILAEDIT for .npy saving
+            np.save(OUT_DIR + '/' + 'y_augmentation_array_mean_beta_5', y_augmentation_array) #LEILAEDIT for .npy saving   
                 
     # Run
 
