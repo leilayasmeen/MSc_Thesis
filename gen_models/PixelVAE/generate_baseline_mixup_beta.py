@@ -2,17 +2,6 @@ import os, sys
 sys.path.append(os.getcwd())
 
 import random
-import tflib as lib
-import tflib.sampling_loop_cifar_filter_3
-import tflib.ops.kl_unit_gaussian
-import tflib.ops.kl_gaussian_gaussian
-import tflib.ops.conv2d
-import tflib.ops.linear
-import tflib.ops.batchnorm
-import tflib.ops.embedding
-
-import tflib.cifar
-import tflib.cifar_256
 
 import numpy as np
 import tensorflow as tf
