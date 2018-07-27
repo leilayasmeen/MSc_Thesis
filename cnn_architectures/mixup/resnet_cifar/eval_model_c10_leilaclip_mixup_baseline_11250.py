@@ -122,8 +122,8 @@ if __name__ == '__main__':
     y_train45_additions = y_train45_additions.reshape(-1,num_classes)
     
     # shorten to applicable size
-    x_train45_additions = x_train45_additions[0:11249,:]
-    y_train45_additions = y_train45_additions[0:11249,:]
+    x_train45_additions = x_train45_additions[0:11250,:]
+    y_train45_additions = y_train45_additions[0:11250,:]
     
     # concatenate with initial training set
     x_train45 = np.concatenate((x_train45, x_train45_additions),axis=0)
