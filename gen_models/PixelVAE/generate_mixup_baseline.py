@@ -80,8 +80,8 @@ for imagenum in range(numsamples):
     label2 = y_train_set[imageindex2,:]
                 
     # Reshape
-    image1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
-    image2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+    xarray1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
+    xarray2 = image2.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
     label1 = label1.reshape(1, 1)
     label2 = label2.reshape(1, 1)
                     
