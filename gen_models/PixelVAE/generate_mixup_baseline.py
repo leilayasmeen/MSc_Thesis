@@ -35,8 +35,12 @@ OUT_DIR = DATASET + '_mixup_baseline'
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
    print "Created directory {}".format(OUT_DIR)
-
+   
 from keras.datasets import cifar10
+N_CHANNELS = 3
+HEIGHT = 32
+WIDTH = 32
+NUM_CLASSES = 10
 (x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
    
 x_train_set = x_train_set.transpose(0,3,1,2)
@@ -47,8 +51,8 @@ x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y
 
 from keras.utils import np_utils           
 x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
-y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
-            
+y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving.
+
 # Function to translate numeric images into plots
 def color_grid_vis(X, nh, nw, save_path):
   # from github.com/Newmu
@@ -61,7 +65,7 @@ def color_grid_vis(X, nh, nw, save_path):
     img[j*h:j*h+h, i*w:i*w+w, :] = x
     imsave(OUT_DIR + '/' + save_path, img)            
                 
-numsamples = 50
+numsamples = 45000
             
 x_train_set_array = np.array(x_train_set)
 y_train_set_array = np.array(y_train_set)  
@@ -86,32 +90,32 @@ for imagenum in range(numsamples):
     label2 = label2.reshape(1, 1)
                     
     # Save the original images
-    print "Saving original samples"
-    color_grid_vis(
-        image1,
-        1,
-        1,
-        'original_1_classes{}and{}_num{}.png'.format(label1,label2,imagenum)
-        )
-    color_grid_vis(
-        image2,
-        1,
-        1,
-        'original_2_classes{}and{}_num{}.png'.format(label1,label2,imagenum)
-        )      
+    #print "Saving original samples"
+    #color_grid_vis(
+    #    xarray1,
+    #    1,
+    #    1,
+    #    'original_1_classes{}and{}_num{}.png'.format(label1,label2,imagenum)
+    #    )
+    #color_grid_vis(
+    #    xarray2,
+    #    1,
+    #    1,
+    #    'original_2_classes{}and{}_num{}.png'.format(label1,label2,imagenum)
+    #    )      
                
-     # Change labels to matrix form before performing interpolations
-     y1 = np_utils.to_categorical(label1, NUM_CLASSES) 
-     y2 = np_utils.to_categorical(label2, NUM_CLASSES) 
+    # Change labels to matrix form before performing interpolations
+    y1 = np_utils.to_categorical(label1, NUM_CLASSES) 
+    y2 = np_utils.to_categorical(label2, NUM_CLASSES) 
                      
-     # Combine the arrays and labels
-     for p in pvals:
-         new_xarray = np.multiply(p,xarray1) + np.multiply((1-p),xarray2)
-         new_label = np.multiply(p,y1) + np.multiply((1-p),y2)
-         new_label = new_label.reshape(1,1,NUM_CLASSES)
+    # Combine the arrays and labels
+    for p in pvals:
+        new_xarray = np.multiply(p,xarray1) + np.multiply((1-p),xarray2)
+        new_label = np.multiply(p,y1) + np.multiply((1-p),y2)
+        new_label = new_label.reshape(1,1,NUM_CLASSES)
 
-         x_augmentation_set = np.concatenate((x_augmentation_set, xarray), axis=0)#LEILAEDIT for .npy saving
-         y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
+        x_augmentation_set = np.concatenate((x_augmentation_set, new_xarray), axis=0)#LEILAEDIT for .npy saving
+        y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)#LEILAEDIT for .npy saving
                
 x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
 y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
@@ -119,4 +123,4 @@ y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
 x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
 np.save(OUT_DIR + '/' + 'x_augmentation_array_mixup_baseline', x_augmentation_array) #LEILAEDIT for .npy saving
-np.save(OUT_DIR + '/' + 'y_augmentation_array_mixup_baseline', y_augmentation_array) #LEILAEDIT for .npy saving   
+np.save(OUT_DIR + '/' + 'y_augmentation_array_mixup_baseline', y_augmentation_array) #LEILAEDIT for .npy saving
