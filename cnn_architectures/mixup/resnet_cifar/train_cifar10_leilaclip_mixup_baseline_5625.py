@@ -20,7 +20,7 @@ img_rows, img_cols = 32, 32
 img_channels       = 3
 batch_size         = 128
 epochs             = 200
-iterations         = 50624 // batch_size #LEILAEDIT
+iterations         = 50625 // batch_size #LEILAEDIT
 weight_decay       = 0.0001
 seed = 333
 
