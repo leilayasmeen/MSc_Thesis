@@ -37,7 +37,7 @@ if not os.path.isdir(OUT_DIR):
    print "Created directory {}".format(OUT_DIR)
 
 from keras.datasets import cifar10
-x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
+(x_train_set, y_train_set), (x_test_set, y_test_set) = cifar10.load_data()
    
 x_train_set = x_train_set.transpose(0,3,1,2)
 x_test_set = x_test_set.transpose(0,3,1,2)
