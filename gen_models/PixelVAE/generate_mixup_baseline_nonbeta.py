@@ -65,7 +65,8 @@ def color_grid_vis(X, nh, nw, save_path):
     img[j*h:j*h+h, i*w:i*w+w, :] = x
     imsave(OUT_DIR + '/' + save_path, img)            
                 
-numsamples = 45000
+numsamples = 11250
+pvals = np.linspace(0.2, 0.8, num=4)
             
 x_train_set_array = np.array(x_train_set)
 y_train_set_array = np.array(y_train_set)  
@@ -94,7 +95,7 @@ for imagenum in range(numsamples):
             label1 = y_trainsubset1[imageindex1,:]
             label2 = y_trainsubset2[imageindex2,:]
         
-            pvals = np.random.beta(0.2, 0.2, 1)
+            #pvals = np.random.beta(0.2, 0.2, 1)
     
             # Reshape
             xarray1 = image1.reshape(1, N_CHANNELS, HEIGHT, WIDTH)
