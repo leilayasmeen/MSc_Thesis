@@ -30,7 +30,7 @@ from sklearn.model_selection import train_test_split
 DATASET = 'cifar10' # mnist_256
 SETTINGS = '32px_cifar' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
 
-OUT_DIR = DATASET + '_mixup_baseline_fourcopies'
+OUT_DIR = DATASET + '_mixup_baseline_beta'
 
 if not os.path.isdir(OUT_DIR):
    os.makedirs(OUT_DIR)
@@ -122,5 +122,5 @@ y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
             
 x_augmentation_array = x_augmentation_array.astype(np.uint8)
 
-np.save(OUT_DIR + '/' + 'x_augmentation_array_mixup_baseline_fourcopies', x_augmentation_array) #LEILAEDIT for .npy saving
-np.save(OUT_DIR + '/' + 'y_augmentation_array_mixup_baseline_fourcopies', y_augmentation_array) #LEILAEDIT for .npy saving
+np.save(OUT_DIR + '/' + 'x_augmentation_array_mixup_baseline_beta', x_augmentation_array) #LEILAEDIT for .npy saving
+np.save(OUT_DIR + '/' + 'y_augmentation_array_mixup_baseline_beta', y_augmentation_array) #LEILAEDIT for .npy saving
