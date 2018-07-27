@@ -65,13 +65,13 @@ def color_grid_vis(X, nh, nw, save_path):
     img[j*h:j*h+h, i*w:i*w+w, :] = x
     imsave(OUT_DIR + '/' + save_path, img)            
                 
-numsamples = 45000
+numsamples = 11250
             
 x_train_set_array = np.array(x_train_set)
 y_train_set_array = np.array(y_train_set)  
 
 for imagenum in range(numsamples):
-    pvals = np.random.beta(0.2, 0.2, 1)
+    pvals = np.random.beta(0.2, 0.2, 4)
                     
     imageindices = random.sample(range(x_train_set.shape[0]),2)
     imageindex1 = imageindices[0]
