@@ -42,7 +42,7 @@ from keras.utils import np_utils
 x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
 y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving.
 
- Function to translate numeric images into plots
+#Function to translate numeric images into plots
 def color_grid_vis(X, nh, nw, save_path):
   # from github.com/Newmu
   X = X.transpose(0,2,3,1)
