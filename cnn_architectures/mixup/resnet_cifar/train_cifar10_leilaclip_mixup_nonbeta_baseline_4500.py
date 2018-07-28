@@ -3,6 +3,7 @@
 
 import keras
 import numpy as np
+import tensorflow as tf
 
 from keras.backend.tensorflow_backend import set_session
 config = tf.ConfigProto()
