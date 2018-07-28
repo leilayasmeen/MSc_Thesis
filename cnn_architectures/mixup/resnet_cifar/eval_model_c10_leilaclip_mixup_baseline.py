@@ -120,7 +120,7 @@ if __name__ == '__main__':
     x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_mixup_baseline.npy')
     x_train45_additions = x_train45_additions.transpose(0,2,3,1)
     y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_mixup_baseline.npy')
-    y_train45_additions = y_train45_additions.reshape(-1,num_classes)
+    y_train45_additions = y_train45_additions.reshape(-1,num_classes10)
     
     # concatenate with initial training set
     x_train45 = np.concatenate((x_train45, x_train45_additions),axis=0)
