@@ -111,6 +111,7 @@ if __name__ == '__main__':
     print("Cifar-10 evaluation")
         
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    y_train = keras.utils.to_categorical(y_train, num_classes10)
     y_test = keras.utils.to_categorical(y_test, num_classes10)
     
     # color preprocessing - using precalculated means and std-s
