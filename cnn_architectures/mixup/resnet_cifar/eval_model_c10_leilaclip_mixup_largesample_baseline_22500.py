@@ -32,7 +32,7 @@ weight_decay       = 0.0001
 mean = [125.307, 122.95, 113.865]  # Mean (per-pixel mean?) 
 std  = [62.9932, 62.0887, 66.7048]
 seed = 333
-weights_file_10 = "resnet_110_45kclip_mixup_baseline_22500.h5"
+weights_file_10 = "resnet_110_45kclip_mixup_largesample_baseline_22500.h5"
 
 def scheduler(epoch):
     if epoch < 80:
@@ -141,5 +141,5 @@ if __name__ == '__main__':
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
     evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet110_c10clip_mixup_baseline_22500", x_val = x_val, y_val = y_val)
+                   pickle_file = "probs_resnet110_c10clip_mixup_largesample_baseline_22500", x_val = x_val, y_val = y_val)
     
