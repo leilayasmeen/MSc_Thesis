@@ -28,12 +28,12 @@ img_rows, img_cols = 32, 32
 img_channels       = 3
 batch_size         = 128
 epochs             = 200
-iterations         = 45000 // batch_size
+iterations         = 90000 // batch_size
 weight_decay       = 0.0001
 mean = [125.307, 122.95, 113.865]  # Mean (per-pixel mean?) 
 std  = [62.9932, 62.0887, 66.7048]
 seed = 333
-weights_file_10 = "resnet_110_45kclip_mixup_baseline.h5"
+weights_file_10 = "resnet_110_45kclip_mixup_largesample_baseline.h5"
 
 def scheduler(epoch):
     if epoch < 80:
@@ -118,9 +118,9 @@ if __name__ == '__main__':
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
 
     # load augmentation sets
-    x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_mixup_baseline.npy')
+    x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_mixup_largesample_baseline.npy')
     x_train45_additions = x_train45_additions.transpose(0,2,3,1)
-    y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_mixup_baseline.npy')
+    y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_mixup_largesample_baseline.npy')
     y_train45_additions = y_train45_additions.reshape(-1,num_classes10)
     
     # concatenate with initial training set
@@ -138,5 +138,5 @@ if __name__ == '__main__':
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
     evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet110_c10clip_mixup_baseline", x_val = x_val, y_val = y_val)
+                   pickle_file = "probs_resnet110_c10clip_mixup_largesample_baseline", x_val = x_val, y_val = y_val)
     
