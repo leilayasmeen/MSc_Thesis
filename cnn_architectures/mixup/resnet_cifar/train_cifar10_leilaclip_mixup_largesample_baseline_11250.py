@@ -104,9 +104,9 @@ if __name__ == '__main__':
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
     
     # load augmentation sets
-    x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_mixup_largesample_baseline.npy')
+    x_train45_additions = np.load('Augmentation_Sets/x_augmentation_array_mixup_baseline.npy')
     x_train45_additions = x_train45_additions.transpose(0,2,3,1)
-    y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_mixup_largesample_baseline.npy')
+    y_train45_additions = np.load('Augmentation_Sets/y_augmentation_array_mixup_baseline.npy')
     y_train45_additions = y_train45_additions.reshape(-1,num_classes)
     
     # Adjust size of augmentation array
