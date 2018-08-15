@@ -1,16 +1,19 @@
 
 """
-This file creates interpolations using Latent Blending. Before using this file, use train_pixelvae_cifar10.py to train
-a PixelVAE on CIFAR-10 (or another dataset). This file is currently set to run for CIFAR-10; however, the lines which need
+This file creates interpolations using Latent Blending. 
+Before using this file, use train_pixelvae_cifar10.py to train
+a PixelVAE on CIFAR-10 (or another dataset). 
+This file is currently set to run for CIFAR-10; however, the lines which need
 to be adjusted in order to run this file on another dataset have been labelled.
 
-When using a different set of parameters or PixelVAE architecture, change the sampling_loop file to the one 
-which is tailored to run on your desired set of parameters.
+When using a different set of parameters or PixelVAE architecture, change the 
+sampling_loop file to the one which is set to run on your desired parameters.
 
 This code is adapted from:
 
 PixelVAE: A Latent Variable Model for Natural Images
-Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, David Vazquez, Aaron Courville
+Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga,
+Francesco Visin, David Vazquez, Aaron Courville
 """
 
 import os, sys
