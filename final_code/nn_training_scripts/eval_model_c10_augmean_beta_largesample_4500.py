@@ -1,7 +1,8 @@
 # This file evaluates Neural Network predictions, given a set of trained weights. It saves these predictions in logit form.
 # This script is based on Markus Kangsepp's implementation.
 # The lines which need to be edited from experiment to experiment have been outlined below. This is for the experiment
-# in which 4,500 Latent Blended pairs were created with SLI, Beta(0.2,0.2) weighting, and a single mixed image per pair of parent images.
+# in which 4,500 Latent Blended pairs were created with SLI, mean
+# latent codes, Beta(0.2,0.2) weighting, and a single mixed image per pair of parent images.
 # The ResNet model is originally from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
