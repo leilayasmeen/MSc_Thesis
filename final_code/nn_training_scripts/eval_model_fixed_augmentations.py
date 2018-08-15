@@ -1,9 +1,11 @@
-# This file evaluates Neural Network predictions, given a set of trained weights. It saves these predictions in logit form.
+# This file evaluates Neural Network predictions, given a set of trained weights. 
+# It saves these predictions in logit form.
 # This script is based on Markus Kangsepp's implementation.
-# The lines which need to be edited from experiment to experiment have been outlined below. This is for the experiment
-# in which 4,500 Latent Blended pairs were created with SLI, mean
+# The lines which need to be edited from experiment to experiment have been outlined below. 
+# This is for the experiment in which 4,500 Latent Blended pairs were created with SLI, mean
 # latent codes, Beta(0.2,0.2) weighting, and a single mixed image per pair of parent images.
-# The ResNet model is originally from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
+# The ResNet model is originally from:
+# https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
 import numpy as np
@@ -31,7 +33,9 @@ img_rows, img_cols = 32, 32
 img_channels       = 3
 batch_size         = 128
 epochs             = 200
-iterations         = 49500 // batch_size # Edit the numerator to equal the total augmented training set size (45,000 + aug_set_size)
+
+# Edit the numerator below to equal total training set size (45,000 + aug_set_size)
+iterations         = 49500 // batch_size 
 weight_decay       = 0.0001
 mean = [125.307, 122.95, 113.865]  # Pre-calculated 
 std  = [62.9932, 62.0887, 66.7048] # Pre-calculated
@@ -62,12 +66,14 @@ def residual_network(img_input,classes_num=10,stack_n=5):
         pre_bn   = BatchNormalization()(intput)
         pre_relu = Activation('relu')(pre_bn)
 
-        conv_1 = Conv2D(out_channel,kernel_size=(3,3),strides=stride,padding='same',
+        conv_1 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=stride,padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(pre_relu)
         bn_1   = BatchNormalization()(conv_1)
         relu1  = Activation('relu')(bn_1)
-        conv_2 = Conv2D(out_channel,kernel_size=(3,3),strides=(1,1),padding='same',
+        conv_2 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=(1,1),padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(relu1)
         if increase:
@@ -86,7 +92,8 @@ def residual_network(img_input,classes_num=10,stack_n=5):
     # stack_n = 5 by default, total layers = 32
     # Input dimensions: 32x32x3 
     # Output dimensions: 32x32x16
-    x = Conv2D(filters=16,kernel_size=(3,3),strides=(1,1),padding='same',
+    x = Conv2D(filters=16,kernel_size=(3,3),
+               strides=(1,1),padding='same',
                kernel_initializer="he_normal",
                kernel_regularizer=regularizers.l2(weight_decay))(img_input)
 
@@ -125,12 +132,16 @@ if __name__ == '__main__':
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     y_test = keras.utils.to_categorical(y_test, num_classes10)
     
-    # Load in the augmentation set for the experiment being run. This file should be adjusted for each distinct experiment.
-    x_train_additions = np.load('Augmentation_Sets/x_augmentation_array_mean_beta_largesample_4500.npy')
-    y_train_additions = np.load('Augmentation_Sets/y_augmentation_array_mean_beta_largesample_4500.npy')
+    # Load in the augmentation set for the experiment being run.
+    # The filename should be adjusted appropriately based on the experiment.
+    x_train_additions = np.load('x_augmentation_array.npy')
+    y_train_additions = np.load('y_augmentation_array.npy')
 
-    # Split the CIFAR-10 dataset into training, validation, and test sets before appending the augmentation st
-    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
+    # Split the CIFAR-10 dataset into training, validation, and test sets
+    x_train45, x_val, y_train45, y_val = train_test_split(x_train, 
+                                                          y_train, 
+                                                          test_size=0.1, 
+                                                          random_state=seed)  
     
     # Add the augmentation set to the training set
     x_train_additions = x_train_additions.transpose(0,2,3,1)
@@ -146,10 +157,12 @@ if __name__ == '__main__':
     x_val = (x_val-img_mean)/img_std
     x_test = (x_test-img_mean)/img_std
     
-    # Assemble the neural network
+    # Assemble the neural network. Adjust line 166 to include appropriate filename.
     img_input = Input(shape=(img_rows,img_cols,img_channels))
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
-    evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet110_c10clip_augmean_beta_largesample_4500", x_val = x_val, y_val = y_val)
+    evaluate_model(model, weights_file_10, x_test, y_test, 
+                   bins = 15, verbose = True, 
+                   pickle_file = "probs_resnet110_c10clip_augmean_beta_largesample_4500",
+                   x_val = x_val, y_val = y_val)
     
