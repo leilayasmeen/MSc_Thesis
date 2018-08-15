@@ -1,8 +1,10 @@
-# This file obtains predictions (and saves them in logit form) for the ResNet-110 trained with mixup (specifically, the
-# experiments in which output-space mixed examples were created in every training batch)
-# It is based off a script implemented by Markus Kangsepp
-# It draws on code from: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
-# The ResNet model is obtained from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
+# This file obtains predictions (and saves them in logit form)
+# for the ResNet-110 trained with mixup (specifically, the experiments 
+# in which output-space mixed examples were created in every training batch)
+# It is based off a script implemented by Markus Kangsepp.
+# It draws on: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
+# The ResNet model is obtained from:
+# https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
 import numpy as np
@@ -47,12 +49,14 @@ def residual_network(img_input,classes_num=10,stack_n=5):
         pre_bn   = BatchNormalization()(intput)
         pre_relu = Activation('relu')(pre_bn)
 
-        conv_1 = Conv2D(out_channel,kernel_size=(3,3),strides=stride,padding='same',
+        conv_1 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=stride,padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(pre_relu)
         bn_1   = BatchNormalization()(conv_1)
         relu1  = Activation('relu')(bn_1)
-        conv_2 = Conv2D(out_channel,kernel_size=(3,3),strides=(1,1),padding='same',
+        conv_2 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=(1,1),padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(relu1)
         if increase:
@@ -109,7 +113,10 @@ if __name__ == '__main__':
     
     # Split the data into training, validation, and test sets
     # The random seed ensures that every discriminator uses the same split
-    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed) 
+    x_train45, x_val, y_train45, y_val = train_test_split(x_train, 
+                                                          y_train, 
+                                                          test_size=0.1, 
+                                                          random_state=seed) 
     
     # Pre-process colors, as specified in the paper
     img_mean = x_train45.mean(axis=0)  # per-pixel mean
@@ -124,9 +131,12 @@ if __name__ == '__main__':
     resnet    = Model(img_input, output)
     print(resnet.summary())
 
-    # Set the optimizer and momentum, specify gradient clipping value with the clipnorm option to ensure stability
-    sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True, clipnorm=1.)
-    resnet.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    # Set the optimizer and momentum, specify gradient 
+    # clipping value with the clipnorm option to ensure stability
+    sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True, 
+                         clipnorm=1.)
+    resnet.compile(loss='categorical_crossentropy', optimizer=sgd, 
+                   metrics=['accuracy'])
 
     # Set the callback
     cbks = [LearningRateScheduler(scheduler)]
@@ -141,7 +151,9 @@ if __name__ == '__main__':
     datagen.fit(x_train45)
 
     # Commence training
-    hist = resnet.fit_generator(datagen.flow(x_train45, y_train45,batch_size=batch_size),
+    hist = resnet.fit_generator(datagen.flow(x_train45, 
+                                             y_train45,
+                                             batch_size=batch_size),
                          steps_per_epoch=iterations,
                          epochs=epochs,
                          callbacks=cbks,
