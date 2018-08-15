@@ -436,8 +436,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             from keras.utils import np_utils
             import itertools
             
-            x_augmentation_set = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) #LEILEDIT: to enable .npy image saving
-            y_augmentation_set = np.zeros((1, 1, NUM_CLASSES)) #LEILEDIT: to enable .npy image saving. 
+            # Create arrays which will hold mixed examples and their labels (separate arrays for SLI and Slerp)
+            x_augmentation_set_sli = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) 
+            y_augmentation_set_sli = np.zeros((1, 1, NUM_CLASSES))
+            x_augmentation_set_slerp = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) 
+            y_augmentation_set_slerp = np.zeros((1, 1, NUM_CLASSES))
             
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
@@ -457,9 +460,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             x_train_set_array = np.array(x_train_set)
             y_train_set_array = np.array(y_train_set)  
             
-            # INTERPOLATION 1: Simple Linear Interpolation
             for imagenum in range(numsamples):
-                for class1 in range(NUM_CLASSES-1): # goes up to class 8
+                for class1 in range(NUM_CLASSES-1): # use these nested for loops to sample images from every pair of classes
                   idx1 = np.asarray(np.where(np.equal(class1, y_train_set))[0])
                   x_trainsubset1 = x_train_set_array[idx1,:]
                   y_trainsubset1 = y_train_set_array[idx1,:]
@@ -501,7 +503,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     label1 = np_utils.to_categorical(label1, NUM_CLASSES) 
                     label2 = np_utils.to_categorical(label2, NUM_CLASSES) 
                
-                    # Lambda values to use for the specific weighting scheme. We use "p" instead of lambda as it is shorter to type.
+                    # Lambda values to use for the specific weighting scheme. We use "p" instead of lambda in the code as it is shorter.
                   
                     # This option is for constant lambda in {0.2, 0.4, 0.6, 0.8}
                     pvals = np.linspace(0.2, 0.8, num=4) 
@@ -509,42 +511,78 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                     # This option is for Beta distributed lambda. Adjust the alpha values (first two parameters in the expression below)
                     # and number of samples to draw (third parameter in the expression below) based on the desired interpolation scheme.
                     # pvals = np.random.beta(0.2, 0.2, 4) 
-                     
+                    
+                    # Find angle between the two latent codes (to use for Spherical linear interpolation)
+                    vec1 = image_code1/np.linalg.norm(image_code1)
+                    vec2 = image_code2/np.linalg.norm(image_code2)
+                    vec2 = np.transpose(vec2)
+                    omega = np.arccos(np.clip(np.dot(vec1, vec2), -1, 1))
+                    so = np.sin(omega) 
+                  
                     # Combine the latent codes
                     for p in pvals:
-                      new_code = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
-                      new_label = np.multiply(p,label1) + np.multiply((1-p),label2)
-                      new_label = new_label.reshape(1,1,NUM_CLASSES)
+                      
+                      # Interpolation 1: Simple linear interpolation (SLI)
+                      new_code_sli = np.multiply(p,image_code1) + np.multiply((1-p),image_code2)
+                      new_label_sli = np.multiply(p,label1) + np.multiply((1-p),label2)
+                      new_label_sli = new_label_sli.reshape(1,1,NUM_CLASSES)
 
-                      samples = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH),dtype='int32')
+                      sample_sli = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH), dtype='int32')
 
-                      print "Generating samples"
+                      # Generate SLI sample
                       for y in xrange(HEIGHT):
                         for x in xrange(WIDTH):
                               for ch in xrange(N_CHANNELS):
-                                  next_sample = dec1_fn(new_code, samples, ch, y, x) 
-                                  samples[:,ch,y,x] = next_sample
+                                  next_sample_sli = dec1_fn(new_code_sli, sample_sli, ch, y, x) 
+                                  sample_sli[:,ch,y,x] = next_sample_sli
                       
                       # Add each mixed example and label to an array to be exported as a numpy array at the end
-                      x_augmentation_set = np.concatenate((x_augmentation_set, samples), axis=0)
-                      y_augmentation_set = np.concatenate((y_augmentation_set, new_label), axis=0)
+                      x_augmentation_set_sli = np.concatenate((x_augmentation_set_sli, sample_sli), axis=0)
+                      y_augmentation_set_sli = np.concatenate((y_augmentation_set_sli, new_label_sli), axis=0)
                 
-                      color_grid_vis(samples,1,1,'interpolation1_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum))
-  
+                      # Save the SLI-mixed example as an image. Comment out this line if desired.
+                      color_grid_vis(sample_sli,1,1,'interpolation_sli_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum))
+
+                      # Interpolation 3: Spherical linear interpolation (Slerp)
+                      if so == 0:
+                        new_code_slerp = (1.0-p) * image_code1 + p * image_code2
+                      else:
+                        new_code_slerp = np.sin((1.0-p)*omega) / so * image_code1 + np.sin(p*omega) / so * image_code2
+                        
+                      new_label_slerp = np.multiply(p,label1) + np.multiply((1-p),label2)
+                      new_label_slerp = new_label_slerp.reshape(1,1,NUM_CLASSES)
+
+                      sample_slerp = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH),dtype='int32')
+
+                      # Generate Slerp sample
+                      for y in xrange(HEIGHT):
+                        for x in xrange(WIDTH):
+                              for ch in xrange(N_CHANNELS):
+                                  next_sample_slerp = dec1_fn(new_code_slerp, sample_slerp, ch, y, x) 
+                                  sample_slerp[:,ch,y,x] = next_sample_slerp
+                            
+                      x_augmentation_set_slerp = np.concatenate((x_augmentation_set_slerp, sample_slerp), axis=0)
+                      y_augmentation_set_slerp = np.concatenate((y_augmentation_set_slerp, new_label_slerp), axis=0)
+   
+                      # Save the Slerp-mixed example as an image. Comment out this line if desired.
+                      color_grid_vis(sample_slerp,1,1,'interpolation_slerp_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum))
+
             # Remove the placeholder rows in the image and label arrays
-            x_augmentation_array = np.delete(x_augmentation_set, (0), axis=0)
-            y_augmentation_array = np.delete(y_augmentation_set, (0), axis=0)
+            x_augmentation_array_sli = np.delete(x_augmentation_set_sli, (0), axis=0)
+            y_augmentation_array_sli = np.delete(y_augmentation_set_sli, (0), axis=0)
+            x_augmentation_array_slerp = np.delete(x_augmentation_set_slerp, (0), axis=0)
+            y_augmentation_array_slerp = np.delete(y_augmentation_set_slerp, (0), axis=0)
             
             # Convert the image pixels to uint8
-            x_augmentation_array = x_augmentation_array.astype(np.uint8)
+            x_augmentation_array_sli = x_augmentation_array_sli.astype(np.uint8)
+            x_augmentation_array_slerp = x_augmentation_array_slerp.astype(np.uint8)
 
             # Save arrays containing the augmentation sets
-            np.save(OUT_DIR + '/' + 'x_augmentation_array', x_augmentation_array)
-            np.save(OUT_DIR + '/' + 'y_augmentation_array', y_augmentation_array)   
-             
-            # INTERPOLATION 3: Spherical linear interpolation (Slerp)
-            
-            
+            np.save(OUT_DIR + '/' + 'x_augmentation_array_sli', x_augmentation_array_sli)
+            np.save(OUT_DIR + '/' + 'y_augmentation_array_sli', y_augmentation_array_sli)
+            np.save(OUT_DIR + '/' + 'x_augmentation_array_slerp', x_augmentation_array_slerp)
+            np.save(OUT_DIR + '/' + 'y_augmentation_array_slerp', y_augmentation_array_slerp)   
+                      
     # Run
 
     if MODE == 'one_level':
