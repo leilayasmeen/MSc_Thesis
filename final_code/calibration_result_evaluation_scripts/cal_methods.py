@@ -1,4 +1,4 @@
-# Calibration methods 
+# Calibration methods. This code was obtained from Markus Kangsepp's open-source implementation: https://github.com/markus93/NN_calibration
 
 import numpy as np
 from scipy.optimize import minimize 
@@ -40,12 +40,8 @@ def softmax(x):
     Returns:
         x_softmax (numpy.ndarray) softmaxed values for initial (m,n) array
     """
-    
-    # Replace NaN with 0, as it should be close to zero  
-    #idx_nan = np.where(np.isnan(x))
-    #x[idx_nan] = 0
-
-    # There should be no zero values, so following the method in Gulrajani et al (2016), we avoid it
+    # There should be no zero values, so following the method used in Gulrajani et al (2016), we avoid it. 
+    # (Another option for future studies would be using numerically stable versions of softmax)
     epsilon = 0.0000000000000000000000000000000001
     e_x = np.exp(x - np.max(x))
     idex_nan = np.where(np.isnan(e_x))
@@ -70,12 +66,13 @@ class TemperatureScaling():
         self.solver = solver
     
     def _loss_fun(self, x, probs, true):
-        # Calculates the loss using log-loss (cross-entropy loss)
+        
+        # Calculates the cross-entropy loss
         scaled_probs = self.predict(probs, x)    
         loss = log_loss(y_true=true, y_pred=scaled_probs)
         return loss
     
-    # Find the temperature
+    # This function finds the temperature parameter T
     def fit(self, logits, true):
         """
         Trains the model and finds optimal temperature
@@ -88,7 +85,7 @@ class TemperatureScaling():
             the results of optimizer after minimizing is finished.
         """
         
-        true = true.flatten() # Flatten y_val
+        true = true.flatten() 
         opt = minimize(self._loss_fun, x0 = 1, args=(logits, true), options={'maxiter':self.maxiter}, method = self.solver)
         self.temp = opt.x[0]
         
