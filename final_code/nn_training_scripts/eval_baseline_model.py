@@ -1,6 +1,7 @@
 # This file obtains predictions (and saves them in logit form) for the baseline ResNet-110.
 # It is based off a script implemented by Markus Kangsepp.
-# The ResNet model is obtained from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
+# The ResNet model is obtained from:
+# https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
 import numpy as np
@@ -57,7 +58,8 @@ def residual_network(img_input,classes_num=10,stack_n=5):
         pre_bn   = BatchNormalization()(intput)
         pre_relu = Activation('relu')(pre_bn)
 
-        conv_1 = Conv2D(out_channel,kernel_size=(3,3),strides=stride,padding='same',
+        conv_1 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=stride,padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(pre_relu)
         bn_1   = BatchNormalization()(conv_1)
@@ -118,7 +120,10 @@ if __name__ == '__main__':
     y_test = keras.utils.to_categorical(y_test, num_classes10)
     
     # Split into training, validation, and test sets
-    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
+    x_train45, x_val, y_train45, y_val = train_test_split(x_train, 
+                                                          y_train, 
+                                                          test_size=0.1, 
+                                                          random_state=seed)  
     
     # Pre-process colors as specified in the paper
     img_mean = x_train45.mean(axis=0)  
@@ -131,6 +136,8 @@ if __name__ == '__main__':
     img_input = Input(shape=(img_rows,img_cols,img_channels))
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
-    evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet110_c10clip", x_val = x_val, y_val = y_val)
+    evaluate_model(model, weights_file_10, x_test, y_test, 
+                   bins = 15, verbose = True, 
+                   pickle_file = "probs_resnet110_c10clip", 
+                   x_val = x_val, y_val = y_val)
     
