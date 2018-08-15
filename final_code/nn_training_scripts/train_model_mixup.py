@@ -1,7 +1,10 @@
-# This file trains a ResNet-110 with mixup (note that output-space mixed examples are created in every training batch)
+# This file trains a ResNet-110 with mixup
+# Output-space mixed examples are created in every training batch
 # It is based off a script implemented by Markus Kangsepp
-# It draws on code from: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
-# The ResNet model is obtained from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
+# It draws on code from:
+# https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
+# The ResNet model is obtained from:
+# https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
 import numpy as np
@@ -46,12 +49,14 @@ def residual_network(img_input,classes_num=10,stack_n=5):
         pre_bn   = BatchNormalization()(intput)
         pre_relu = Activation('relu')(pre_bn)
 
-        conv_1 = Conv2D(out_channel,kernel_size=(3,3),strides=stride,padding='same',
+        conv_1 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=stride,padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(pre_relu)
         bn_1   = BatchNormalization()(conv_1)
         relu1  = Activation('relu')(bn_1)
-        conv_2 = Conv2D(out_channel,kernel_size=(3,3),strides=(1,1),padding='same',
+        conv_2 = Conv2D(out_channel,kernel_size=(3,3),
+                        strides=(1,1),padding='same',
                         kernel_initializer="he_normal",
                         kernel_regularizer=regularizers.l2(weight_decay))(relu1)
         if increase:
@@ -70,7 +75,8 @@ def residual_network(img_input,classes_num=10,stack_n=5):
     # stack_n = 5 by default, total layers = 32
     # Input dimensions: 32x32x3 
     # Output dimensions: 32x32x16
-    x = Conv2D(filters=16,kernel_size=(3,3),strides=(1,1),padding='same',
+    x = Conv2D(filters=16,kernel_size=(3,3),
+               strides=(1,1),padding='same',
                kernel_initializer="he_normal",
                kernel_regularizer=regularizers.l2(weight_decay))(img_input)
 
@@ -107,7 +113,10 @@ if __name__ == '__main__':
     y_test = keras.utils.to_categorical(y_test, num_classes10)
     
     # Split into training, validation, and test sets
-    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
+    x_train45, x_val, y_train45, y_val = train_test_split(x_train,
+                                                          y_train, 
+                                                          test_size=0.1,
+                                                          random_state=seed) 
     
     # Pre-process colors as described in the paper
     img_mean = x_train45.mean(axis=0)  
@@ -123,8 +132,10 @@ if __name__ == '__main__':
     print(resnet.summary())
 
     # Set the optimizer and momentum
-    sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True, clipnorm=1.)
-    resnet.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    sgd = optimizers.SGD(lr=.1, momentum=0.9, nesterov=True, 
+                         clipnorm=1.)
+    resnet.compile(loss='categorical_crossentropy', 
+                   optimizer=sgd, metrics=['accuracy'])
 
     # Define the callback
     cbks = [LearningRateScheduler(scheduler)]
@@ -132,15 +143,18 @@ if __name__ == '__main__':
     # Import function to create mixed examples in training batches
     from mixup_generator import MixupGenerator
 
-    # Simple data augmentation (e.g., flips) - these do not change the class vectors
+    # Simple data augmentation - these do not change the class vectors
     print('Using real-time data augmentation.')
     datagen = ImageDataGenerator(horizontal_flip=True,
                                  width_shift_range=0.125,
                                  height_shift_range=0.125,
                                  fill_mode='constant',cval=0.)
     
-    # Set MixupGenerator as the training batch generator, and specify the alpha value to use for interpolations
-    training_generator = MixupGenerator(x_train45, y_train45, batch_size=batch_size, alpha=0.2, datagen=datagen)
+    # Set MixupGenerator as the training batch generator, and 
+    # specify the alpha value to use for interpolations
+    training_generator = MixupGenerator(x_train45, y_train45, 
+                                        batch_size=batch_size, 
+                                        alpha=0.2, datagen=datagen)
     datagen.fit(x_train45)
 
     # Commence the training process
