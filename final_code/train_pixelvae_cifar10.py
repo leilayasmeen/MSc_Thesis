@@ -1,5 +1,9 @@
 
 """
+Code to train a PixelVAE generative model on the CIFAR-10 dataset.
+
+Code adapted from:
+
 PixelVAE: A Latent Variable Model for Natural Images
 Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, David Vazquez, Aaron Courville
 """
@@ -29,8 +33,8 @@ from imageio import imsave
 import time
 import functools
 
-DATASET = 'cifar10'#'lsun_64'
-SETTINGS =  '32px_cifar' #64px_big' # mnist_256, 32px_small, 32px_big, 64px_small, 64px_big
+DATASET = 'cifar10' # mnist_256
+SETTINGS =  '32px_cifar' # debugging conducted with mnist_256
 
 OUT_DIR = DATASET + '_results' + '_filter_3'
 
@@ -85,240 +89,6 @@ if SETTINGS == 'mnist_256':
     N_CHANNELS = 1
     HEIGHT = 28
     WIDTH = 28
-
-    # These aren't actually used for one-level models but some parts
-    # of the code still depend on them being defined.
-    LATENT_DIM_1 = 64
-    LATENTS1_HEIGHT = 7
-    LATENTS1_WIDTH = 7
-
-elif SETTINGS == '32px_small':
-    MODE = 'two_level'
-
-    EMBED_INPUTS = True
-
-    PIXEL_LEVEL_PIXCNN = True
-    HIGHER_LEVEL_PIXCNN = True
-
-    DIM_EMBED    = 16
-    DIM_PIX_1    = 128
-    DIM_1        = 64
-    DIM_2        = 128
-    DIM_3        = 256
-    LATENT_DIM_1 = 64
-    DIM_PIX_2    = 512
-    DIM_4        = 512
-    LATENT_DIM_2 = 512
-
-    ALPHA1_ITERS = 2000
-    ALPHA2_ITERS = 5000
-    KL_PENALTY = 1.00
-    BETA_ITERS = 1000
-
-    PIX_2_N_BLOCKS = 1
-
-    TIMES = {
-        'test_every': 1000,
-        'stop_after': 200000,
-        'callback_every': 20000
-    }
-
-    LR = 1e-3
-
-    LR_DECAY_AFTER = 180000
-    LR_DECAY_FACTOR = 1e-1
-
-    BATCH_SIZE = 64
-    N_CHANNELS = 3
-    HEIGHT = 32
-    WIDTH = 32
-
-    LATENTS1_HEIGHT = 8
-    LATENTS1_WIDTH = 8
-
-elif SETTINGS == '32px_big':
-
-    MODE = 'two_level'
-
-    EMBED_INPUTS = False
-
-    PIXEL_LEVEL_PIXCNN = True
-    HIGHER_LEVEL_PIXCNN = True
-
-    DIM_EMBED    = 16
-    DIM_PIX_1    = 256
-    DIM_1        = 128
-    DIM_2        = 256
-    DIM_3        = 512
-    LATENT_DIM_1 = 128
-    DIM_PIX_2    = 512
-    DIM_4        = 512
-    LATENT_DIM_2 = 512
-
-    ALPHA1_ITERS = 2000
-    ALPHA2_ITERS = 5000
-    KL_PENALTY = 1.00
-    BETA_ITERS = 1000
-
-    PIX_2_N_BLOCKS = 1
-
-    TIMES = {
-        'test_every': 1000,
-        'stop_after': 300000,
-        'callback_every': 20000
-    }
-
-    VANILLA = False
-    LR = 1e-3
-
-    LR_DECAY_AFTER = 300000
-    LR_DECAY_FACTOR = 1e-1
-
-    BATCH_SIZE = 64
-    N_CHANNELS = 3
-    HEIGHT = 32
-    WIDTH = 32
-    LATENTS1_HEIGHT = 8
-    LATENTS1_WIDTH = 8
-
-elif SETTINGS == '64px_small':
-    MODE = 'two_level'
-
-    EMBED_INPUTS = True
-
-    PIXEL_LEVEL_PIXCNN = True
-    HIGHER_LEVEL_PIXCNN = True
-
-    DIM_EMBED    = 16
-    DIM_PIX_1    = 128
-    DIM_0        = 64
-    DIM_1        = 64
-    DIM_2        = 128
-    LATENT_DIM_1 = 64
-    DIM_PIX_2    = 256
-    DIM_3        = 256
-    DIM_4        = 512
-    LATENT_DIM_2 = 512
-
-    PIX_2_N_BLOCKS = 1
-
-    TIMES = {
-        'test_every': 10000,
-        'stop_after': 200000,
-        'callback_every': 50000
-    }
-
-    VANILLA = False
-    LR = 1e-3
-
-    LR_DECAY_AFTER = 180000
-    LR_DECAY_FACTOR = .1
-
-    ALPHA1_ITERS = 2000
-    ALPHA2_ITERS = 10000
-    KL_PENALTY = 1.0
-    BETA_ITERS = 1000
-
-    BATCH_SIZE = 64
-    N_CHANNELS = 3
-    HEIGHT = 64
-    WIDTH = 64
-    LATENTS1_WIDTH = 16
-    LATENTS1_HEIGHT = 16
-
-elif SETTINGS == '64px_big':
-    MODE = 'two_level'
-
-    EMBED_INPUTS = True
-
-    PIXEL_LEVEL_PIXCNN = True
-    HIGHER_LEVEL_PIXCNN = True
-
-    DIM_EMBED    = 16
-    DIM_PIX_1    = 384
-    DIM_0        = 192
-    DIM_1        = 256
-    DIM_2        = 512
-    LATENT_DIM_1 = 64
-    DIM_PIX_2    = 512
-    DIM_3        = 512
-    DIM_4        = 512
-    LATENT_DIM_2 = 512
-
-    PIX_2_N_BLOCKS = 1
-
-    TIMES = {
-        'test_every': 10000,
-        'stop_after': 400000,
-        'callback_every': 50000
-    }
-
-    VANILLA = False
-    LR = 1e-3
-
-    LR_DECAY_AFTER = 180000
-    LR_DECAY_FACTOR = .5
-
-    ALPHA1_ITERS = 1000
-    ALPHA2_ITERS = 10000
-    KL_PENALTY = 1.00
-    BETA_ITERS = 500
-
-    BATCH_SIZE = 48
-    N_CHANNELS = 3
-    HEIGHT = 64
-    WIDTH = 64
-    LATENTS1_WIDTH = 16
-    LATENTS1_HEIGHT = 16
-
-elif SETTINGS=='64px_big_onelevel':
-
-    # two_level uses Enc1/Dec1 for the bottom level, Enc2/Dec2 for the top level
-    # one_level uses EncFull/DecFull for the bottom (and only) level
-    MODE = 'one_level'
-
-    # Whether to treat pixel inputs to the model as real-valued (as in the 
-    # original PixelCNN) or discrete (gets better likelihoods).
-    EMBED_INPUTS = True
-
-    # Turn on/off the bottom-level PixelCNN in Dec1/DecFull
-    PIXEL_LEVEL_PIXCNN = True
-    HIGHER_LEVEL_PIXCNN = True
-
-    DIM_EMBED    = 16
-    DIM_PIX_1    = 384
-    DIM_0        = 192
-    DIM_1        = 256
-    DIM_2        = 512
-    DIM_3        = 512
-    DIM_4        = 512
-    LATENT_DIM_2 = 512
-
-    ALPHA1_ITERS = 50000
-    ALPHA2_ITERS = 50000
-    KL_PENALTY = 1.0
-    BETA_ITERS = 1000
-
-    # In Dec2, we break each spatial location into N blocks (analogous to channels
-    # in the original PixelCNN) and model each spatial location autoregressively
-    # as P(x)=P(x0)*P(x1|x0)*P(x2|x0,x1)... In my experiments values of N > 1
-    # actually hurt performance. Unsure why; might be a bug.
-    PIX_2_N_BLOCKS = 1
-
-    TIMES = {
-        'test_every': 10000,
-        'stop_after': 400000,
-        'callback_every': 50000
-    }
-    LR = 1e-3
-
-    LR_DECAY_AFTER = 180000
-    LR_DECAY_FACTOR = 0.5
-
-    BATCH_SIZE = 48
-    N_CHANNELS = 3
-    HEIGHT = 64
-    WIDTH = 64
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
@@ -384,14 +154,8 @@ elif SETTINGS=='32px_cifar':
     
 if DATASET == 'mnist_256':
     train_data, dev_data, test_data = lib.mnist_256.load(BATCH_SIZE, BATCH_SIZE)
-elif DATASET == 'lsun_32':
-    train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=True)
-elif DATASET == 'lsun_64':
-    train_data, dev_data = lib.lsun_bedrooms.load(BATCH_SIZE, downsample=False)
-elif DATASET == 'imagenet_64':
-    train_data, dev_data = lib.small_imagenet.load(BATCH_SIZE)
 elif DATASET == 'cifar10':
-    train_data, dev_data, test_data = lib.cifar_256.load(BATCH_SIZE) #LEILAEDIT
+    train_data, dev_data, test_data = lib.cifar_256.load(BATCH_SIZE)
 
 lib.print_model_settings(locals().copy())
 
@@ -431,33 +195,17 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 return output
 
             def ResidualBlock(name, input_dim, output_dim, inputs, filter_size, mask_type=None, resample=None, he_init=True):
-                """
-                resample: None, 'down', or 'up'
-                """
-                if mask_type != None and resample != None:
-                    raise Exception('Unsupported configuration')
+               conv_shortcut = lib.ops.conv2d.Conv2D
+               conv_1        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=input_dim, output_dim=output_dim)
+               conv_2        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=output_dim, output_dim=output_dim)
 
-                if resample=='down':
-                    conv_shortcut = functools.partial(lib.ops.conv2d.Conv2D, stride=2)
-                    conv_1        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=input_dim, output_dim=input_dim)
-                    conv_2        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=input_dim, output_dim=output_dim, stride=2)
-                elif resample=='up':
-                    conv_shortcut = SubpixelConv2D
-                    conv_1        = functools.partial(SubpixelConv2D, input_dim=input_dim, output_dim=output_dim)
-                    conv_2        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=output_dim, output_dim=output_dim)
-                elif resample==None:
-                    conv_shortcut = lib.ops.conv2d.Conv2D
-                    conv_1        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=input_dim, output_dim=output_dim)
-                    conv_2        = functools.partial(lib.ops.conv2d.Conv2D, input_dim=output_dim, output_dim=output_dim)
-                else:
-                    raise Exception('invalid resample value')
-
-                if output_dim==input_dim and resample==None:
-                    shortcut = inputs # Identity skip-connection
+                if output_dim==input_dim:
+                     shortcut = inputs # Identity skip-connection
                 else:
                     shortcut = conv_shortcut(name+'.Shortcut', input_dim=input_dim, output_dim=output_dim, filter_size=1, mask_type=mask_type, he_init=False, biases=True, inputs=inputs)
 
                 output = inputs
+               
                 if mask_type == None:
                     output = nonlinearity(output)
                     output = conv_1(name+'.Conv1', filter_size=filter_size, mask_type=mask_type, inputs=output, he_init=he_init, weightnorm=False)
@@ -477,11 +225,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 return shortcut + output
 
             
-            # Only for 32px_cifar, 64px_big_onelevel, and MNIST. Needs modification for others.
+            # Define Encoder
             def EncFull(images):
                 output = images
 
-                if WIDTH == 32: #64 
+                if WIDTH == 32: # Edit this value to correspond to the size of the image dataset in question (e.g., 28 for MNIST)
                     if EMBED_INPUTS:
                         output = lib.ops.conv2d.Conv2D('EncFull.Input', input_dim=N_CHANNELS*DIM_EMBED, output_dim=DIM_0, filter_size=1, inputs=output, he_init=False)
                     else:
@@ -519,11 +267,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
                 return output
 
-            # Only for 32px_CIFAR, 64px_big_onelevel and MNIST. Needs modification for others.
+            # Define decoder
             def DecFull(latents, images):
                 output = tf.clip_by_value(latents, -50., 50.)
 
-                if WIDTH == 32: # 64:LEILAEDIT. Also changed 4*4 to 2*2 and 4,4 to 2,2 in the two lines below
+                if WIDTH == 32: # Edit this value to correspond to the size of the image dataset in question (e.g., 28 for MNIST)
                     output = lib.ops.linear.Linear('DecFull.Input', input_dim=LATENT_DIM_2, output_dim=2*2*DIM_4, initialization='glorot', inputs=output)
                     output = tf.reshape(output, [-1, DIM_4, 2, 2])
                     output = ResidualBlock('DecFull.Res2', input_dim=DIM_4, output_dim=DIM_4, filter_size=3, resample=None, he_init=True, inputs=output)
@@ -554,20 +302,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 else:
                     dim = DIM_1
 
-                if PIXEL_LEVEL_PIXCNN: #LEILAEDIT
+                if PIXEL_LEVEL_PIXCNN: # Adjust the filter sizes in the lines below to adjust the receptive field size of the PixelVAE
 
                     if EMBED_INPUTS:
                         masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS*DIM_EMBED, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
                     else:
                         masked_images = lib.ops.conv2d.Conv2D('DecFull.Pix1', input_dim=N_CHANNELS, output_dim=dim, filter_size=3, inputs=images, mask_type=('a', N_CHANNELS), he_init=False)
 
-                    # Warning! Because of the masked convolutions it's very important that masked_images comes first in this concat
+                    # Masked convolutions
                     output = tf.concat([masked_images, output], axis=1)
 
                     output = ResidualBlock('DecFull.Pix2Res', input_dim=2*dim,   output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
                     output = ResidualBlock('DecFull.Pix3Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
                     output = ResidualBlock('DecFull.Pix4Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
-                    if WIDTH != 32: #64: LEILAEDIT
+                    if WIDTH != 32: # Edit this value to correspond to the size of the image dataset in question (e.g., 28 for MNIST)
                         output = ResidualBlock('DecFull.Pix5Res', input_dim=DIM_PIX_1, output_dim=DIM_PIX_1, filter_size=3, mask_type=('b', N_CHANNELS), inputs=output)
 
                     output = lib.ops.conv2d.Conv2D('Dec1.Out', input_dim=DIM_PIX_1, output_dim=256*N_CHANNELS, filter_size=1, mask_type=('b', N_CHANNELS), he_init=False, inputs=output)
@@ -649,58 +397,49 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         tf.concat([tf.expand_dims(x, 0) for x in tower_cost], axis=0), 0
     )
 
-    # Sampling
+    # Generate samples
 
-    if MODE == 'one_level':
+    ch_sym = tf.placeholder(tf.int32, shape=None)
+    y_sym = tf.placeholder(tf.int32, shape=None)
+    x_sym = tf.placeholder(tf.int32, shape=None)
+    logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
+    dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
+         
+    def dec1_fn(_latents, _targets, _ch, _y, _x):
+      return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        ch_sym = tf.placeholder(tf.int32, shape=None)
-        y_sym = tf.placeholder(tf.int32, shape=None)
-        x_sym = tf.placeholder(tf.int32, shape=None)
-        logits = tf.reshape(tf.slice(outputs1, tf.stack([0, ch_sym, y_sym, x_sym, 0]), tf.stack([-1, 1, 1, 1, -1])), [-1, 256])
-        dec1_fn_out = tf.multinomial(logits, 1)[:, 0]
-        def dec1_fn(_latents, _targets, _ch, _y, _x):
-            return session.run(dec1_fn_out, feed_dict={latents1: _latents, images: _targets, ch_sym: _ch, y_sym: _y, x_sym: _x, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
+    def enc_fn(_images):
+      return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
 
-        def enc_fn(_images):
-            return session.run(latents1, feed_dict={images: _images, total_iters: 99999, bn_is_training: False, bn_stats_iter:0})
+    sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
 
-        sample_fn_latents1 = np.random.normal(size=(1, LATENT_DIM_2)).astype('float32') # changed 8 to 1
+    def generate_and_save_samples(tag):
+      def color_grid_vis(X, nh, nw, save_path):
+         # Original code from github.com/Newmu
+         X = X.transpose(0,2,3,1)
+         h, w = X[0].shape[:2]
+         img = np.zeros((h*nh, w*nw, 3))
+         for n, x in enumerate(X):
+            j = n/nw
+            i = n%nw
+            img[j*h:j*h+h, i*w:i*w+w, :] = x
+         imsave(save_path, img)
 
-        def generate_and_save_samples(tag):
-            def color_grid_vis(X, nh, nw, save_path):
-                # from github.com/Newmu
-                X = X.transpose(0,2,3,1)
-                h, w = X[0].shape[:2]
-                img = np.zeros((h*nh, w*nw, 3))
-                for n, x in enumerate(X):
-                    j = n/nw
-                    i = n%nw
-                    img[j*h:j*h+h, i*w:i*w+w, :] = x
-                imsave(save_path, img)
+    latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32')
+    for i in xrange(1): # This number can be adjusted to create multi-dimensional plots in a single iteration
+      latents1_copied[i::1] = sample_fn_latents1 
 
-            latents1_copied = np.zeros((1, LATENT_DIM_2), dtype='float32') # changed 8 to 1
-            for i in xrange(1): # changed 8 to 1
-                latents1_copied[i::1] = sample_fn_latents1 # changed 8 to 1
+      samples = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH), dtype='int32') # Adjust this number when creating multi-dimensional plots
 
-            samples = np.zeros(
-                (1, N_CHANNELS, HEIGHT, WIDTH), # changed 64 to 1
-                dtype='int32'
-            )
+      print "Generating samples"
+      for y in xrange(HEIGHT):
+         for x in xrange(WIDTH):
+            for ch in xrange(N_CHANNELS):
+               next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
+               samples[:,ch,y,x] = next_sample
 
-            print "Generating samples"
-            for y in xrange(HEIGHT):
-                for x in xrange(WIDTH):
-                    for ch in xrange(N_CHANNELS):
-                        next_sample = dec1_fn(latents1_copied, samples, ch, y, x)
-                        samples[:,ch,y,x] = next_sample
-
-            print "Saving samples"
-            color_grid_vis(
-                samples, 
-                1, 
-                1, 
-                'samples_filter_3_{}.png'.format(tag) # changed to 1 and 1
-            )
+      print "Saving samples"
+      color_grid_vis(samples, 1, 1,'samples_filter_3_{}.png'.format(tag)) # Adjust this when creating multi-dimensional plots
 
     # Train!
 
