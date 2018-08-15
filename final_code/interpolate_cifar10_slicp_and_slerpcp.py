@@ -1,16 +1,20 @@
 
 """
-This file creates interpolations using Latent Blending. Before using this file, use train_pixelvae_cifar10.py to train
-a PixelVAE on CIFAR-10 (or another dataset). This file is currently set to run for CIFAR-10; however, the lines which need
+This file creates interpolations using Latent Blending. 
+Before using this file, use train_pixelvae_cifar10.py to train
+a PixelVAE on CIFAR-10 (or another dataset). This file is currently
+set to run for CIFAR-10; however, the lines which need
 to be adjusted in order to run this file on another dataset have been labelled.
 
-When using a different set of parameters or PixelVAE architecture, change the sampling_loop file to the one 
+When using a different set of parameters or PixelVAE architecture, 
+change the sampling_loop file to the one 
 which is tailored to run on your desired set of parameters.
 
 This code is adapted from:
 
 PixelVAE: A Latent Variable Model for Natural Images
-Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, Francesco Visin, David Vazquez, Aaron Courville
+Ishaan Gulrajani, Kundan Kumar, Faruk Ahmed, Adrien Ali Taiga, 
+Francesco Visin, David Vazquez, Aaron Courville
 """
 
 import os, sys
@@ -41,7 +45,7 @@ import functools
 import sklearn
 from sklearn.model_selection import train_test_split
 
-DATASET = 'cifar10' # Can be adjusted to run interpolations on MNIST. If so, change to 'mnist_256'
+DATASET = 'cifar10' # Can be adjusted to run on MNIST (change to 'mnist_256')
 SETTINGS = '32px_cifar' # If working with MNIST, change to 'mnist_256'
 
 OUT_DIR = DATASET + '_interpolations_filter_3'
@@ -113,7 +117,8 @@ elif SETTINGS=='32px_cifar':
     x_train_set = x_train_set.transpose(0,3,1,2)
     x_test_set = x_test_set.transpose(0,3,1,2)
     
-    # Set seed to allow for reproducibility. The same seed is used to split the dataset when training all neural networks.
+    # Set seed to allow for reproducibility.
+    # The same seed is used to split the dataset when training all neural networks.
     seed = 333
     # Split into training, validation, and test sets
     x_train_set, x_dev_set, y_train_set, y_dev_set = train_test_split(x_train_set, y_train_set, test_size=0.1, random_state=seed)
