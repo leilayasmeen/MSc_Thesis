@@ -1,5 +1,8 @@
-# Load in model weights and evaluate its goodness (ECE, MCE, error) also saves logits.
-# ResNet model from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
+# This file obtains predictions (and saves them in logit form) for the ResNet-110 trained with mixup (specifically, the
+# experiments in which output-space mixed examples were created in every training batch)
+# It is based off a script implemented by Markus Kangsepp
+# It draws on code from: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
+# The ResNet model is obtained from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
 import numpy as np
@@ -30,9 +33,11 @@ batch_size         = 128
 epochs             = 200
 iterations         = 45000 // batch_size
 weight_decay       = 0.0001
-mean = [125.307, 122.95, 113.865]  # Mean (per-pixel mean?) 
+mean = [125.307, 122.95, 113.865]  
 std  = [62.9932, 62.0887, 66.7048]
 seed = 333
+
+# Load in the model weights 
 weights_file_10 = "resnet_110_45kclip_mixup.h5"
 
 def scheduler(epoch):
@@ -42,7 +47,10 @@ def scheduler(epoch):
         return 0.01
     return 0.001
 
+# Define the ResNet
 def residual_network(img_input,classes_num=10,stack_n=5):
+    
+    # Define residual blocks
     def residual_block(intput,out_channel,increase=False):
         if increase:
             stride = (2,2)
@@ -72,24 +80,27 @@ def residual_network(img_input,classes_num=10,stack_n=5):
             block = add([intput,conv_2])
         return block
 
-    # build model
     # total layers = stack_n * 3 * 2 + 2
     # stack_n = 5 by default, total layers = 32
-    # input: 32x32x3 output: 32x32x16
+    # Input dimensions: 32x32x3 
+    # Output dimensions: 32x32x16
     x = Conv2D(filters=16,kernel_size=(3,3),strides=(1,1),padding='same',
                kernel_initializer="he_normal",
                kernel_regularizer=regularizers.l2(weight_decay))(img_input)
 
-    # input: 32x32x16 output: 32x32x16
+    # Input dimensions: 32x32x16
+    # Output dimensions: 32x32x16
     for _ in range(stack_n):
         x = residual_block(x,16,False)
 
-    # input: 32x32x16 output: 16x16x32
+    # Input dimensions: 32x32x16
+    # Output dimensions: 16x16x32
     x = residual_block(x,32,True)
     for _ in range(1,stack_n):
         x = residual_block(x,32,False)
     
-    # input: 16x16x32 output: 8x8x64
+    # Input dimensions: 16x16x32
+    # Output dimensions: 8x8x64
     x = residual_block(x,64,True)
     for _ in range(1,stack_n):
         x = residual_block(x,64,False)
@@ -98,31 +109,28 @@ def residual_network(img_input,classes_num=10,stack_n=5):
     x = Activation('relu')(x)
     x = GlobalAveragePooling2D()(x)
 
-    # input: 64 output: 10
     x = Dense(classes_num,activation='softmax',
               kernel_initializer="he_normal",
               kernel_regularizer=regularizers.l2(weight_decay))(x)
     return x
 
-
 if __name__ == '__main__':
 
-    # load data
-    print("Cifar-10 evaluation")
-        
+    # Load the CIFAR-10 datast
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     y_test = keras.utils.to_categorical(y_test, num_classes10)
     
-    # color preprocessing - using precalculated means and std-s
+    # Split into training, validation, and test sets
     x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
     
-    img_mean = x_train45.mean(axis=0)  # per-pixel mean
+    # Pre-process colors as described in the paper
+    img_mean = x_train45.mean(axis=0)  
     img_std = x_train45.std(axis=0)
     x_train45 = (x_train45-img_mean)/img_std
     x_val = (x_val-img_mean)/img_std
     x_test = (x_test-img_mean)/img_std
     
-    # build network
+    # Assemble the neural network
     img_input = Input(shape=(img_rows,img_cols,img_channels))
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
