@@ -442,6 +442,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             x_augmentation_set_slerp = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) 
             y_augmentation_set_slerp = np.zeros((1, 1, NUM_CLASSES))
             
+            # Create arrays to save mixed examples created using output-space interpolations (relevant only for the experiments
+            # in which output-space interpolations were applied prior to training, instead of during every training batch).
+            x_augmentation_set_mixup = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH)) 
+            y_augmentation_set_mixup = np.zeros((1, 1, NUM_CLASSES))
+
             # Function to translate numeric images into plots
             def color_grid_vis(X, nh, nw, save_path):
                 # Original code from github.com/Newmu
@@ -567,21 +572,45 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                       # Save the Slerp-mixed example as an image. Comment out this line if desired.
                       color_grid_vis(sample_slerp,1,1,'interpolation_slerp_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum))
 
+                      # Output-space interpolations 
+                      new_label_mixup = np.multiply(p,label1) + np.multiply((1-p),label2)
+                      new_label_mixup = new_label_mixup.reshape(1,1,NUM_CLASSES)
+
+                      sample_mixup = np.zeros((1, N_CHANNELS, HEIGHT, WIDTH),dtype='int32')
+
+                      # Generate output-space blended example
+                      for y in xrange(HEIGHT):
+                        for x in xrange(WIDTH):
+                              for ch in xrange(N_CHANNELS):
+                                  next_sample_mixup = dec1_fn(new_code_mixup, sample_mixup, ch, y, x) 
+                                  sample_mixup[:,ch,y,x] = next_sample_mixup
+                            
+                      x_augmentation_set_mixup = np.concatenate((x_augmentation_set_mixup, sample_mixup), axis=0)
+                      y_augmentation_set_mixup = np.concatenate((y_augmentation_set_mixup, new_label_mixup), axis=0)
+   
+                      # Save the output-space-mixed example as an image. Comment out this line if desired.
+                      color_grid_vis(sample_mixup,1,1,'interpolation_mixup_classes{}and{}_pval{}_num{}.png'.format(class1,class2,p,imagenum))
+
             # Remove the placeholder rows in the image and label arrays
             x_augmentation_array_sli = np.delete(x_augmentation_set_sli, (0), axis=0)
             y_augmentation_array_sli = np.delete(y_augmentation_set_sli, (0), axis=0)
             x_augmentation_array_slerp = np.delete(x_augmentation_set_slerp, (0), axis=0)
             y_augmentation_array_slerp = np.delete(y_augmentation_set_slerp, (0), axis=0)
+            x_augmentation_array_mixup = np.delete(x_augmentation_set_mixup, (0), axis=0)
+            y_augmentation_array_mixup = np.delete(y_augmentation_set_mixup, (0), axis=0)
             
             # Convert the image pixels to uint8
             x_augmentation_array_sli = x_augmentation_array_sli.astype(np.uint8)
             x_augmentation_array_slerp = x_augmentation_array_slerp.astype(np.uint8)
+            x_augmentation_array_mixup = x_augmentation_array_mixup.astype(np.uint8)
 
             # Save arrays containing the augmentation sets
             np.save(OUT_DIR + '/' + 'x_augmentation_array_sli', x_augmentation_array_sli)
             np.save(OUT_DIR + '/' + 'y_augmentation_array_sli', y_augmentation_array_sli)
             np.save(OUT_DIR + '/' + 'x_augmentation_array_slerp', x_augmentation_array_slerp)
-            np.save(OUT_DIR + '/' + 'y_augmentation_array_slerp', y_augmentation_array_slerp)   
+            np.save(OUT_DIR + '/' + 'y_augmentation_array_slerp', y_augmentation_array_slerp) 
+            np.save(OUT_DIR + '/' + 'x_augmentation_array_mixup', x_augmentation_array_mixup)
+            np.save(OUT_DIR + '/' + 'y_augmentation_array_mixup', y_augmentation_array_mixup) 
                       
     # Run
 
