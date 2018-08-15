@@ -139,7 +139,7 @@ if __name__ == '__main__':
     x_train45 = np.concatenate((x_train45, x_train_additions),axis=0)
     y_train45 = np.concatenate((y_train45, y_train_additions),axis=0)
     
-    # Pre-process color, as specified in the paper
+    # Pre-process colors, as specified in the paper
     img_mean = x_train45.mean(axis=0)  # per-pixel mean
     img_std = x_train45.std(axis=0)
     x_train45 = (x_train45-img_mean)/img_std
