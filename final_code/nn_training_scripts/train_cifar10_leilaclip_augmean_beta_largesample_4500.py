@@ -110,8 +110,9 @@ if __name__ == '__main__':
     x_train_additions = np.load('Augmentation_Sets/x_augmentation_array_mean_beta_largesample_4500.npy')
     y_train_additions = np.load('Augmentation_Sets/y_augmentation_array_mean_beta_largesample_4500.npy')
 
-    # Split the CIFAR-10 dataset into training, validation, and test sets before appending the augmentation st
-    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
+    # Split the CIFAR-10 dataset into training, validation, and test sets before appending the augmentation set
+    # The random seed ensures that every discriminator uses the same split
+    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed) 
     
     # Add the augmentation set to the training set
     x_train_additions = x_train_additions.transpose(0,2,3,1)
