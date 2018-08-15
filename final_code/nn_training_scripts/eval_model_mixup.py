@@ -1,8 +1,10 @@
-# This file obtains predictions (and saves them in logit form) for the ResNet-110 trained with mixup (specifically, the
-# experiments in which output-space mixed examples were created in every training batch)
-# It is based off a script implemented by Markus Kangsepp
-# It draws on code from: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
-# The ResNet model is obtained from https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
+# This file obtains predictions (and saves them in logit form) for the
+# ResNet-110 trained with mixup (specifically, the experiments in which
+# output-space mixed examples were created in every training batch)
+# It is based off a script implemented by Markus Kangsepp, and draws on code
+# from: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
+# The ResNet model is from:
+# https://github.com/BIGBALLON/cifar-10-cnn/blob/master/4_Residual_Network/ResNet_keras.py
 
 import keras
 import numpy as np
@@ -121,7 +123,10 @@ if __name__ == '__main__':
     y_test = keras.utils.to_categorical(y_test, num_classes10)
     
     # Split into training, validation, and test sets
-    x_train45, x_val, y_train45, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=seed)  # random_state = seed
+    x_train45, x_val, y_train45, y_val = train_test_split(x_train,
+                                                          y_train,
+                                                          test_size=0.1,
+                                                          random_state=seed)  
     
     # Pre-process colors as described in the paper
     img_mean = x_train45.mean(axis=0)  
@@ -134,6 +139,8 @@ if __name__ == '__main__':
     img_input = Input(shape=(img_rows,img_cols,img_channels))
     output    = residual_network(img_input,num_classes10,stack_n)
     model    = Model(img_input, output)    
-    evaluate_model(model, weights_file_10, x_test, y_test, bins = 15, verbose = True, 
-                   pickle_file = "probs_resnet110_c10clip_mixup", x_val = x_val, y_val = y_val)
+    evaluate_model(model, weights_file_10, x_test, y_test, 
+                   bins = 15, verbose = True, 
+                   pickle_file = "probs_resnet110_c10clip_mixup",
+                   x_val = x_val, y_val = y_val)
     
