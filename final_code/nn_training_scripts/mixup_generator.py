@@ -1,7 +1,8 @@
-# FROM https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
+# This file is used when training neural networks with mixup (it should be called from the neural network training file).
+# It implements mixup, as descripted in the 2017 paper by Zhang et al., by creating training batches of mixed images
+# The code was adapted from the implementation at: https://raw.githubusercontent.com/yu4u/mixup-generator/master/mixup_generator.py
 
 import numpy as np
-
 
 class MixupGenerator():
     def __init__(self, X_train, y_train, batch_size=32, alpha=0.2, shuffle=True, datagen=None):
@@ -32,6 +33,7 @@ class MixupGenerator():
 
         return indexes
 
+    # Create mixed images in each training batch
     def __data_generation(self, batch_ids):
         _, h, w, c = self.X_train.shape
         l = np.random.beta(self.alpha, self.alpha, self.batch_size)
