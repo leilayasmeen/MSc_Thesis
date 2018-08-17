@@ -111,13 +111,13 @@ elif SETTINGS=='32px_cifar':
     HIGHER_LEVEL_PIXCNN = True
 
     DIM_EMBED    = 16
-    DIM_PIX_1    = 192 #LEILA EDIT: was previously 384
-    DIM_0        = 96 #LEILA EDIT: was previously 192
-    DIM_1        = 128 #LEILA EDIT: was previously 256
-    DIM_2        = 256 #LEILA EDIT: was previously 512
-    DIM_3        = 256 #LEILA EDIT: was previously 512
-    DIM_4        = 256 #LEILA EDIT: was previously 512
-    LATENT_DIM_2 = 256 #LEILA EDIT: was previously 512
+    DIM_PIX_1    = 192 
+    DIM_0        = 96
+    DIM_1        = 128 
+    DIM_2        = 256 
+    DIM_3        = 256 
+    DIM_4        = 256 
+    LATENT_DIM_2 = 256 # Adjust this line to change the dimensionality of the latent code for a one-level PixelVAE
 
     ALPHA1_ITERS = 50000
     ALPHA2_ITERS = 50000
@@ -148,7 +148,7 @@ elif SETTINGS=='32px_cifar':
 
     # These aren't actually used for one-level models but some parts
     # of the code still depend on them being defined.
-    LATENT_DIM_1 = 32 #LEILAEDIT: was previously 64
+    LATENT_DIM_1 = 32 
     LATENTS1_HEIGHT = 7
     LATENTS1_WIDTH = 7
     
